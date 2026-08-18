@@ -33,3 +33,5 @@ screen rpg_movement():
         ypos player_y
         xanchor 0.5
         yanchor 0.5
+while true:
+    print(1)
