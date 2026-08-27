@@ -2,9 +2,9 @@
 errors listed below, and try again.
 
 
-File "game/script.rpy", line 53: expected 'image_name_component' not found.
-    image:
-         ^
+File "game/script.rpy", line 36: while statement expects a non-empty block.
+    while true:
+               ^
 
-Ren'Py Version: Ren'Py 8.5.3.26051504
-Wed Aug  5 12:20:23 2026
+Ren'Py Version: Ren'Py 8.1.1.23060707
+Wed Aug 19 11:39:16 2026

@@ -1,37 +1,49 @@
-﻿# The script of the game goes in this file.
+﻿
 
-# Declare characters used by this game.
-# Set up a tile size and boundaries (assuming standard 1920x1080 resolution)
-init python:
-    STEP_SIZE = 60
-    MAP_WIDTH = 1920
-    MAP_HEIGHT = 1080
+#reserved space for definace of each character
+define d = Character("Dorothy")
+define l = Character("Louis")
 
-screen rpg_movement():
-    # Capture keyboard inputs and trigger the move label
-    key "K_UP" action Jump("move_up")
-    key "w" action Jump("move_up")
-    
-    key "K_DOWN" action Jump("move_down")
-    key "s" action Jump("move_down")
-    
-    key "K_LEFT" action Jump("move_left")
-    key "a" action Jump("move_left")
-    
-    key "K_RIGHT" action Jump("move_right")
-    key "d" action Jump("move_right")
 
-    # Interactive Object / Talk button
-    key "K_SPACE" action Jump("interact_check")
 
-    # Render the background map
-    add "bg_map.png"
+#End of character define
 
-    # Render the player sprite at their current X and Y coordinates
-    add "player_sprite.png":
-        xpos player_x
-        ypos player_y
-        xanchor 0.5
-        yanchor 0.5
-while true:
-    print(1)
+label start:
+
+    # text settings
+    # Auto-forward mode
+    $ _preferences.afm_enable = True
+    # 2. Set the wait time (lower = faster, 15 is standard)
+    $ _preferences.afm_time = 15
+    #end of text settings
+
+
+    scene bg room
+    show dorothy happy
+    d "Thank you for boarding the Grekhov Express"
+    show louis confused
+    l "“Wh-where am i?”{w=1}"
+    show dorothy confused
+    d " Excuse me sir, tickets please{w=2}"
+    show louis confused
+    show dorothy confused
+    d "Are you fine… sir?"
+    show louis looking around
+    l "uh uh yes the ticket. I think its somewhere here{w=2}"
+    #(reserve a spot for the ticket photo)
+    show louis confused
+    l "Miss, what line is this?{w=2}"
+    show dorothy supprised
+    d "The Grekhov Express? Are you ill? Everyone knows that, why else would you be on this train?{w=2}"
+    show louis neutral
+    l "O-oh, sorry, I think I might have gotten a bit light headed…{w=2}"
+    show dorothy neutral
+    d "I see. Well sir, welcome aboard the Grekhov Express…{w=1} "
+    show louis confused
+    l "stands up. Huh, I don’t remember how I got here… That’s right, I was tryna go home… But… What happened? I’m gonna look around{w=2}"
+
+
+    return
+
+
+

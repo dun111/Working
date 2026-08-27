@@ -1,64 +1,22 @@
 ﻿I'm sorry, but an uncaught exception occurred.
 
 While running game code:
-  File "game/script.rpy", line 34, in script
-    e "Fuck ryan"
-  File "game/screens.rpy", line 239, in execute
-    screen quick_menu():
-  File "game/screens.rpy", line 239, in execute
-    screen quick_menu():
-  File "game/screens.rpy", line 244, in execute
-    if quick_menu:
-  File "game/screens.rpy", line 244, in <module>
-    if quick_menu:
-NameError: name 'quick_menu' is not defined
+  File "game/script.rpy", line 8, in script
+    e "I'm feeling pretty good today."
+Exception: Sayer 'e' is not defined.
 
 -- Full Traceback ------------------------------------------------------------
 
 Full traceback:
-  File "game/script.rpy", line 34, in script
-    e "Fuck ryan"
-  File "/Users/ericzheng/renpy-8.1.1-sdk/renpy/ast.py", line 930, in execute
-    renpy.exports.say(who, what, *args, **kwargs)
-  File "/Users/ericzheng/renpy-8.1.1-sdk/renpy/exports.py", line 1473, in say
-    who(what, *args, **kwargs)
-  File "/Users/ericzheng/renpy-8.1.1-sdk/renpy/character.py", line 1352, in __call__
-    self.do_display(who, what, cb_args=self.cb_args, dtt=dtt, **display_args)
-  File "/Users/ericzheng/renpy-8.1.1-sdk/renpy/character.py", line 1003, in do_display
-    display_say(who,
-  File "/Users/ericzheng/renpy-8.1.1-sdk/renpy/character.py", line 693, in display_say
-    rv = renpy.ui.interact(mouse='say', type=type, roll_forward=roll_forward)
-  File "/Users/ericzheng/renpy-8.1.1-sdk/renpy/ui.py", line 299, in interact
-    rv = renpy.game.interface.interact(roll_forward=roll_forward, **kwargs)
-  File "/Users/ericzheng/renpy-8.1.1-sdk/renpy/display/core.py", line 3579, in interact
-    repeat, rv = self.interact_core(preloads=preloads, trans_pause=trans_pause, pause=pause, pause_start=pause_start, pause_modal=pause_modal, **kwargs) # type: ignore
-  File "/Users/ericzheng/renpy-8.1.1-sdk/renpy/display/core.py", line 4052, in interact_core
-    root_widget.visit_all(lambda d : d.per_interact())
-  File "/Users/ericzheng/renpy-8.1.1-sdk/renpy/display/core.py", line 681, in visit_all
-    d.visit_all(callback, seen)
-  File "/Users/ericzheng/renpy-8.1.1-sdk/renpy/display/core.py", line 681, in visit_all
-    d.visit_all(callback, seen)
-  File "/Users/ericzheng/renpy-8.1.1-sdk/renpy/display/core.py", line 681, in visit_all
-    d.visit_all(callback, seen)
-  File "/Users/ericzheng/renpy-8.1.1-sdk/renpy/display/screen.py", line 476, in visit_all
-    callback(self)
-  File "/Users/ericzheng/renpy-8.1.1-sdk/renpy/display/core.py", line 4052, in <lambda>
-    root_widget.visit_all(lambda d : d.per_interact())
-  File "/Users/ericzheng/renpy-8.1.1-sdk/renpy/display/screen.py", line 487, in per_interact
-    self.update()
-  File "/Users/ericzheng/renpy-8.1.1-sdk/renpy/display/screen.py", line 680, in update
-    self.screen.function(**self.scope)
-  File "game/screens.rpy", line 239, in execute
-    screen quick_menu():
-  File "game/screens.rpy", line 239, in execute
-    screen quick_menu():
-  File "game/screens.rpy", line 244, in execute
-    if quick_menu:
-  File "game/screens.rpy", line 244, in <module>
-    if quick_menu:
-NameError: name 'quick_menu' is not defined
+  File "game/script.rpy", line 8, in script
+    e "I'm feeling pretty good today."
+  File "C:\Users\ryany\Downloads\renpy-8.1.1-sdk\renpy\ast.py", line 890, in execute
+    who = eval_who(self.who, self.who_fast)
+  File "C:\Users\ryany\Downloads\renpy-8.1.1-sdk\renpy\ast.py", line 783, in eval_who
+    raise Exception("Sayer '%s' is not defined." % who)
+Exception: Sayer 'e' is not defined.
 
-macOS-26.5-arm64-arm-64bit arm64
+Windows-10-10.0.26200 AMD64
 Ren'Py 8.1.1.23060707
 Working 1.0
-Thu May 28 10:34:49 2026
+Wed Aug 19 11:48:45 2026
