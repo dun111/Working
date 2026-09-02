@@ -167,14 +167,17 @@ label carriage_2_start:
     call screen carriage_2_map
 
 label c2_jackie_dialogue:
-    j "Don’t distract me, I need to clean up this glass that that bloody gambler over there shattered."
+    show jackie neutral
+    j "Don’t distract me, I need to clean up this glass that that bloody gambler over there shattered.{w=2}"
     show louis neutral
-    l "Uh… Okay…"
+    l "Uh… Okay…{w=2}"
+
     $ c2_talked_jackie = True
     return
 
 label c2_eduard_dialogue:
-    ed "Good evening lad, I’m Eduard, your bartender. Wouldya like some drinks?"
+    show educard neutral
+    ed "Good evening lad, I’m Eduard, your bartender. Wouldya like some drinks?{w=2}"
     menu:
         "Would you like a drink?"
         "Yes":
@@ -190,19 +193,94 @@ label c2_eduard_dialogue:
     return
 
 label c2_braun_dialogue:
-    b ""
+    show braun neutral
+    b "What’s cooking? Need any food? I’m the best chef you’ll ever see! Even better than that… Rordon Gamsey guy.{w=2}"
+    show louis neutral
+    l "You mean… Gor-{w=2}"
+    show braun neutral
+    menu:
+        "“So, need any food?”"
+        "Yes":
+            $ ate = True
+            b "Coming right up!"
+           
+        "No":
+            $ ate= False
+            b "“I see, now if you’ll excuse me, I’m gonna get back to cooking”"
     $ c2_talked_braun = True
     return
 
 label c2_shunyu_dialogue:
-    s "Enjoy some maple sugar."
-    $ has_maple_sugar = True
-    $ c2_talked_shunyu = True
+    show shunyu neutral
+    s "Yes! I can’t stop winning!{w=2}"
+    show louis neutral
+    l "Uhm… whatcha doin’?{w=2}"
+    show shanyu neutral
+    s "Playing Mahjong! Doncha just love winning!{w=2}"
+    #Louis watches Shunyu pick up a tile
+    show shanyu excited
+    s "JACKKKPOTTTTTTT{w=2}"
+    show louis neutral
+    l "R-right, well, I’ll leave you-{w=2}"
+    show shanyu neutral
+    menu:
+        "Wanna play? Think about it. You can only lose 100%, but you can win 100000%! Look at the odds!"
+        "Yes":
+            $ play = True
+            s "You win $2"
+           
+        "No":
+            $ play = False
+            l "I’m okay, don’t have much to gamble with anyway"
+    $ c2_talked_shanyu = True
     return
 
 # ------------------------------------------------------------------------------
 # CARRIAGE 3 & BEYOND (Placeholders)
 # ------------------------------------------------------------------------------
 label carriage_3_start:
-    l "Made it to Carriage 3!"
+    l "Made it to Carriage 3!{w=2}"
     return
+
+label c3_kimmy_dialogue:
+    show kimmy neutral
+    k "Yawns… Hello, are you room service?{w=2}"
+    show louis neutral
+    l "N-no, my name is Louis… Nice to meet you.{w=2}"
+    show himmel neutral
+    h "O-oh my god dear! Why is there a STRANGER here! I-I might faint!{w=2}"
+    show kimmy neutral
+    menu:
+        "Don’t worry Sugar, he’s not dangerous… I think.{w=2}"
+        "He is dangerous":
+            $ think = True
+            k "With THAT frame… I don't think so sweetie"
+           
+        "he is not dangerous":
+            $ think = False
+            k "Yeah, it’s kinda obvious, matchstick.{w=2}"
+            show louis neutral
+            l "Wow damn… So… Expensive cabin, huh?{w=2}"
+            show kimmy neutral
+            k "Well of course! My family has a clock business, so we’re quite well off.{w=2}"
+            show louis neutral
+            l "So what is such an important lady doing on a train like this?{w=2}"
+            show kimmy neutral
+            k "Oh, I have a meeting in █████████, and I wanted to make it a trip so I could spend more time with my darling, Himmel. Right, Sugar?{w=2}"
+            show himmel neutral
+            h "Of course!{w=2}"
+            show louis neutral
+            l "wow… such love birds{w=2}"
+    $ c3_talked_kimmy = True
+    return
+
+label c3_himmel_dialogue:
+    scene talk to himmel
+    show himmel neutral
+    h "W-what do you want, stranger?{w=2}"
+    show louis neutral
+    l "Nothing, just uh… finding my way to the bathroom.[w=2]"
+    show himmel neutral
+    h "It’s to the left! Now leave me alone!{w=2}"
+    show 
+
