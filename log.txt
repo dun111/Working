@@ -1,63 +1,52 @@
-Wed Aug 19 12:16:48 2026
-Windows-10-10.0.26200
-Ren'Py 8.1.1.23060707
- 
+2026-08-31 09:20:59 UTC
+macOS-15.7.9-arm64-arm-64bit
+Ren'Py 8.5.3.26051504
 
-Bootstrap to the start of init.init. took 0.03s
-Early init. took 0.01s
-Loader init. took 0.03s
-Loading error handling. took 0.03s
-Loading script. took 0.13s
-Loading save slot metadata. took 0.03s
-Loading persistent. took 0.00s
-Running init code. took 0.04s
-Loading analysis data. took 0.01s
-Analyze and compile ATL. took 0.00s
-Reloading save slot metadata. took 0.02s
-Index archives took 0.00s
-Backing up script files to 'C:\\Users\\ryany\\AppData\\Roaming/RenPy/backups\\Working':
-Dump and make backups. took 0.05s
-Cleaning cache. took 0.00s
-Making clean stores. took 0.00s
-Initial gc. took 0.02s
-DPI scale factor: 1.500000
-nvdrs: Loaded, about to disable thread optimizations.
-nvdrs: b"Couldn't load nvlib." (can be ignored)
-Creating interface object. took 0.00s
-Cleaning stores took 0.00s
-Init translation took 0.03s
-Build styles took 0.00s
-Load screen analysis took 0.00s
-Analyze screens took 0.01s
-Save screen analysis took 0.02s
-Prepare screens took 0.11s
-Save pyanalysis. took 0.00s
-Save bytecode. took 0.05s
-Running _start took 0.00s
-Performance test:
-Interface start. took 0.14s
+Early init took 22 ms
+Loading error handling took 26 ms
+Loading script took 93 ms
+Loading save slot metadata took 10 ms
+Loading persistent took 1 ms
+Running init code took 19 ms
+Loading analysis data took 4 ms
+Analyze and compile ATL took 1 ms
+Reloading save slot metadata took 0 ms
+Backing up script files to '/Users/ericzheng/Library/RenPy/backups/Working':
+Dump and make backups took 15 ms
+Cleaning cache took 0 ms
+Making clean stores took 0 ms
+Initial gc took 15 ms
+DPI scale factor: 1.000000
+Creating interface object took 0 ms
+Init translation took 0 ms
+Cleaning stores took 0 ms
+Load screen analysis took 0 ms
+Analyze screens took 9 ms
+Save screen analysis took 6 ms
+Save pyanalysis took 2 ms
+Save bytecode took 13 ms
+Running _start took 0 ms
+Interface start took 204 ms
 
 Initializing gl2 renderer:
-primary display bounds: (0, 0, 1920, 1080)
+primary display bounds: (0, 0, 3062, 1282)
 swap interval: 1 frames
 Windowed mode.
-Vendor: "b'Intel'"
-Renderer: b'Intel(R) Iris(R) Xe Graphics'
-Version: b'4.6.0 - Build 30.0.101.1960'
-Display Info: None
-Screen sizes: virtual=(1920, 1080) physical=(1731, 974) drawable=(1731, 974)
+Vendor: 'Apple'
+Renderer: 'Apple M4'
+Version: '2.1 Metal - 89.4'
+Display Info: <Info({'bitsize': 32, 'bytesize': 4, 'masks': (16711680, 65280, 255, 4278190080), 'shifts': (16, 8, 0, 24), 'losses': (0, 0, 0, 0), 'current_w': 3062, 'current_h': 1282, 'refresh_rate': 160, 'hw': False, 'wm': True, 'video_mem': 268435456, 'blit_hw': False, 'blit_hw_CC': False, 'blit_hw_A': False, 'blit_sw': False, 'blit_sw_CC': False, 'blit_sw_A': False})>
+Screen sizes: virtual=(1920, 1080) physical=(1154, 649) drawable=(2308, 1298)
 Maximum texture size: 4096x4096
-Cleaning stores took 0.00s
-Init translation took 0.00s
-Build styles took 0.00s
-Load screen analysis took 0.05s
-Analyze screens took 0.00s
-Prepare screens took 0.00s
-Running _start took 0.00s
-Cleaning stores took 0.00s
-Init translation took 0.00s
-Build styles took 0.00s
-Load screen analysis took 0.02s
-Analyze screens took 0.00s
-Prepare screens took 0.00s
-Running _start took 0.00s
+Screen sizes: virtual=(1920, 1080) physical=(1154, 649) drawable=(1154, 649)
+Maximum texture size: 4096x4096
+Resize event: <Event(65533-VIDEORESIZE h=649, mod=0, size=(1154, 649), w=1154)>
+Screen sizes: virtual=(1920, 1080) physical=(1154, 649) drawable=(2308, 1298)
+Maximum texture size: 4096x4096
+Resize event: <Event(65533-VIDEORESIZE h=649, mod=0, size=(1154, 649), w=1154)>
+Screen sizes: virtual=(1920, 1080) physical=(1154, 649) drawable=(1154, 649)
+Maximum texture size: 4096x4096
+Resize event: <Event(65533-VIDEORESIZE h=649, mod=0, size=(1154, 649), w=1154)>
+Screen sizes: virtual=(1920, 1080) physical=(1154, 649) drawable=(2308, 1298)
+Maximum texture size: 4096x4096
+Resize event: <Event(65533-VIDEORESIZE h=649, mod=0, size=(1154, 649), w=1154)>
