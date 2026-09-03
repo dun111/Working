@@ -5,7 +5,6 @@ define m = Character("Matthew")
 define f = Character("Fedora")
 define j = Character("Jackie")
 define ed = Character("Eduard")
-define b = Character("Braun")
 define s = Character("Shunyu")
 define k = Character("Kimmy")
 define h = Character("Himmel")
@@ -25,7 +24,6 @@ default c1_talked_fedora = False
 # Interaction Tracking Flags - Carriage 2
 default c2_talked_jackie = False
 default c2_talked_eduard = False
-default c2_talked_braun = False
 default c2_talked_shunyu = False
 default has_maple_sugar = False
 
@@ -190,24 +188,6 @@ label c2_eduard_dialogue:
             l "Uh, it’s okay… I’m not really thirsty right now."
             ed "All the better for me, I reckon. That mahjong monster almost got me out of whiskey! He better win quick, before his tab gets as large as his confidence."
     $ c2_talked_eduard = True
-    return
-
-label c2_braun_dialogue:
-    show braun neutral
-    b "What’s cooking? Need any food? I’m the best chef you’ll ever see! Even better than that… Rordon Gamsey guy.{w=2}"
-    show louis neutral
-    l "You mean… Gor-{w=2}"
-    show braun neutral
-    menu:
-        "“So, need any food?”"
-        "Yes":
-            $ ate = True
-            b "Coming right up!"
-           
-        "No":
-            $ ate= False
-            b "“I see, now if you’ll excuse me, I’m gonna get back to cooking”"
-    $ c2_talked_braun = True
     return
 
 label c2_shunyu_dialogue:
