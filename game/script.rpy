@@ -219,6 +219,7 @@ label c2_shunyu_dialogue:
 # CARRIAGE 3 & BEYOND (Placeholders)
 # ------------------------------------------------------------------------------
 label carriage_3_start:
+    call screen carriage_1_map
     l "Made it to Carriage 3!{w=2}"
     return
 
@@ -262,5 +263,168 @@ label c3_himmel_dialogue:
     l "Nothing, just uh… finding my way to the bathroom.[w=2]"
     show himmel neutral
     h "It’s to the left! Now leave me alone!{w=2}"
-    show 
+    show louis neutral
+    l "Holy moly, what’s that guy's problem…"
+    $ c3_talked_himmel = True
+    return
+#end of int
+
+label c3_sebastian_dialogue:
+    scene talk to sebastian
+    show sebastian neutral
+    seb "May I know your name, sir?{w=2}"
+    show louis neutral
+    l "Oh! It’s Louis.{w=2}"
+    show sebastian neutral
+    seb "Good evening, Mr. Louis. My name is Sebastian,  the butler for Mr. Popov, the child in this cabin. If you wish to enter, I will warn you, that if any harm or distress befalls the child, you will be prosecuted.{w=2}"
+    show louis neutral
+    l "Wow… Don’t worry Sir, I won’t.{w=2}"
+    $ c3_talked_sebastian = True
+    return
+#end of int
+
+label c3_misha_dialogue
+    scene talk to misha
+    show misha neutral
+    show louis neutral
+    l "Hey buddy…{w=2}" 
+    show misha stares
+    $ c3_talked_misha = True
+    return
+
+#Interact with Carpet next to misha
+#Why is it sticking up like that?
+
+#Interact with toys
+#Awh, they’re so cute.
+
+#Interact with Kimmy and Himmel’s luggage
+#So much luggage… Do they really need this much for a worktr
+
+# ------------------------------------------------------------------------------
+# CARRIAGE 4& BEYOND (Placeholders)
+# ------------------------------------------------------------------------------
+
+label carriage_4_start:
+    call screen carriage_1_map
+    l "Opens the door to carriage 4...{w=2}"
+    return
+
+label c4_agatha_dialogue:
+    scene talk to agatha
+    show agatha neutral
+    a "cmon, put the bandage on.{w=2}"
+    pas "It hurtssss oh my my poor finger, I may never play marvel rivals again!{w=2}"
+    show agatha neutral
+    a "I don’t care. You pricked it, it’s not bleeding. Put the bandaid on and stop wasting my time.{w=2}"
+    pas "Fine.{w=2}"
+    pas "~The passenger pouts for a second and storms off~"
+    show agatha neutral
+    a "Actual Infants…{w=2}"
+    a "~agatha looks at you~"
+    a "What, need help too?{w=2}"
+    show louis neutral
+    l "No, but, what’s this carriage?{w=2}"
+    show agatha neutral
+    a "If you use your eyes, you can see it's the staff cart. Now, are you injured, or can I go back to my peace?{w=2}"    
+    show louis neutral
+    l "I’m… fine."
+    $ c4_talked_agatha = True
+    return
+
+label c4_ichora_dialogue:
+    scene talk to ichora
+    show ichora neutral
+    ic "Hey! I’ve been waiting for ya buddy!{w=2}"
+    show louis neutral
+    l "You have…?{w=2}"
+    show ichora neutral
+    ic "Of course! Welcome to the train. The name's Ichora, I’m the train’s engineer.{w=2}"
+    show louis neutral
+    l "My name’s Louis.{w=2}"
+    show ichora neutral
+    ic "Oh, I know.{w=2}"
+    show louis neutral
+    l "How-{w=2}"
+    show ichora neutral
+    ic "We’ve been waiting for you a while. Anyways, I got a gift for ya! Come with me!{w=2}"
+    show engine room
+    ic "~ichora gives u a key~"
+    ic "Here ya go!{w=2}"
+    show louis neutral
+    l "But what’s it for?{w=2}"
+    show ichora neutral
+    ic "Sometimes, life gets hard, and a door is presented to escape. But we’re too scared to use the key. Don’t hesitate.{w=2}"
+    ic "~Ichora winks and walks off~"
+    $ c4_talked_ichora = True
+    return
+
+#Interact with syringe
+#“That looks sharp.”
+
+#Interact with engine
+#“This looks like it has a lot of… Zebra power? No, horse power.”
+
+label carriage_5_start:
+    call screen carriage_1_map
+    show louis neutral
+    l "A lot is going on here, huh.{w=2}"
+    return
+
+label c5_pattison_dialogue:
+    scene talk to pattison
+
+label c5_alexander_dialogue:
+    scene talk to alexander
+    show alexander neutral
+    al "Hahahaha… this stuff is so gooddddd…."
+    show louis neutral
+    l "What you got there, buddy?"
+    show alexander neutral
+    al "The banned super maple sugar!!!"
+    show louis neutral
+    l "Damn… why’s it banned?"
+    show alexander neutral
+    al "HAhaha… They tryna take the good stuff from us, don’t want us having too much fun, haha…"
+    show louis neutral
+    l "Oh, I see."
+    show alexander neutral
+    al "Want some, buddy? First one is free, next one is 2000 perkels."
+
+    menu:
+        "Take the maple sugar?":
+            "Yes":
+                $ has_maple_sugar = True
+                show louis neutral
+                l "Sure, I’ll take some."
+                show alexander neutral
+                al "Attaboy! Here ya go — one satchel of pure happiness."
+            
+            "No":
+                show louis neutral
+                l "I’m good. Thanks for the offer."
+                show alexander neutral
+                al "Suit yourself, brother."
+            show louis neutral
+    l "Has anyone else bought these things?"
+    show alexander neutral
+    al "Depends? Are you a narc?"
+    show louis neutral
+    l "No."
+    show alexander neutral
+    al "Well, there’s this guy that keeps winning money from gambling, yet still hasn’t paid for his last portion. Don’t worry, I’ll make him suffer."
+    al "And as for the other one… the stuff was strong so I don't remember."
+    show louis neutral
+    l "Why did I expect that? But who’s the other person?"
+    show alexander neutral
+    al "~Alexander looks at you blankly.~"
+    $ c5_talked_alexander = True
+    return
+
+
+
+
+
+    
+
 
