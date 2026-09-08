@@ -1,52 +1,71 @@
-2026-08-31 09:20:59 UTC
-macOS-15.7.9-arm64-arm-64bit
+2026-09-08 00:10:40 UTC
+macOS-27.0-arm64-arm-64bit
 Ren'Py 8.5.3.26051504
 
-Early init took 22 ms
-Loading error handling took 26 ms
-Loading script took 93 ms
-Loading save slot metadata took 10 ms
-Loading persistent took 1 ms
-Running init code took 19 ms
-Loading analysis data took 4 ms
-Analyze and compile ATL took 1 ms
-Reloading save slot metadata took 0 ms
-Backing up script files to '/Users/ericzheng/Library/RenPy/backups/Working':
-Dump and make backups took 15 ms
-Cleaning cache took 0 ms
-Making clean stores took 0 ms
-Initial gc took 15 ms
+Early init took 42 ms
+Loading error handling took 24 ms
+Loading script took 123 ms
+Loading save slot metadata took 24 ms
+Loading persistent took 0 ms
+
+File "game/script.rpy", line 265: expected 'image_name_component' not found.
+    show
+         ^
 DPI scale factor: 1.000000
-Creating interface object took 0 ms
-Init translation took 0 ms
-Cleaning stores took 0 ms
-Load screen analysis took 0 ms
-Analyze screens took 9 ms
-Save screen analysis took 6 ms
-Save pyanalysis took 2 ms
-Save bytecode took 13 ms
-Running _start took 0 ms
-Interface start took 204 ms
+Interface start took 4037 ms
 
 Initializing gl2 renderer:
-primary display bounds: (0, 0, 3062, 1282)
+primary display bounds: (0, 0, 1440, 900)
+swap interval: 1 frames
+Windowed mode.Vendor: 'Apple'
+Renderer: 'Apple M1'
+Version: '2.1 Metal - 91.7'
+Display Info: <Info({'bitsize': 32, 'bytesize': 4, 'masks': (16711680, 65280, 255, 4278190080), 'shifts': (16, 8, 0, 24), 'losses': (0, 0, 0, 0), 'current_w': 1440, 'current_h': 900, 'refresh_rate': 60, 'hw': False, 'wm': True, 'video_mem': 268435456, 'blit_hw': False, 'blit_hw_CC': False, 'blit_hw_A': False, 'blit_sw': False, 'blit_sw_CC': False, 'blit_sw_A': False})>
+SScreen sizes: virtual=(1920, 1080) physical=(1338, 753) drawable=(2676, 1506)
+Maximum texture size: 4096x4096
+Resetting cache.
+Early init took 5 ms
+Loading error handling took 25 ms
+Loading script took 72 ms
+Loading save slot metadata took 13 ms
+Loading persistent took 0 ms
+
+File "game/script.rpy", line 265: expected 'image_name_component' not found.
+    show
+         ^
+DPI scale factor: 1.000000
+Interface start took 83 ms
+
+Initializing gl2 renderer:
+primary display bounds: (0, 0, 1440, 900)
 swap interval: 1 frames
 Windowed mode.
 Vendor: 'Apple'
-Renderer: 'Apple M4'
-Version: '2.1 Metal - 89.4'
-Display Info: <Info({'bitsize': 32, 'bytesize': 4, 'masks': (16711680, 65280, 255, 4278190080), 'shifts': (16, 8, 0, 24), 'losses': (0, 0, 0, 0), 'current_w': 3062, 'current_h': 1282, 'refresh_rate': 160, 'hw': False, 'wm': True, 'video_mem': 268435456, 'blit_hw': False, 'blit_hw_CC': False, 'blit_hw_A': False, 'blit_sw': False, 'blit_sw_CC': False, 'blit_sw_A': False})>
-Screen sizes: virtual=(1920, 1080) physical=(1154, 649) drawable=(2308, 1298)
+Renderer: 'Apple M1'
+Version: '2.1 Metal - 91.7'
+Display Info: <Info({'bitsize': 32, 'bytesize': 4, 'masks': (16711680, 65280, 255, 4278190080), 'shifts': (16, 8, 0, 24), 'losses': (0, 0, 0, 0), 'current_w': 1440, 'current_h': 900, 'refresh_rate': 60, 'hw': False, 'wm': True, 'video_mem': 268435456, 'blit_hw': False, 'blit_hw_CC': False, 'blit_hw_A': False, 'blit_sw': False, 'blit_sw_CC': False, 'blit_sw_A': False})>
+Screen sizes: virtual=(1920, 1080) physical=(1338, 753) drawable=(2676, 1506)
 Maximum texture size: 4096x4096
-Screen sizes: virtual=(1920, 1080) physical=(1154, 649) drawable=(1154, 649)
+Resetting cache.
+Early init took 5 ms
+Loading error handling took 18 ms
+Loading script took 51 ms
+Loading save slot metadata took 10 ms
+Loading persistent took 0 ms
+
+File "game/script.rpy", line 265: expected 'image_name_component' not found.
+    show
+         ^
+DPI scale factor: 1.000000
+Interface start took 73 ms
+
+Initializing gl2 renderer:
+primary display bounds: (0, 0, 1440, 900)
+swap interval: 1 frames
+Windowed mode.
+Vendor: 'Apple'
+Renderer: 'Apple M1'
+Version: '2.1 Metal - 91.7'
+Display Info: <Info({'bitsize': 32, 'bytesize': 4, 'masks': (16711680, 65280, 255, 4278190080), 'shifts': (16, 8, 0, 24), 'losses': (0, 0, 0, 0), 'current_w': 1440, 'current_h': 900, 'refresh_rate': 60, 'hw': False, 'wm': True, 'video_mem': 268435456, 'blit_hw': False, 'blit_hw_CC': False, 'blit_hw_A': False, 'blit_sw': False, 'blit_sw_CC': False, 'blit_sw_A': False})>
+Screen sizes: virtual=(1920, 1080) physical=(1338, 753) drawable=(2676, 1506)
 Maximum texture size: 4096x4096
-Resize event: <Event(65533-VIDEORESIZE h=649, mod=0, size=(1154, 649), w=1154)>
-Screen sizes: virtual=(1920, 1080) physical=(1154, 649) drawable=(2308, 1298)
-Maximum texture size: 4096x4096
-Resize event: <Event(65533-VIDEORESIZE h=649, mod=0, size=(1154, 649), w=1154)>
-Screen sizes: virtual=(1920, 1080) physical=(1154, 649) drawable=(1154, 649)
-Maximum texture size: 4096x4096
-Resize event: <Event(65533-VIDEORESIZE h=649, mod=0, size=(1154, 649), w=1154)>
-Screen sizes: virtual=(1920, 1080) physical=(1154, 649) drawable=(2308, 1298)
-Maximum texture size: 4096x4096
-Resize event: <Event(65533-VIDEORESIZE h=649, mod=0, size=(1154, 649), w=1154)>
