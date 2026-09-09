@@ -421,10 +421,3 @@ label c5_alexander_dialogue:
     $ c5_talked_alexander = True
     return
 
-
-
-
-
-    
-
-
