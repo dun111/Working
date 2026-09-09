@@ -2,17 +2,9 @@
 errors listed below, and try again.
 
 
-File "game/screens.rpy", line 289: 'transframe' is not a keyword argument or valid child of the vbox statement.
-    transframe True
-              ^
-
-File "game/screens.rpy", line 450: 'style_option' is not a keyword argument or valid child of the vbox statement.
-    style_option "pref"
-                ^
-
-File "game/screens.rpy", line 116: keyword argument 'xpos' is incompatible with 'xalign'.
-    xpos gui.dialogue_xpos
-        ^
+File "game/script.rpy", line 265: expected 'image_name_component' not found.
+    show
+         ^
 
 Ren'Py Version: Ren'Py 8.5.3.26051504
-Tue Sep  8 18:09:49 2026
+Tue Sep  8 10:11:26 2026
