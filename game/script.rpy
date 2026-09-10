@@ -25,6 +25,7 @@ default c1_talked_fedora = False
 default c2_talked_jackie = False
 default c2_talked_eduard = False
 default c2_talked_shunyu = False
+default c2_talked_braun = False
 default has_maple_sugar = False
 
 # Interaction Tracking Flags - Carriage 3
@@ -184,11 +185,19 @@ label c2_eduard_dialogue:
             ed "Awh shucks, seems we just ran out! That gambler’s been drinking since he got here!"
             l "Wow…"
         "No":
-            $ drank= False
+            $ drank = False
             l "Uh, it’s okay… I’m not really thirsty right now."
             ed "All the better for me, I reckon. That mahjong monster almost got me out of whiskey! He better win quick, before his tab gets as large as his confidence."
     $ c2_talked_eduard = True
     return
+
+
+label c2_braun_dialogue:
+    l "Uh… hey."
+    l "I think I’ll leave you to it."
+    $ c2_talked_braun = True
+    return
+
 
 label c2_shunyu_dialogue:
     show shunyu neutral
@@ -197,7 +206,7 @@ label c2_shunyu_dialogue:
     l "Uhm… whatcha doin’?{w=2}"
     show shanyu neutral
     s "Playing Mahjong! Doncha just love winning!{w=2}"
-    #Louis watches Shunyu pick up a tile
+    # Louis watches Shunyu pick up a tile.
     show shanyu excited
     s "JACKKKPOTTTTTTT{w=2}"
     show louis neutral
@@ -208,12 +217,12 @@ label c2_shunyu_dialogue:
         "Yes":
             $ play = True
             s "You win $2"
-           
         "No":
             $ play = False
             l "I’m okay, don’t have much to gamble with anyway"
-    $ c2_talked_shanyu = True
+    $ c2_talked_shunyu = True
     return
+
 
 # ------------------------------------------------------------------------------
 # CARRIAGE 3 & BEYOND (Placeholders)
@@ -260,7 +269,7 @@ label c3_himmel_dialogue:
     show himmel neutral
     h "W-what do you want, stranger?{w=2}"
     show louis neutral
-    l "Nothing, just uh… finding my way to the bathroom.[w=2]"
+    l "Nothing, just uh… finding my way to the bathroom.{w=2}"
     show himmel neutral
     h "It’s to the left! Now leave me alone!{w=2}"
     show louis neutral
@@ -283,7 +292,7 @@ label c3_sebastian_dialogue:
     return
 #end of int
 
-label c3_misha_dialogue
+label c3_misha_dialogue:
     scene talk to misha
     show misha neutral
     show louis neutral
@@ -393,19 +402,19 @@ label c5_alexander_dialogue:
 
     menu:
         "Take the maple sugar?":
-            "Yes":
-                $ has_maple_sugar = True
-                show louis neutral
-                l "Sure, I’ll take some."
-                show alexander neutral
-                al "Attaboy! Here ya go — one satchel of pure happiness."
-            
-            "No":
-                show louis neutral
-                l "I’m good. Thanks for the offer."
-                show alexander neutral
-                al "Suit yourself, brother."
+            $ has_maple_sugar = True
             show louis neutral
+            l "Sure, I’ll take some."
+            show alexander neutral
+            al "Attaboy! Here ya go — one satchel of pure happiness."
+        "No":
+            $ has_maple_sugar = False
+            show louis neutral
+            l "I’m good. Thanks for the offer."
+            show alexander neutral
+            al "Suit yourself, brother."
+
+    show louis neutral
     l "Has anyone else bought these things?"
     show alexander neutral
     al "Depends? Are you a narc?"
@@ -420,4 +429,3 @@ label c5_alexander_dialogue:
     al "~Alexander looks at you blankly.~"
     $ c5_talked_alexander = True
     return
-
