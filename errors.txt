@@ -2,9 +2,9 @@
 errors listed below, and try again.
 
 
-File "game/script.rpy", line 265: expected 'image_name_component' not found.
-    show
-         ^
+File "game/screens.rpy", line 140: 'yfill' is not a keyword argument or valid child of the add statement.
+    add Solid("#ffffff44") xsize 2 yfill True
+                                        ^
 
 Ren'Py Version: Ren'Py 8.5.3.26051504
-Tue Sep  8 10:11:26 2026
+Thu Sep 10 22:44:11 2026

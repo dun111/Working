@@ -1,18 +1,13 @@
 ﻿I'm sorry, but an uncaught exception occurred.
 
 While running game code:
-  File "game/screens.rpy", line 353, in execute
-    screen main_menu():
-  File "game/screens.rpy", line 353, in execute
-    screen main_menu():
-  File "game/screens.rpy", line 361, in execute
-    frame:
-  File "game/screens.rpy", line 361, in keywords
-    frame:
-  File "game/screens.rpy", line 362, in <module>
-    background renpy.LinearGradient((0, 0), (1.0, 0), (0.0, "#0a0a0acc"), (0.35, "#0a0a0a88"), (0.7, "#0a0a0a22"), (1.0, "#00000000"))
-               ^^^^^^^^^^^^^^^^^^^^                                                                                                   
-AttributeError: module 'renpy.exports' has no attribute 'LinearGradient'
+  File "game/screens.rpy", line 431, in execute
+    screen about():
+  File "game/screens.rpy", line 431, in execute
+    screen about():
+  File "game/screens.rpy", line 432, in execute
+    use game_menu(_("Credits"), back_action=Return()):
+TypeError: got an unexpected keyword argument 'back_action'
 
 -- Full Traceback ------------------------------------------------------------
 
@@ -55,6 +50,7 @@ Traceback (most recent call last):
   File "renpy/display/displayable.py", line 460, in visit_all
     d.visit_all(callback, seen)
     ~~~~~~~~~~~^^^^^^^^^^^^^^^^
+[Previous line repeated 1 more time]
   File "renpy/display/screen.py", line 503, in visit_all
     callback(self)
     ~~~~~~~~^^^^^^
@@ -67,26 +63,17 @@ Traceback (most recent call last):
   File "renpy/display/screen.py", line 715, in update
     self.screen.function(**self.scope)
     ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^
-  File "game/screens.rpy", line 353, in execute
-    screen main_menu():
-  File "game/screens.rpy", line 353, in execute
-    screen main_menu():
-  File "game/screens.rpy", line 361, in execute
-    frame:
-  File "game/screens.rpy", line 361, in keywords
-    frame:
-  File "renpy/python.py", line 1308, in py_eval
-    return py_eval_bytecode(code, globals, locals)
-           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
-  File "renpy/python.py", line 1301, in py_eval_bytecode
-    return eval(bytecode, globals, locals)
-           ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "game/screens.rpy", line 362, in <module>
-    background renpy.LinearGradient((0, 0), (1.0, 0), (0.0, "#0a0a0acc"), (0.35, "#0a0a0a88"), (0.7, "#0a0a0a22"), (1.0, "#00000000"))
-               ^^^^^^^^^^^^^^^^^^^^                                                                                                   
-AttributeError: module 'renpy.exports' has no attribute 'LinearGradient'
+  File "game/screens.rpy", line 431, in execute
+    screen about():
+  File "game/screens.rpy", line 431, in execute
+    screen about():
+  File "game/screens.rpy", line 432, in execute
+    use game_menu(_("Credits"), back_action=Return()):
+  File "renpy/parameter.py", line 398, in apply
+    raise TypeError("got an unexpected keyword argument {arg!r}".format(arg=next(iter(kwargs))))
+TypeError: got an unexpected keyword argument 'back_action'
 
 macOS-27.0-arm64-arm-64bit arm64
 Ren'Py 8.5.3.26051504
 Working 1.0
-Tue Sep  8 18:06:47 2026
+Thu Sep 10 23:12:04 2026
