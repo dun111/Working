@@ -316,6 +316,8 @@ define gui.slider_size = 38
 define gui.bar_tile = False
 define gui.scrollbar_tile = False
 define gui.slider_tile = False
+define gui.vscrollbar_tile = False
+define gui.vslider_tile = False
 
 ## Horizontal borders.
 define gui.bar_borders = Borders(6, 6, 6, 6)

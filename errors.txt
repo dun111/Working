@@ -2,9 +2,9 @@
 errors listed below, and try again.
 
 
-File "game/script.rpy", line 36: while statement expects a non-empty block.
-    while true:
-               ^
+File "game/screens.rpy", line 415: keyword argument 'yalign' is incompatible with 'ypos'.
+    yalign 0.5
+          ^
 
-Ren'Py Version: Ren'Py 8.1.1.23060707
-Wed Aug 19 11:39:16 2026
+Ren'Py Version: Ren'Py 8.5.3.26051504
+Sat Sep 12 14:57:06 2026
