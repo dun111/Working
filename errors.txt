@@ -2,9 +2,9 @@
 errors listed below, and try again.
 
 
-File "game/screens.rpy", line 140: 'yfill' is not a keyword argument or valid child of the add statement.
-    add Solid("#ffffff44") xsize 2 yfill True
-                                        ^
+File "game/screens.rpy", line 415: keyword argument 'yalign' is incompatible with 'ypos'.
+    yalign 0.5
+          ^
 
 Ren'Py Version: Ren'Py 8.5.3.26051504
-Thu Sep 10 22:44:11 2026
+Sat Sep 12 14:57:06 2026

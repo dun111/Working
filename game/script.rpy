@@ -27,12 +27,15 @@ default c2_talked_eduard = False
 default c2_talked_shunyu = False
 default c2_talked_braun = False
 default has_maple_sugar = False
+default drank = False
+default played_mahjong = False
 
 # Interaction Tracking Flags - Carriage 3
 default c3_talked_kimmy = False
 default c3_talked_himmel = False
 default c3_talked_sebastian = False
 default c3_talked_misha = False
+default c3_kimmy_dangerous_choice = False
 
 # Interaction Tracking Flags - Carriage 4
 default c4_talked_agatha = False
@@ -81,6 +84,56 @@ screen carriage_2_map():
         if c2_talked_jackie and c2_talked_eduard and c2_talked_braun and c2_talked_shunyu:
             hotspot (1100, 200, 150, 400) action Jump("carriage_3_start")
 
+screen carriage_3_map():
+    # NOTE: swap "bg carriage_3.png" / "bg carriage_3_hover.png" for your real art.
+    # Hotspot coordinates are placeholders — adjust to match your background art.
+    imagemap:
+        ground "bg carriage_3.png"
+        hover "bg carriage_3_hover.png"
+
+        if not c3_talked_kimmy:
+            hotspot (100, 150, 180, 400) action Call("c3_kimmy_dialogue")
+        if not c3_talked_himmel:
+            hotspot (350, 150, 180, 400) action Call("c3_himmel_dialogue")
+        if not c3_talked_sebastian:
+            hotspot (600, 150, 180, 400) action Call("c3_sebastian_dialogue")
+        if not c3_talked_misha:
+            hotspot (850, 150, 180, 400) action Call("c3_misha_dialogue")
+
+        # Move to Carriage 4 once all 4 are spoken to
+        if c3_talked_kimmy and c3_talked_himmel and c3_talked_sebastian and c3_talked_misha:
+            hotspot (1100, 200, 150, 400) action Jump("carriage_4_start")
+
+screen carriage_4_map():
+    # NOTE: swap "bg carriage_4.png" / "bg carriage_4_hover.png" for your real art.
+    imagemap:
+        ground "bg carriage_4.png"
+        hover "bg carriage_4_hover.png"
+
+        if not c4_talked_agatha:
+            hotspot (250, 150, 220, 400) action Call("c4_agatha_dialogue")
+        if not c4_talked_ichora:
+            hotspot (700, 150, 220, 400) action Call("c4_ichora_dialogue")
+
+        # Move to Carriage 5 once both are spoken to
+        if c4_talked_agatha and c4_talked_ichora:
+            hotspot (1100, 200, 150, 400) action Jump("carriage_5_start")
+
+screen carriage_5_map():
+    # NOTE: swap "bg carriage_5.png" / "bg carriage_5_hover.png" for your real art.
+    imagemap:
+        ground "bg carriage_5.png"
+        hover "bg carriage_5_hover.png"
+
+        if not c5_talked_pattison:
+            hotspot (250, 150, 220, 400) action Call("c5_pattison_dialogue")
+        if not c5_talked_alexander:
+            hotspot (700, 150, 220, 400) action Call("c5_alexander_dialogue")
+
+        # End of current content once both are spoken to
+        if c5_talked_pattison and c5_talked_alexander:
+            hotspot (1100, 200, 150, 400) action Jump("carriage_5_end")
+
 # ==============================================================================
 # MAIN GAME FLOW
 # ==============================================================================
@@ -90,6 +143,7 @@ label start:
     $ _preferences.afm_time = 15
 
     scene Train station
+    $ achievement.grant("first_departure")
     show dorothy happy
     d "Thank you for boarding the Grekhov Express"
     show louis confused
@@ -175,7 +229,7 @@ label c2_jackie_dialogue:
     return
 
 label c2_eduard_dialogue:
-    show educard neutral
+    show eduard neutral
     ed "Good evening lad, I’m Eduard, your bartender. Wouldya like some drinks?{w=2}"
     menu:
         "Would you like a drink?"
@@ -204,33 +258,32 @@ label c2_shunyu_dialogue:
     s "Yes! I can’t stop winning!{w=2}"
     show louis neutral
     l "Uhm… whatcha doin’?{w=2}"
-    show shanyu neutral
+    show shunyu neutral
     s "Playing Mahjong! Doncha just love winning!{w=2}"
     # Louis watches Shunyu pick up a tile.
-    show shanyu excited
+    show shunyu excited
     s "JACKKKPOTTTTTTT{w=2}"
     show louis neutral
     l "R-right, well, I’ll leave you-{w=2}"
-    show shanyu neutral
+    show shunyu neutral
     menu:
         "Wanna play? Think about it. You can only lose 100%, but you can win 100000%! Look at the odds!"
         "Yes":
-            $ play = True
+            $ played_mahjong = True
             s "You win $2"
         "No":
-            $ play = False
+            $ played_mahjong = False
             l "I’m okay, don’t have much to gamble with anyway"
     $ c2_talked_shunyu = True
     return
 
 
 # ------------------------------------------------------------------------------
-# CARRIAGE 3 & BEYOND (Placeholders)
+# CARRIAGE 3
 # ------------------------------------------------------------------------------
 label carriage_3_start:
-    call screen carriage_1_map
     l "Made it to Carriage 3!{w=2}"
-    return
+    call screen carriage_3_map
 
 label c3_kimmy_dialogue:
     show kimmy neutral
@@ -243,24 +296,25 @@ label c3_kimmy_dialogue:
     menu:
         "Don’t worry Sugar, he’s not dangerous… I think.{w=2}"
         "He is dangerous":
-            $ think = True
+            $ c3_kimmy_dangerous_choice = True
             k "With THAT frame… I don't think so sweetie"
-           
-        "he is not dangerous":
-            $ think = False
+        "He is not dangerous":
+            $ c3_kimmy_dangerous_choice = False
             k "Yeah, it’s kinda obvious, matchstick.{w=2}"
-            show louis neutral
-            l "Wow damn… So… Expensive cabin, huh?{w=2}"
-            show kimmy neutral
-            k "Well of course! My family has a clock business, so we’re quite well off.{w=2}"
-            show louis neutral
-            l "So what is such an important lady doing on a train like this?{w=2}"
-            show kimmy neutral
-            k "Oh, I have a meeting in █████████, and I wanted to make it a trip so I could spend more time with my darling, Himmel. Right, Sugar?{w=2}"
-            show himmel neutral
-            h "Of course!{w=2}"
-            show louis neutral
-            l "wow… such love birds{w=2}"
+
+    # Both branches continue into the same follow-up conversation
+    show louis neutral
+    l "Wow damn… So… Expensive cabin, huh?{w=2}"
+    show kimmy neutral
+    k "Well of course! My family has a clock business, so we’re quite well off.{w=2}"
+    show louis neutral
+    l "So what is such an important lady doing on a train like this?{w=2}"
+    show kimmy neutral
+    k "Oh, I have a meeting in █████████, and I wanted to make it a trip so I could spend more time with my darling, Himmel. Right, Sugar?{w=2}"
+    show himmel neutral
+    h "Of course!{w=2}"
+    show louis neutral
+    l "wow… such love birds{w=2}"
     $ c3_talked_kimmy = True
     return
 
@@ -276,7 +330,6 @@ label c3_himmel_dialogue:
     l "Holy moly, what’s that guy's problem…"
     $ c3_talked_himmel = True
     return
-#end of int
 
 label c3_sebastian_dialogue:
     scene talk to sebastian
@@ -290,7 +343,6 @@ label c3_sebastian_dialogue:
     l "Wow… Don’t worry Sir, I won’t.{w=2}"
     $ c3_talked_sebastian = True
     return
-#end of int
 
 label c3_misha_dialogue:
     scene talk to misha
@@ -311,13 +363,12 @@ label c3_misha_dialogue:
 #So much luggage… Do they really need this much for a worktr
 
 # ------------------------------------------------------------------------------
-# CARRIAGE 4& BEYOND (Placeholders)
+# CARRIAGE 4
 # ------------------------------------------------------------------------------
 
 label carriage_4_start:
-    call screen carriage_1_map
     l "Opens the door to carriage 4...{w=2}"
-    return
+    call screen carriage_4_map
 
 label c4_agatha_dialogue:
     scene talk to agatha
@@ -365,6 +416,7 @@ label c4_ichora_dialogue:
     show ichora neutral
     ic "Sometimes, life gets hard, and a door is presented to escape. But we’re too scared to use the key. Don’t hesitate.{w=2}"
     ic "~Ichora winks and walks off~"
+    $ has_key = True
     $ c4_talked_ichora = True
     return
 
@@ -374,14 +426,22 @@ label c4_ichora_dialogue:
 #Interact with engine
 #“This looks like it has a lot of… Zebra power? No, horse power.”
 
+# ------------------------------------------------------------------------------
+# CARRIAGE 5
+# ------------------------------------------------------------------------------
+
 label carriage_5_start:
-    call screen carriage_1_map
     show louis neutral
     l "A lot is going on here, huh.{w=2}"
-    return
+    call screen carriage_5_map
 
 label c5_pattison_dialogue:
     scene talk to pattison
+    # TODO: Pattison's dialogue hasn't been written yet.
+    show louis neutral
+    l "..."
+    $ c5_talked_pattison = True
+    return
 
 label c5_alexander_dialogue:
     scene talk to alexander
@@ -428,4 +488,12 @@ label c5_alexander_dialogue:
     show alexander neutral
     al "~Alexander looks at you blankly.~"
     $ c5_talked_alexander = True
+    return
+
+# ------------------------------------------------------------------------------
+# TEMPORARY ENDING STUB — replace with Carriage 6 or a real ending once written
+# ------------------------------------------------------------------------------
+label carriage_5_end:
+    scene black with dissolve
+    centered "{i}...to be continued...{/i}"
     return
