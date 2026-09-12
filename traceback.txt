@@ -1,13 +1,10 @@
 ﻿I'm sorry, but an uncaught exception occurred.
 
 While running game code:
-  File "game/screens.rpy", line 431, in execute
-    screen about():
-  File "game/screens.rpy", line 431, in execute
-    screen about():
-  File "game/screens.rpy", line 432, in execute
-    use game_menu(_("Credits"), back_action=Return()):
-TypeError: got an unexpected keyword argument 'back_action'
+  File "game/screens.rpy", line 64, in _menu_music_filter
+    renpy.music.play(audio.menu_theme, channel="music", fadein=1.5, loop=True, volume=1.6)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: play() got an unexpected keyword argument 'volume'
 
 -- Full Traceback ------------------------------------------------------------
 
@@ -50,7 +47,6 @@ Traceback (most recent call last):
   File "renpy/display/displayable.py", line 460, in visit_all
     d.visit_all(callback, seen)
     ~~~~~~~~~~~^^^^^^^^^^^^^^^^
-[Previous line repeated 1 more time]
   File "renpy/display/screen.py", line 503, in visit_all
     callback(self)
     ~~~~~~~~^^^^^^
@@ -60,20 +56,24 @@ Traceback (most recent call last):
   File "renpy/display/screen.py", line 514, in per_interact
     self.update()
     ~~~~~~~~~~~^^
-  File "renpy/display/screen.py", line 715, in update
-    self.screen.function(**self.scope)
-    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^
-  File "game/screens.rpy", line 431, in execute
-    screen about():
-  File "game/screens.rpy", line 431, in execute
-    screen about():
-  File "game/screens.rpy", line 432, in execute
-    use game_menu(_("Credits"), back_action=Return()):
-  File "renpy/parameter.py", line 398, in apply
-    raise TypeError("got an unexpected keyword argument {arg!r}".format(arg=next(iter(kwargs))))
-TypeError: got an unexpected keyword argument 'back_action'
+  File "renpy/display/screen.py", line 741, in update
+    i.set_transform_event(self.current_transform_event)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "renpy/display/behavior.py", line 2884, in set_transform_event
+    rv = run(self.action)
+         ~~~^^^^^^^^^^^^^
+  File "renpy/display/behavior.py", line 411, in run
+    return action(*args, **kwargs)
+           ~~~~~~^^^^^^^^^^^^^^^^^
+  File "renpy/common/00action_other.rpy", line 618, in __call__
+    rv = self.callable(*self.args, **self.kwargs)
+         ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "game/screens.rpy", line 64, in _menu_music_filter
+    renpy.music.play(audio.menu_theme, channel="music", fadein=1.5, loop=True, volume=1.6)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: play() got an unexpected keyword argument 'volume'
 
-macOS-27.0-arm64-arm-64bit arm64
+macOS-15.7.9-arm64-arm-64bit arm64
 Ren'Py 8.5.3.26051504
 Working 1.0
-Thu Sep 10 23:12:04 2026
+Sat Sep 12 15:32:16 2026
