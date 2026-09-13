@@ -1,8 +1,8 @@
 ﻿init offset = -1
 
-# ------------------------------------------------------------------------------
-# Global Styles & Selected State Colors
-# ------------------------------------------------------------------------------
+# ==============================================================================
+# FONTS & GLOBAL STYLES
+# ==============================================================================
 
 style default:
     font "gui/Graduate-Regular.ttf"
@@ -24,174 +24,32 @@ style slider:
     right_bar Solid("#222233")
     thumb Solid("#ffffff", xsize=10, ysize=22)
 
-screen pref_toggle(label, action, selected=False):
-    frame:
-        xsize 190
-        ysize 44
-        padding (2, 2)
-        background Solid("#e6a817" if selected else "#33334a")
-        button:
-            xfill True
-            yfill True
-            background Solid("#1a1a24" if selected else "#101014")
-            hover_background Solid("#2a2a35")
-            action action
-            text label:
-                align (0.5, 0.5)
-                size 22
-                color ("#ffffff" if selected else "#8888a0")
-                hover_color "#ffd700"
-                font "gui/RiotCityRevolts-m2nPj.ttf"
-
 style say_window is default
 style say_label is default
 style say_dialogue is default
 
 image pill_mask = Frame("images/pill_mask.png", 30, 30, 30, 30)
 
-default quick_menu_hover = False
+init python:
+    def C(name, tag=None, **kwargs):
+        return Character(name, **kwargs)
 
 init python:
-    import renpy.audio.filter as af
+    config.overlay_screens.append("quick_menu")
 
-define audio.menu_theme = "gui/main_menu.mp3"
+# ==============================================================================
+# SHARED LAYOUT CONSTANTS
+# ==============================================================================
 
-init python:
-    def _menu_music_filter():
-        # Multiply boosts the raw signal (gain), then Comb adds the echo on top of the boosted signal
-        boosted_echo = af.Sequence([
-            af.Multiply(1.6),
-            af.Comb(delay=0.3, multiplier=0.35, wet=True),
-        ])
-        renpy.music.set_audio_filter("music", boosted_echo, replace=True)
-        renpy.music.play(audio.menu_theme, channel="music", fadein=1.5, loop=True)
+define gui.sidebar_width = 450
+define gui.sidebar_margin = 28
+define gui.sidebar_padding = 35
+define gui.sidebar_content_width = gui.sidebar_width - (gui.sidebar_padding * 2)
 
-    def _menu_music_stop():
-        renpy.music.set_audio_filter("music", None)
-        renpy.music.stop(channel="music", fadeout=1.0)
 
-# ------------------------------------------------------------------------------
-# Achievements
-# ------------------------------------------------------------------------------
-
-# Each entry needs a unique "id" (used to register with the achievement module).
-# "hidden" achievements show "???" until unlocked. "stat_max" is optional —
-# only add it for achievements you want to track progress toward (e.g. 3/10).
-
-define ACHIEVEMENTS = [
-    {
-        "id": "first_departure",
-        "title": _("First Departure"),
-        "description": _("Reach the train station for the first time."),
-        "hidden": False,
-    },
-    {
-        "id": "collector",
-        "title": _("Collector"),
-        "description": _("Find all hidden collectibles."),
-        "hidden": False,
-        "stat_max": 10,
-    },
-    {
-        "id": "secret_ending",
-        "title": _("???"),
-        "description": _("A secret achievement. Unlock it to reveal its name."),
-        "hidden": True,
-    },
-]
-
-init python:
-    for _ach in ACHIEVEMENTS:
-        if "stat_max" in _ach:
-            achievement.register(_ach["id"], stat_max=_ach["stat_max"])
-        else:
-            achievement.register(_ach["id"])
-
-screen achievements():
-    tag menu
-    use game_menu(_("ACHIEVEMENTS"), back_action=(ShowMenu("main_menu") if main_menu else Return()), scrollable=False):
-        vbox:
-            spacing 14
-            for ach in ACHIEVEMENTS:
-                $ unlocked = achievement.has(ach["id"])
-                $ locked_and_hidden = ach.get("hidden", False) and not unlocked
-
-                frame:
-                    xfill True
-                    background Solid("#101014cc" if unlocked else "#10101466")
-                    padding (20, 16)
-
-                    hbox:
-                        spacing 20
-
-                        # Icon — uses real art if you add it, otherwise a plain color block
-                        $ icon_path = "images/achievements/%s.png" % ach["id"]
-                        if renpy.loadable(icon_path):
-                            add icon_path:
-                                xsize 64
-                                ysize 64
-                                alpha (1.0 if unlocked else 0.35)
-                        else:
-                            add Solid("#e6a817" if unlocked else "#33334a"):
-                                xsize 64
-                                ysize 64
-
-                        vbox:
-                            spacing 4
-                            xfill True
-
-                            text (("???" if locked_and_hidden else ach["title"])):
-                                size 24
-                                color ("#ffd700" if unlocked else "#8888a0")
-                                font "gui/Graduate-Regular.ttf"
-
-                            text (("A hidden achievement." if locked_and_hidden else ach["description"])):
-                                size 18
-                                color ("#ffffff" if unlocked else "#666677")
-
-                            if "stat_max" in ach and not unlocked and not ach.get("hidden", False):
-                                $ progress = achievement.get_progress(ach["id"])
-                                bar:
-                                    value progress
-                                    range ach["stat_max"]
-                                    style "slider"
-                                    xsize 300
-                                    ysize 14
-                                text "[progress]/[ach['stat_max']]":
-                                    size 14
-                                    color "#8888a0"
-
-init python:
-    def _set_qm_hover(value):
-        store.quick_menu_hover = value
-
-transform qm_shown:
-    alpha 0.0
-    ease 0.25 alpha 1.0
-
-transform qm_hidden:
-    alpha 1.0
-    ease 0.25 alpha 0.0
-
-# ------------------------------------------------------------------------------
-# Animations & Backgrounds
-# ------------------------------------------------------------------------------
-
-image main_menu_bg_rotation:
-    Solid("#1a1a24")
-    pause 4.0
-    Solid("#241a20") with dissolve
-    pause 4.0
-    Solid("#1a2420") with dissolve
-    pause 4.0
-    repeat
-
-image game_logo_cycle:
-    "images/Game_Logo_Red.webp" with dissolve
-    pause 3.0
-    "images/Game_Logo_Yellow.webp" with dissolve
-    pause 10.0
-    repeat
+# ==============================================================================
+# SHARED TRANSFORMS (ANIMATIONS)
+# ==============================================================================
 
 transform key_entrance_and_sway:
     xanchor 0.5
@@ -215,11 +73,11 @@ transform boot_logo_anim:
     pause 1.5
     ease 0.8 alpha 0.0
 
-transform fade_slide_in(delay=0.0, xoff=-40):
+transform fade_slide_in(delay=0.0, xoff=-40, final_xoff=0):
     alpha 0.0
     xoffset xoff
     pause delay
-    ease 0.5 alpha 1.0 xoffset 0
+    ease 0.5 alpha 1.0 xoffset final_xoff
 
 transform fade_in(delay=0.0):
     alpha 0.0
@@ -236,33 +94,6 @@ transform loading_pulse:
     linear 0.6 alpha 1.0
     linear 0.6 alpha 0.4
     repeat
-
-define config.enter_transition = Dissolve(0.25)
-define config.exit_transition = Dissolve(0.2)
-define config.intra_transition = Dissolve(0.2)
-define config.window_show_transition = Dissolve(0.2)
-define config.window_hide_transition = Dissolve(0.2)
-
-screen loading():
-    zorder 200
-    add Solid("#0a0a0e")
-    frame:
-        xalign 0.5
-        yalign 0.5
-        background None
-        vbox:
-            xalign 0.5
-            spacing 16
-            text _("LOADING"):
-                xalign 0.5
-                size 36
-                color "#e0521f"
-                font "gui/Telegraphem.otf"
-                at loading_pulse
-            add Solid("#e0521f"):
-                xsize 240
-                ysize 3
-                xalign 0.5
 
 transform notify_anim:
     alpha 0.0 yoffset 20
@@ -299,22 +130,355 @@ transform button_hover_anim:
     on selected_idle:
         ease 0.15 zoom 1.0
 
-define gui.sidebar_width = 450
-define gui.sidebar_margin = 28
-define gui.sidebar_padding = 35
-define gui.sidebar_content_width = gui.sidebar_width - (gui.sidebar_padding * 2)
+transform blackberry_click_pulse:
+    zoom 1.0
+    ease 0.15 zoom 1.3
+    ease 0.25 zoom 1.0
 
-# ------------------------------------------------------------------------------
-# Shared layout constants (keep sidebar / divider / content math in one place)
-# ------------------------------------------------------------------------------
+transform qm_shown:
+    alpha 0.0
+    ease 0.25 alpha 1.0
 
-define gui.sidebar_width = 450
-define gui.sidebar_padding = 35
-define gui.sidebar_content_width = gui.sidebar_width - (gui.sidebar_padding * 2)
+transform qm_hidden:
+    alpha 1.0
+    ease 0.25 alpha 0.0
 
-# ------------------------------------------------------------------------------
-# Main Menu Screen
-# ------------------------------------------------------------------------------
+transform speaker_focus(xalign=0.7):
+    xanchor 0.5
+    xalign xalign
+    yalign 1.0
+    yoffset 40
+    zoom 1.0
+    alpha 1.0
+    linear 0.3 zoom 1.08 alpha 1.0
+
+transform speaker_background(xalign=0.3):
+    xanchor 0.5
+    xalign xalign
+    yalign 1.0
+    yoffset 40
+    zoom 1.0
+    alpha 0.55
+    linear 0.3 zoom 0.94 alpha 0.55
+# ==============================================================================
+# GLOBAL TRANSITIONS
+# ==============================================================================
+
+define config.enter_transition = Dissolve(0.25)
+define config.exit_transition = Dissolve(0.2)
+define config.intra_transition = Dissolve(0.2)
+define config.window_show_transition = Dissolve(0.2)
+define config.window_hide_transition = Dissolve(0.2)
+
+
+# ==============================================================================
+# MENU MUSIC (filtered/boosted theme while on menu screens)
+# ==============================================================================
+
+init python:
+    import renpy.audio.filter as af
+
+define audio.menu_theme = "gui/main_menu.mp3"
+
+init python:
+    def _menu_music_filter():
+        boosted_echo = af.Sequence([
+            af.Multiply(1.6),
+            af.Comb(delay=0.3, multiplier=0.35, wet=True),
+        ])
+        renpy.music.set_audio_filter("music", boosted_echo, replace=True)
+        renpy.music.play(audio.menu_theme, channel="music", fadein=1.5, loop=True)
+
+    def _menu_music_stop():
+        renpy.music.set_audio_filter("music", None)
+        renpy.music.stop(channel="music", fadeout=1.0)
+
+
+# ==============================================================================
+# BLACKBERRY LOGO EASTER EGG
+# ==============================================================================
+
+default found_blackberry_secret = False
+
+init python:
+    def blackberry_secret_action():
+        if not store.found_blackberry_secret:
+            store.found_blackberry_secret = True
+            renpy.notify("Ryan is black (berry)")
+        else:
+            renpy.notify("You already found the secret. Stop clicking it. Please.")
+
+init python:
+    import os
+    import pygame
+
+    def autocrop_image(path):
+        cache_name = "autocrop_" + path.replace("/", "_").replace("\\", "_") + ".png"
+        cache_path = os.path.join(config.gamedir, "cache", cache_name)
+
+        if not os.path.exists(cache_path):
+            source = renpy.loader.transfn(path)
+            surf = pygame.image.load(source).convert_alpha()
+
+            width, height = surf.get_size()
+            min_x, min_y = width, height
+            max_x, max_y = 0, 0
+            found = False
+
+            for x in range(width):
+                for y in range(height):
+                    if surf.get_at((x, y))[3] > 0:
+                        found = True
+                        if x < min_x: min_x = x
+                        if x > max_x: max_x = x
+                        if y < min_y: min_y = y
+                        if y > max_y: max_y = y
+
+            if found:
+                rect = pygame.Rect(min_x, min_y, max_x - min_x + 1, max_y - min_y + 1)
+                cropped = surf.subsurface(rect).copy()
+            else:
+                cropped = surf
+
+            os.makedirs(os.path.dirname(cache_path), exist_ok=True)
+            pygame.image.save(cropped, cache_path)
+
+        return "cache/" + cache_name
+
+# ==============================================================================
+# CUSTOM USER PREFERENCES (persistent across sessions)
+# ==============================================================================
+
+default persistent.screen_shake_enabled = True
+default persistent.dialogue_font_size = 28
+
+transform no_shake:
+    pass
+
+init python:
+    FONT_SIZE_STEPS = [22, 26, 30, 34]
+
+    def cycle_font_size():
+        idx = FONT_SIZE_STEPS.index(persistent.dialogue_font_size) if persistent.dialogue_font_size in FONT_SIZE_STEPS else 1
+        persistent.dialogue_font_size = FONT_SIZE_STEPS[(idx + 1) % len(FONT_SIZE_STEPS)]
+
+
+# ==============================================================================
+# QUICK MENU AUTO-HIDE STATE
+# ==============================================================================
+
+default quick_menu_hover = False
+
+init python:
+    def _set_qm_hover(value):
+        store.quick_menu_hover = value
+
+
+# ==============================================================================
+# ACHIEVEMENTS
+# ==============================================================================
+
+define ACHIEVEMENTS = [
+    {
+        "id": "first_departure",
+        "title": _("First Departure"),
+        "description": _("Reach the train station for the first time."),
+        "hidden": False,
+    },
+    {
+        "id": "collector",
+        "title": _("Collector"),
+        "description": _("Find all hidden collectibles."),
+        "hidden": False,
+        "stat_max": 10,
+    },
+    {
+        "id": "secret_ending",
+        "title": _("REDACTED"),
+        "description": _("A secret achievement. Unlock it to reveal its name. Confidential."),
+        "hidden": True,
+    },
+        {
+        "id": "the_loop_begins",
+        "title": _("Here Again?"),
+        "description": _("The train reset. Louis remembers."),
+        "hidden": False,
+    },
+    {
+        "id": "eyes_in_the_dark",
+        "title": _("???"),
+        "description": _("Something was watching from beyond the sixth carriage."),
+        "hidden": True,
+    },
+    {
+        "id": "closer_to_the_truth",
+        "title": _("Closer to the Truth"),
+        "description": _("Investigated Shunyu's murder."),
+        "hidden": False,
+    },
+]
+
+init python:
+    for _ach in ACHIEVEMENTS:
+        if "stat_max" in _ach:
+            achievement.register(_ach["id"], stat_max=_ach["stat_max"])
+        else:
+            achievement.register(_ach["id"])
+
+screen achievements():
+    tag menu
+
+    $ back_action = ShowMenu("main_menu") if main_menu else Return()
+
+    add Solid("#0a0a0e")
+
+    text _("ACHIEVEMENTS"):
+        xpos 80
+        ypos 50
+        size 40
+        color "#ffffff"
+        font "gui/Graduate-Regular.ttf"
+
+    add Solid("#e0521f"):
+        xpos 80
+        ypos 105
+        xsize 160
+        ysize 3
+
+    vbox:
+        xpos 80
+        ypos 140
+        xsize (config.screen_width - 160)
+        spacing 14
+
+        for ach in ACHIEVEMENTS:
+            $ unlocked = achievement.has(ach["id"])
+            $ locked_and_hidden = ach.get("hidden", False) and not unlocked
+
+            frame:
+                xfill True
+                background Solid("#101014")
+                padding (20, 16)
+
+                hbox:
+                    spacing 20
+
+                    $ icon_path = "images/achievements/%s.png" % ach["id"]
+
+                    if renpy.loadable(icon_path):
+                        add icon_path:
+                            xsize 64
+                            ysize 64
+                            alpha (1.0 if unlocked else 0.35)
+                    else:
+                        add Solid("#e6a817" if unlocked else "#33334a"):
+                            xsize 64
+                            ysize 64
+
+                    vbox:
+                        spacing 4
+
+                        if unlocked:
+                            text ("???" if locked_and_hidden else ach["title"]):
+                                size 24
+                                color "#ffd700"
+                                font "gui/Graduate-Regular.ttf"
+                        else:
+                            text ("???" if locked_and_hidden else ach["title"]):
+                                size 24
+                                color "#8888a0"
+                                font "gui/Graduate-Regular.ttf"
+
+                        if unlocked:
+                            text ("A hidden achievement." if locked_and_hidden else ach["description"]):
+                                size 18
+                                color "#ffffff"
+                                font "gui/Graduate-Regular.ttf"
+                        else:
+                            text ("A hidden achievement." if locked_and_hidden else ach["description"]):
+                                size 18
+                                color "#666677"
+                                font "gui/Graduate-Regular.ttf"
+
+                        if "stat_max" in ach and not unlocked and not ach.get("hidden", False):
+                            $ progress = achievement.get_progress(ach["id"])
+
+                            text "[progress]/[ach['stat_max']]":
+                                size 14
+                                color "#8888a0"
+
+    frame:
+        xpos 80
+        yalign 0.95
+        xsize 160
+        ysize 50
+        padding (2, 2)
+        background Solid("#33334a")
+
+        button:
+            xfill True
+            yfill True
+            background Solid("#101014")
+            hover_background Solid("#2a2a35")
+            action back_action
+
+            text "BACK":
+                align (0.5, 0.5)
+                size 24
+                color "#8888a0"
+                hover_color "#ffd700"
+                font "gui/Graduate-Regular.ttf"
+# ==============================================================================
+# BACKGROUNDS
+# ==============================================================================
+
+image main_menu_bg_rotation:
+    Solid("#1a1a24")
+    pause 4.0
+    Solid("#241a20") with dissolve
+    pause 4.0
+    Solid("#1a2420") with dissolve
+    pause 4.0
+    repeat
+
+image game_logo_cycle:
+    "images/Game_Logo_Red.webp" with dissolve
+    pause 3.0
+    "images/Game_Logo_Yellow.webp" with dissolve
+    pause 10.0
+    repeat
+
+
+# ==============================================================================
+# LOADING SCREEN
+# ==============================================================================
+
+screen loading():
+    zorder 200
+    add Solid("#0a0a0e")
+    frame:
+        xalign 0.5
+        yalign 0.5
+        background None
+        vbox:
+            xalign 0.5
+            spacing 16
+            text _("LOADING"):
+                xalign 0.5
+                size 36
+                color "#e0521f"
+                font "gui/Telegraphem.otf"
+                at loading_pulse
+            add Solid("#e0521f"):
+                xsize 240
+                ysize 3
+                xalign 0.5
+
+
+# ==============================================================================
+# BOOT / SPLASHSCREEN
+# ==============================================================================
+
 label splashscreen:
     scene black
     with Pause(0.3)
@@ -333,38 +497,67 @@ label splashscreen:
 
     return
 
+
+# ==============================================================================
+# MAIN MENU SCREEN
+# ==============================================================================
+
 screen main_menu():
     tag menu
     on "show" action Function(_menu_music_filter)
     on "hide" action Function(_menu_music_stop)
 
     fixed:
-        at train_shake
+        at (train_shake if persistent.screen_shake_enabled else no_shake)
 
-        # 2. Right Side Moving Key Graphic
-        if renpy.loadable("images/Key.webp"):
-            add "images/Key.webp":
-                xsize 560
-                ysize 770
+        # Key
+        fixed:
+            xpos 0.94
+            ypos -0.30
+            xsize 560
+            ysize 770
+            xanchor 0.5
+            yanchor 0.0
+            at key_entrance_and_sway
+
+            if renpy.loadable("images/Key.webp"):
+                add "images/Key.webp":
+                    xsize 560
+                    ysize 770
+                    fit "contain"
+                    align (0.5, 0.5)
+                    xoffset -21.6
+                    yoffset -24.3
+            else:
+                text "KEY":
+                    size 160
+
+        # Hook — smaller, sits deeper in the hole, slides/fades in with the key
+        fixed:
+            xpos 0.94
+            ypos -0.30
+            xsize 560
+            ysize 770
+            xanchor 0.5
+            yanchor 0.0
+            at fade_slide_in(delay=0.6, xoff=40)
+
+            add "images/Key_Hook.webp":
+                xsize 200
+                ysize 110
                 fit "contain"
-                xpos 0.90
-                ypos -0.24
-                at key_entrance_and_sway
-        else:
-            text "KEY":
-                size 160
-                xpos 0.90
-                ypos -0.24
-                at key_entrance_and_sway
+                align (0.5, 0.5)
+                xoffset -25.9
+                yoffset 64.4
+                matrixcolor TintMatrix("#ae5400")
 
-        # 3. Floating glass sidebar card
+        # Floating glass sidebar card
         fixed:
             xpos gui.sidebar_margin
             ypos gui.sidebar_margin
             xsize gui.sidebar_width
             ysize (config.screen_height - gui.sidebar_margin * 2)
 
-            # Soft blurred drop shadow, offset slightly behind the card
             add Solid("#000000aa"):
                 xsize gui.sidebar_width
                 ysize (config.screen_height - gui.sidebar_margin * 2)
@@ -372,7 +565,6 @@ screen main_menu():
                 yoffset 12
                 blur 22
 
-            # Frosted glass panel
             frame:
                 xfill True
                 yfill True
@@ -380,7 +572,6 @@ screen main_menu():
                 padding (0, 0)
                 clipping True
 
-                # Thin light highlight along the top edge, like glass catching light
                 add Solid("#ffffff22"):
                     xsize gui.sidebar_width
                     ysize 2
@@ -390,16 +581,15 @@ screen main_menu():
                     xpos gui.sidebar_padding
                     ypos 40
                     xsize gui.sidebar_content_width
-                    spacing 20
+                    yfill True
+                    spacing 50
 
-                    # Game Logo - cycles through color variants
                     add "game_logo_cycle":
                         xsize gui.sidebar_content_width
                         ysize 260
                         fit "contain"
                         at fade_slide_in(0.1)
 
-                    # Play Button — solid accent fill, the primary action
                     frame:
                         xsize gui.sidebar_content_width
                         ysize 60
@@ -421,144 +611,145 @@ screen main_menu():
                                 font "gui/Graduate-Regular.ttf"
                                 at button_hover_anim
 
-                    # Sub-menu buttons — flat, quiet, secondary
-                    vbox:
+                    viewport:
                         xsize gui.sidebar_content_width
-                        spacing 4
-
-                        button:
+                        yfill True
+                        mousewheel True
+                        vbox:
                             xsize gui.sidebar_content_width
-                            ysize 46
-                            background Solid("#00000000")
-                            hover_background Solid("#ffffff11")
-                            action ShowMenu("preferences")
-                            at button_hover_anim
-                            text "SETTINGS" align (0.0, 0.5) xoffset 4 size 24 color "#8888a0" hover_color "#ffd700" font "gui/Graduate-Regular.ttf"
+                            spacing 14
 
-                        button:
-                            xsize gui.sidebar_content_width
-                            ysize 46
-                            background Solid("#00000000")
-                            hover_background Solid("#ffffff11")
-                            action ShowMenu("about")
-                            at button_hover_anim
-                            text "CREDITS" align (0.0, 0.5) xoffset 4 size 24 color "#8888a0" hover_color "#ffd700" font "gui/Graduate-Regular.ttf"
-                        
-                        button:
-                            xsize gui.sidebar_content_width
-                            ysize 46
-                            background Solid("#00000000")
-                            hover_background Solid("#ffffff11")
-                            action ShowMenu("achievements")
-                            at button_hover_anim
-                            text "ACHIEVEMENTS" align (0.0, 0.5) xoffset 4 size 24 color "#8888a0" hover_color "#ffd700" font "gui/Graduate-Regular.ttf"
-
-                        if renpy.variant("pc"):
                             button:
                                 xsize gui.sidebar_content_width
                                 ysize 46
                                 background Solid("#00000000")
                                 hover_background Solid("#ffffff11")
-                                action Quit(confirm=True)
+                                action ShowMenu("preferences")
                                 at button_hover_anim
-                                text "QUIT" align (0.0, 0.5) xoffset 4 size 24 color "#8888a0" hover_color "#ffd700" font "gui/Graduate-Regular.ttf"
+                                text "SETTINGS" align (0.0, 0.5) xoffset 4 size 24 color "#8888a0" hover_color "#ffd700" font "gui/Graduate-Regular.ttf"
 
-                # Train — clipped box, slides in from the left
+                            button:
+                                xsize gui.sidebar_content_width
+                                ysize 46
+                                background Solid("#00000000")
+                                hover_background Solid("#ffffff11")
+                                action ShowMenu("about")
+                                at button_hover_anim
+                                text "CREDITS" align (0.0, 0.5) xoffset 4 size 24 color "#8888a0" hover_color "#ffd700" font "gui/Graduate-Regular.ttf"
+
+                            button:
+                                xsize gui.sidebar_content_width
+                                ysize 46
+                                background Solid("#00000000")
+                                hover_background Solid("#ffffff11")
+                                action ShowMenu("achievements")
+                                at button_hover_anim
+                                text "ACHIEVEMENTS" align (0.0, 0.5) xoffset 4 size 24 color "#8888a0" hover_color "#ffd700" font "gui/Graduate-Regular.ttf"
+
+                            if renpy.variant("pc"):
+                                button:
+                                    xsize gui.sidebar_content_width
+                                    ysize 46
+                                    background Solid("#00000000")
+                                    hover_background Solid("#ffffff11")
+                                    action Quit(confirm=True)
+                                    at button_hover_anim
+                                    text "QUIT" align (0.0, 0.5) xoffset 4 size 24 color "#8888a0" hover_color "#ffd700" font "gui/Graduate-Regular.ttf"
+
                 frame:
                     xpos 0
-                    yalign 0.98
+                    yalign 1.0
+                    yoffset 60
                     xysize (380, 380)
                     background None
                     padding (0, 0)
                     clipping True
                     at fade_slide_in(0.7, xoff=-60)
-
                     add "images/Train_BP.webp":
                         xysize (380, 380)
                         fit "contain"
-                        align (0.05, 1.0)
+                        align (0.0, 1.0)
+                        xoffset -30
                         rotate -12
 
-    # 5. Blackberry Logo (bottom-right corner of the window)
     if renpy.loadable("images/Blackberry_Studios.webp"):
-        add "images/Blackberry_Studios.webp":
-            xalign 0.99
-            yalign 0.96
-            xsize 200
-            ysize 95
-            fit "contain"
-            rotate -18
-            at fade_slide_in(0.9, xoff=40)
+        $ blackberry_cropped = autocrop_image("images/Blackberry_Studios.webp")
+        button:
+            xalign 1.0
+            yalign 1.0
+            xoffset 30
+            yoffset -30
+            xsize 180
+            ysize 90
+            background None
+            action Function(blackberry_secret_action)
+            at fade_slide_in(0.9, xoff=70, final_xoff=30)
+
+            add blackberry_cropped:
+                xsize 180
+                ysize 90
+                fit "contain"
+                rotate -18
+                at button_hover_anim
     else:
         text "Blackberry":
             size 40
-            xalign 0.99
-            yalign 0.96
-            at fade_slide_in(0.9, xoff=40)
-#-------------------------------------------------------------------------------
-# Dialogue & Interface Screens
-# ------------------------------------------------------------------------------
+            xalign 1.0
+            yalign 1.0
+            xoffset -20
+            yoffset -20
+            at fade_slide_in(0.9, xoff=60, final_xoff=-20)
+
+# ==============================================================================
+# DIALOGUE (SAY) SCREEN
+# ==============================================================================
 
 screen say(who, what):
     window:
         id "window"
         xalign 0.5
         yalign 1.0
-        xfill True
-        ysize 260
-        background None
+        xsize config.screen_width
+        ysize 310                      # was 260 — now includes the quick menu strip (260 + 50)
+        background Solid("#0a0a0eee")
 
-        # Soft gradient blend into the scene above (stacked fading solids)
-        add Solid("#0a0a0e00"):
-            xsize 2560
-            ysize 40
-            yalign 0.0
-        add Solid("#0a0a0e55"):
-            xsize 2560
-            ysize 30
-            yoffset 40
-        add Solid("#0a0a0ecc"):
-            xsize 2560
-            ysize 190
-            yoffset 70
-
-        # Top accent line, sits right at the gradient/solid seam
         add Solid("#e0521f"):
-            xsize 2560
+            xsize config.screen_width
             ysize 2
-            yoffset 70
+            yalign 0.0
 
         if who:
-            # Name tag, boxed pill instead of bare text
             add AlphaMask(
-                Solid("#e0521f", xsize=260, ysize=44),
+                Solid("#8a4a22", xsize=260, ysize=44),
                 Transform("pill_mask", size=(260, 44))
             ):
                 xpos 40
-                ypos 92
+                ypos 44
 
             text who:
                 id "who"
                 xpos 170
                 xanchor 0.5
-                ypos 105
-                size 26
+                ypos 66
+                yanchor 0.5
+                size (persistent.dialogue_font_size - 2)
                 bold True
-                color "#0a0a0e"
-                font "gui/Telegraphem.otf"
+                color "#f2e6d8"
+                font "gui/Graduate-Regular.ttf"
 
         text what:
             id "what"
             xpos 40
-            xsize 0.9
-            ypos 148
-            size 27
-            color "#ffffff"
-            font "gui/Telegraphem.otf"
-            line_spacing 5
+            xsize 0.85
+            ypos 112
+            size persistent.dialogue_font_size
+            color "#e8e4dc"
+            font "gui/Graduate-Regular.ttf"
+            line_spacing 10
 
-    if quick_menu:
-        use quick_menu
+# ==============================================================================
+# INPUT / CHOICE SCREENS
+# ==============================================================================
 
 screen input(prompt):
     window:
@@ -573,12 +764,39 @@ screen input(prompt):
 
 screen choice(items):
     vbox:
-        xpos 0.05
-        yalign 0.7
-        spacing 10
+        xalign 0.5
+        yalign 1.0
+        yoffset -340
+        spacing 18
+
         for i in items:
-            textbutton i.caption:
-                action i.action
+            frame:
+                xalign 0.5
+                xsize 760
+                ysize 82
+                padding (3, 3)
+                background Solid("#33334a")
+                at button_hover_anim
+
+                button:
+                    xfill True
+                    yfill True
+                    background Solid("#14141aee")
+                    hover_background Solid("#2a2a35")
+                    action i.action
+
+                    text i.caption:
+                        align (0.5, 0.5)
+                        size 32
+                        color "#c9c9d8"
+                        hover_color "#ffd700"
+                        selected_color "#ffd700"
+                        font "gui/Graduate-Regular.ttf"
+
+
+# ==============================================================================
+# QUICK MENU (auto-hides unless hovering the bottom edge)
+# ==============================================================================
 
 default quick_menu = True
 
@@ -586,19 +804,17 @@ screen quick_menu():
     zorder 100
     if quick_menu:
 
-        # Invisible zone along the bottom edge — hovering here reveals the bar
         mousearea:
-            area (0, config.screen_height - 90, config.screen_width, 90)
+            area (0, config.screen_height - 50, config.screen_width, 50)
             hovered Function(_set_qm_hover, True)
             unhovered Function(_set_qm_hover, False)
 
         hbox:
             xpos 40
             yalign 1.0
-            yoffset -10
+            yoffset -14
             spacing 8
             at (qm_shown if quick_menu_hover else qm_hidden)
-
             for label, act in [
                 (_("Home"), MainMenu(confirm=True)),
                 (_("Back"), Rollback()),
@@ -613,7 +829,6 @@ screen quick_menu():
                 fixed:
                     xsize 96
                     ysize 34
-
                     button:
                         xfill True
                         yfill True
@@ -633,7 +848,11 @@ screen quick_menu():
                             color "#8888a0"
                             hover_color "#ffd700"
                             selected_color "#ffd700"
-                            font "gui/Telegraphem.otf"
+                            font "gui/Graduate-Regular.ttf"
+
+# ==============================================================================
+# IN-GAME NAVIGATION (used by Ren'Py's default escape menu, if triggered)
+# ==============================================================================
 
 screen navigation():
     vbox:
@@ -667,215 +886,317 @@ screen navigation():
             textbutton _("Quit"):
                 action Quit(confirm=not main_menu)
 
-# ------------------------------------------------------------------------------
-# Shared "menu" wrapper - every screen that uses this MUST declare its own
-# "tag menu" (a tag inside a transcluded/used screen does NOT propagate to the
-# screen that calls "use" - that was the bug causing menus to stack instead of
-# replacing each other).
-# ------------------------------------------------------------------------------
+# ==============================================================================
+# SHARED "MENU" CHROME (title bar + back button + dim overlay)
+# ==============================================================================
 
-screen game_menu(title, back_action=None, scrollable=True):
+screen game_menu_header(title):
+    text title:
+        size 40
+        color "#ffffff"
+        font "gui/Graduate-Regular.ttf"
+        at fade_in(0.1)
+    add Solid("#e0521f"):
+        xsize 160
+        ysize 3
 
-    $ back_action = back_action if back_action is not None else (ShowMenu("main_menu") if main_menu else Return())
-
-    key "game_menu" action back_action
-
-    add Solid("#0a0a0eee")
-
+screen game_menu_back(back_action):
     frame:
-        xfill True
-        yfill True
-        background None
-        padding (80, 60)
-        at fade_slide_in(0.0, xoff=-30)
-
-        vbox:
+        xpos 80
+        yalign 0.95
+        xsize 160
+        ysize 50
+        padding (2, 2)
+        background Solid("#33334a")
+        at fade_in(0.3)
+        button:
             xfill True
             yfill True
-            spacing 20
+            background Solid("#101014")
+            hover_background Solid("#2a2a35")
+            action back_action
+            text "BACK" align (0.5, 0.5) size 24 color "#8888a0" hover_color "#ffd700" font "gui/Graduate-Regular.ttf"
 
-            text title:
-                size 40
-                color "#ffffff"
+screen game_menu_overlay():
+    add Solid("#0a0a0eee"):
+        xsize config.screen_width
+        ysize config.screen_height
+
+
+# ==============================================================================
+# PREFERENCES
+# ==============================================================================
+
+screen pref_toggle(label, action, selected=False):
+    frame:
+        xsize 200
+        ysize 44
+        padding (2, 2)
+        background Solid("#e6a817" if selected else "#33334a")
+        button:
+            xfill True
+            yfill True
+            background Solid("#1a1a24" if selected else "#101014")
+            hover_background Solid("#2a2a35")
+            action action
+            text label:
+                align (0.5, 0.5)
+                size 18
+                color ("#ffffff" if selected else "#8888a0")
+                hover_color "#ffd700"
                 font "gui/Graduate-Regular.ttf"
-                at fade_in(0.1)
-            add Solid("#e0521f"):
-                xsize 160
-                ysize 3
-
-            if scrollable:
-                viewport:
-                    xfill True
-                    yfill True
-                    mousewheel True
-                    draggable True
-                    scrollbars "vertical"
-                    vbox:
-                        xfill True
-                        spacing 10
-                        transclude
-            else:
-                vbox:
-                    xfill True
-                    spacing 10
-                    transclude
-
-            null height 20
-
-            frame:
-                xsize 160
-                ysize 50
-                padding (2, 2)
-                background Solid("#33334a")
-                at fade_in(0.3)
-                button:
-                    xfill True
-                    yfill True
-                    background Solid("#101014")
-                    hover_background Solid("#2a2a35")
-                    action back_action
-                    text "BACK" align (0.5, 0.5) size 24 color "#8888a0" hover_color "#ffd700" font "gui/Graduate-Regular.ttf"
-
-# ------------------------------------------------------------------------------
-# Preferences & Submenus
-# ------------------------------------------------------------------------------
 
 screen preferences():
     tag menu
-    use game_menu(_("PREFERENCES"), back_action=(ShowMenu("main_menu") if main_menu else Return()), scrollable=False):
-        hbox:
-            spacing 60
 
-            # Left Column
-            vbox:
-                spacing 26
-                xsize 460
+    $ back_action = ShowMenu("main_menu") if main_menu else Return()
 
-                frame:
-                    background Solid("#101014cc")
-                    padding (24, 20)
-                    xfill True
-                    vbox:
-                        spacing 10
-                        text _("DISPLAY"):
-                            size 18
-                            color "#e6a817"
-                            font "gui/Graduate-Regular.ttf"
-                        hbox:
-                            spacing 12
-                            use pref_toggle(_("WINDOW"), Preference("display", "window"), selected=(_preferences.fullscreen == False))
-                            use pref_toggle(_("FULLSCREEN"), Preference("display", "fullscreen"), selected=(_preferences.fullscreen == True))
+    add Solid("#0a0a0e")
 
-                frame:
-                    background Solid("#101014cc")
-                    padding (24, 20)
-                    xfill True
-                    vbox:
-                        spacing 10
-                        text _("SKIP"):
-                            size 18
-                            color "#e6a817"
-                            font "gui/Graduate-Regular.ttf"
-                        hbox:
-                            spacing 12
-                            use pref_toggle(_("SEEN TEXT"), Preference("skip", "seen"), selected=(_preferences.skip_unseen == False))
-                            use pref_toggle(_("ALL TEXT"), Preference("skip", "all"), selected=(_preferences.skip_unseen == True))
+    text _("PREFERENCES"):
+        xpos 80
+        ypos 50
+        size 40
+        color "#ffffff"
+        font "gui/Graduate-Regular.ttf"
 
-                frame:
-                    background Solid("#101014cc")
-                    padding (24, 20)
-                    xfill True
-                    vbox:
-                        spacing 10
-                        text _("AFTER CHOICES"):
-                            size 18
-                            color "#e6a817"
-                            font "gui/Graduate-Regular.ttf"
-                        hbox:
-                            spacing 12
-                            use pref_toggle(_("STOP SKIPPING"), Preference("after choices", "stop"), selected=(_preferences.skip_after_choices == False))
-                            use pref_toggle(_("KEEP SKIPPING"), Preference("after choices", "skip"), selected=(_preferences.skip_after_choices == True))
+    add Solid("#e0521f"):
+        xpos 80
+        ypos 105
+        xsize 160
+        ysize 3
 
-                frame:
-                    background Solid("#101014cc")
-                    padding (24, 20)
-                    xfill True
-                    vbox:
+    hbox:
+        xpos 80
+        ypos 140
+        spacing 60
+
+        # ---------------- LEFT COLUMN ----------------
+        vbox:
+            spacing 20
+            xsize 700
+
+            frame:
+                background Solid("#101014")
+                padding (24, 20)
+                xfill True
+
+                vbox:
+                    spacing 10
+
+                    text _("DISPLAY"):
+                        size 18
+                        color "#e6a817"
+                        font "gui/Graduate-Regular.ttf"
+
+                    hbox:
                         spacing 12
-                        text _("TEXT SPEED"):
-                            size 18
-                            color "#e6a817"
-                            font "gui/Graduate-Regular.ttf"
-                        bar:
-                            style "slider"
-                            value Preference("text speed")
-                            xsize 380
-                        null height 6
-                        text _("AUTO-FORWARD SPEED"):
-                            size 18
-                            color "#e6a817"
-                            font "gui/Graduate-Regular.ttf"
-                        bar:
-                            style "slider"
-                            value Preference("auto-forward time")
-                            bar_invert True
-                            xsize 380
 
-            # Right Column
-            vbox:
-                spacing 26
-                xsize 420
+                        use pref_toggle(
+                            _("WINDOW"),
+                            Preference("display", "window"),
+                            selected=(_preferences.fullscreen == False)
+                        )
 
-                frame:
-                    background Solid("#101014cc")
-                    padding (24, 20)
-                    xfill True
-                    vbox:
-                        spacing 22
+                        use pref_toggle(
+                            _("FULLSCREEN"),
+                            Preference("display", "fullscreen"),
+                            selected=(_preferences.fullscreen == True)
+                        )
 
-                        vbox:
-                            spacing 8
-                            hbox:
-                                xfill True
-                                text _("MUSIC VOLUME"):
-                                    size 18
-                                    color "#e6a817"
-                                    font "gui/Graduate-Regular.ttf"
-                                text _("  MUTE"):
-                                    size 16
-                                    color "#8888a0"
-                                    hover_color "#ffd700"
-                            bar:
-                                style "slider"
-                                value Preference("music volume")
-                                xsize 380
+            frame:
+                background Solid("#101014")
+                padding (24, 20)
+                xfill True
 
-                        vbox:
-                            spacing 8
-                            hbox:
-                                xfill True
-                                text _("SOUND VOLUME"):
-                                    size 18
-                                    color "#e6a817"
-                                    font "gui/Graduate-Regular.ttf"
-                            bar:
-                                style "slider"
-                                value Preference("sound volume")
-                                xsize 380
+                vbox:
+                    spacing 10
 
-                        vbox:
-                            spacing 8
-                            hbox:
-                                xfill True
-                                text _("VOICE VOLUME"):
-                                    size 18
-                                    color "#e6a817"
-                                    font "gui/Graduate-Regular.ttf"
-                            bar:
-                                style "slider"
-                                value Preference("voice volume")
-                                xsize 380
-                        use pref_toggle(_("MUTE ALL AUDIO"), Preference("all mute", "toggle"), selected=False)
+                    text _("SKIP"):
+                        size 18
+                        color "#e6a817"
+                        font "gui/Graduate-Regular.ttf"
+
+                    hbox:
+                        spacing 12
+
+                        use pref_toggle(
+                            _("SEEN TEXT"),
+                            Preference("skip", "seen"),
+                            selected=(_preferences.skip_unseen == False)
+                        )
+
+                        use pref_toggle(
+                            _("ALL TEXT"),
+                            Preference("skip", "all"),
+                            selected=(_preferences.skip_unseen == True)
+                        )
+
+            frame:
+                background Solid("#101014")
+                padding (24, 20)
+                xfill True
+
+                vbox:
+                    spacing 10
+
+                    text _("AFTER CHOICES"):
+                        size 18
+                        color "#e6a817"
+                        font "gui/Graduate-Regular.ttf"
+
+                    hbox:
+                        spacing 12
+
+                        use pref_toggle(
+                            _("STOP SKIPPING"),
+                            Preference("after choices", "stop"),
+                            selected=(_preferences.skip_after_choices == False)
+                        )
+
+                        use pref_toggle(
+                            _("KEEP SKIPPING"),
+                            Preference("after choices", "skip"),
+                            selected=(_preferences.skip_after_choices == True)
+                        )
+
+            frame:
+                background Solid("#101014")
+                padding (24, 20)
+                xfill True
+
+                vbox:
+                    spacing 10
+
+                    text _("MORE OPTIONS"):
+                        size 18
+                        color "#e6a817"
+                        font "gui/Graduate-Regular.ttf"
+
+                    text _("SCREEN SHAKE / RUMBLE"):
+                        size 14
+                        color "#8888a0"
+                        font "gui/Graduate-Regular.ttf"
+
+                    hbox:
+                        spacing 12
+
+                        use pref_toggle(
+                            _("ON"),
+                            SetField(persistent, "screen_shake_enabled", True),
+                            selected=persistent.screen_shake_enabled
+                        )
+
+                        use pref_toggle(
+                            _("OFF"),
+                            SetField(persistent, "screen_shake_enabled", False),
+                            selected=not persistent.screen_shake_enabled
+                        )
+
+                    text _("DIALOGUE FONT SIZE"):
+                        size 14
+                        color "#8888a0"
+                        font "gui/Graduate-Regular.ttf"
+
+                    textbutton "[persistent.dialogue_font_size]px":
+                        action Function(cycle_font_size)
+                        text_size 18
+
+        # ---------------- RIGHT COLUMN ----------------
+        vbox:
+            spacing 20
+            xsize 700
+
+            frame:
+                background Solid("#101014")
+                padding (24, 20)
+                xfill True
+
+                vbox:
+                    spacing 12
+
+                    text _("TEXT SPEED"):
+                        size 18
+                        color "#e6a817"
+                        font "gui/Graduate-Regular.ttf"
+
+                    bar:
+                        style "slider"
+                        value Preference("text speed")
+                        xsize 380
+
+                    text _("AUTO-FORWARD SPEED"):
+                        size 18
+                        color "#e6a817"
+                        font "gui/Graduate-Regular.ttf"
+
+                    bar:
+                        style "slider"
+                        value Preference("auto-forward time")
+                        xsize 380
+
+                    text _("MUSIC VOLUME"):
+                        size 18
+                        color "#e6a817"
+                        font "gui/Graduate-Regular.ttf"
+
+                    bar:
+                        style "slider"
+                        value Preference("music volume")
+                        xsize 380
+
+                    text _("SOUND VOLUME"):
+                        size 18
+                        color "#e6a817"
+                        font "gui/Graduate-Regular.ttf"
+
+                    bar:
+                        style "slider"
+                        value Preference("sound volume")
+                        xsize 380
+
+                    text _("VOICE VOLUME"):
+                        size 18
+                        color "#e6a817"
+                        font "gui/Graduate-Regular.ttf"
+
+                    bar:
+                        style "slider"
+                        value Preference("voice volume")
+                        xsize 380
+
+                    use pref_toggle(
+                        _("MUTE ALL AUDIO"),
+                        Preference("all mute", "toggle"),
+                        selected=False
+                    )
+
+    frame:
+        xpos 80
+        yalign 0.95
+        xsize 160
+        ysize 50
+        padding (2, 2)
+        background Solid("#33334a")
+
+        button:
+            xfill True
+            yfill True
+            background Solid("#101014")
+            hover_background Solid("#2a2a35")
+            action back_action
+
+            text "BACK":
+                align (0.5, 0.5)
+                size 24
+                color "#8888a0"
+                hover_color "#ffd700"
+                font "gui/Graduate-Regular.ttf"
+
+
+# ==============================================================================
+# SAVE / LOAD
+# ==============================================================================
 
 screen save():
     tag menu
@@ -887,47 +1208,112 @@ screen load():
 
 screen file_slots(title):
     default page = 1
-    use game_menu(title, back_action=(ShowMenu("main_menu") if main_menu else Return())):
+
+    $ back_action = ShowMenu("main_menu") if main_menu else Return()
+    key "game_menu" action back_action
+
+    use game_menu_overlay
+
+    frame:
+        xsize config.screen_width
+        ysize config.screen_height
+        background None
+        padding (80, 60)
+        at fade_slide_in(0.0, xoff=-30)
+
         vbox:
-            spacing 10
-            for slot in range(1, 9):
-                $ slot_index = slot + (page - 1) * 8
-                button:
-                    xsize 700
-                    action FileAction(slot_index)
-                    if FileSlotName(slot_index):
-                        text FileSlotName(slot_index)
-                    else:
-                        text _("Empty Slot")
-            hbox:
-                spacing 10
-                textbutton _("<"):
-                    action SetScreenVariable("page", max(1, page - 1))
-                textbutton _("Page [page]"):
-                    action NullAction()
-                textbutton _(">"):
-                    action SetScreenVariable("page", page + 1)
+            xsize (config.screen_width - 160)
+            spacing 20
+
+            use game_menu_header(title)
+
+            viewport:
+                xsize (config.screen_width - 160)
+                ysize (config.screen_height - 260)
+                mousewheel True
+                draggable True
+                scrollbars "vertical"
+
+                vbox:
+                    spacing 10
+                    for slot in range(1, 9):
+                        $ slot_index = slot + (page - 1) * 8
+                        button:
+                            xsize 700
+                            action FileAction(slot_index)
+                            $ slot_name = FileSlotName(slot_index)
+                            if slot_name:
+                                text slot_name
+                            else:
+                                text _("Empty Slot")
+                    hbox:
+                        spacing 10
+                        textbutton _("<"):
+                            action SetScreenVariable("page", max(1, page - 1))
+                        textbutton _("Page [page]"):
+                            action NullAction()
+                        textbutton _(">"):
+                            action SetScreenVariable("page", page + 1)
+
+    use game_menu_back(back_action)
+
+
+# ==============================================================================
+# HISTORY
+# ==============================================================================
 
 screen history():
     tag menu
-    use game_menu(_("History"), back_action=(ShowMenu("main_menu") if main_menu else Return())):
+
+    $ back_action = ShowMenu("main_menu") if main_menu else Return()
+    key "game_menu" action back_action
+
+    use game_menu_overlay
+
+    frame:
+        xsize config.screen_width
+        ysize config.screen_height
+        background None
+        padding (80, 60)
+        at fade_slide_in(0.0, xoff=-30)
+
         vbox:
-            spacing 18
-            for h in _history_list:
+            xsize (config.screen_width - 160)
+            spacing 20
+
+            use game_menu_header(_("History"))
+
+            viewport:
+                xsize (config.screen_width - 160)
+                ysize (config.screen_height - 260)
+                mousewheel True
+                draggable True
+                scrollbars "vertical"
                 vbox:
-                    spacing 4
-                    if h.who:
-                        text h.who:
-                            bold True
-                            size 24
-                            color "#ffd700"
-                            font "gui/Graduate-Regular.ttf"
-                    text h.what:
-                        size 24
-                        color "#ffffff"
-            if not _history_list:
-                text _("The backlog is empty."):
-                    color "#8888a0"
+                    spacing 18
+                    for h in _history_list:
+                        vbox:
+                            spacing 4
+                            if h.who:
+                                text h.who:
+                                    bold True
+                                    size 24
+                                    color "#ffd700"
+                                    font "gui/Graduate-Regular.ttf"
+                            text h.what:
+                                size 24
+                                color "#ffffff"
+                    if not _history_list:
+                        text _("The backlog is empty."):
+                            color "#8888a0"
+
+    use game_menu_back(back_action)
+
+
+
+# ==============================================================================
+# CREDITS
+# ==============================================================================
 
 screen about():
     tag menu
@@ -957,7 +1343,7 @@ screen about():
             vbox:
                 xalign 0.5
                 spacing 50
-                at credits_scroll(duration=40.0, travel=760)
+                at credits_scroll(duration=60.0, travel=760)
 
                 vbox:
                     xalign 0.5
@@ -977,6 +1363,7 @@ screen about():
                         size 40
                         color "#8888a0"
                         font "gui/RiotCityRevolts-m2nPj.ttf"
+
                 vbox:
                     xalign 0.5
                     spacing 4
@@ -990,6 +1377,7 @@ screen about():
                         size 50
                         color "#ffffff"
                         font "gui/RiotCityRevolts-m2nPj.ttf"
+
                 vbox:
                     xalign 0.5
                     spacing 4
@@ -1003,6 +1391,7 @@ screen about():
                         size 50
                         color "#ffffff"
                         font "gui/RiotCityRevolts-m2nPj.ttf"
+
                 vbox:
                     xalign 0.5
                     spacing 4
@@ -1016,6 +1405,7 @@ screen about():
                         size 50
                         color "#ffffff"
                         font "gui/RiotCityRevolts-m2nPj.ttf"
+
                 vbox:
                     xalign 0.5
                     spacing 4
@@ -1029,6 +1419,7 @@ screen about():
                         size 50
                         color "#ffffff"
                         font "gui/RiotCityRevolts-m2nPj.ttf"
+
                 vbox:
                     xalign 0.5
                     spacing 4
@@ -1042,6 +1433,7 @@ screen about():
                         size 50
                         color "#ffffff"
                         font "gui/RiotCityRevolts-m2nPj.ttf"
+
                 vbox:
                     xalign 0.5
                     spacing 4
@@ -1074,6 +1466,7 @@ screen about():
                         size 50
                         color "#ffffff"
                         font "gui/RiotCityRevolts-m2nPj.ttf"
+
                 vbox:
                     xalign 0.5
                     spacing 4
@@ -1087,6 +1480,7 @@ screen about():
                         size 50
                         color "#ffffff"
                         font "gui/RiotCityRevolts-m2nPj.ttf"
+
                 vbox:
                     xalign 0.5
                     spacing 4
@@ -1105,6 +1499,7 @@ screen about():
                         size 50
                         color "#ffffff"
                         font "gui/RiotCityRevolts-m2nPj.ttf"
+
                 vbox:
                     xalign 0.5
                     spacing 4
@@ -1119,59 +1514,262 @@ screen about():
                         color "#ffffff"
                         font "gui/RiotCityRevolts-m2nPj.ttf"
 
-                text _("Thank you for playing."):
+                text _("THANKS FOR PLAYING!"):
                     xalign 0.5
-                    size 70
+                    size 100
                     italic True
                     color "#8888a0"
                     font "gui/RiotCityRevolts-m2nPj.ttf"
-
         frame:
-            xalign 0.5
-            yalign 0.97
+            xpos 80
+            yalign 0.95
             xsize 160
             ysize 50
             padding (2, 2)
             background Solid("#33334a")
+            at fade_in(0.3)
             button:
                 xfill True
                 yfill True
                 background Solid("#101014")
                 hover_background Solid("#2a2a35")
                 action (ShowMenu("main_menu") if main_menu else Return())
-                text "BACK" align (0.5, 0.5) size 24 color "#8888a0" hover_color "#ffd700" font "gui/RiotCityRevolts-m2nPj.ttf"
+                text "BACK" align (0.5, 0.5) size 24 color "#8888a0" hover_color "#ffd700" font "gui/Graduate-Regular.ttf"
+
+# ==============================================================================
+# MAHJONG MINIGAME
+# ------------------------------------------------------------------------------
+# This is the ONLY definition of `mahjong_minigame` now. script.rpy used to
+# define a second, different screen under the same name — a same-named
+# screen defined later in file-load order (script.rpy sorts after
+# screen.rpy) silently wins in Ren'Py, so that duplicate was quietly
+# shadowing this one entirely; it's been removed from script.rpy. The
+# calling code in script.rpy (c2_shunyu_dialogue) was checking `if _return:`
+# which happened to work for a bare True/False return, but this screen
+# returns the strings "win"/"lose" via Return(...) — both of which are
+# truthy — so that check has been fixed to `if _return == "win":`.
+# ==============================================================================
+
+screen mahjong_minigame():
+    modal True
+    zorder 300
+
+    add Solid("#00000099"):
+        xsize 1920
+        ysize 1080
+
+    if mj_result is None:
+        timer 1.0 repeat True action Function(mahjong_tick)
+
+    if mj_lock:
+        timer 0.9 action Function(mahjong_hide_mismatch)
+
+    fixed:
+        xalign 0.5
+        yalign 0.5
+
+        add Solid("#000000aa"):
+            xsize 640
+            ysize 560
+            xalign 0.5
+            yalign 0.5
+            xoffset 8
+            yoffset 12
+            blur 24
+
+        frame:
+            xalign 0.5
+            yalign 0.5
+            background Solid("#14141aee")
+            padding (40, 30)
+
+            vbox:
+                spacing 16
+                xalign 0.5
+
+                text "MAHJONG — MATCH THE TILES":
+                    xalign 0.5
+                    size 30
+                    color "#ffd700"
+                    font "gui/Graduate-Regular.ttf"
+
+                hbox:
+                    xalign 0.5
+                    spacing 30
+                    text "Moves left: [mj_moves_left]":
+                        size 22
+                        color "#8888a0"
+                        font "gui/Graduate-Regular.ttf"
+                    text "Time: [mj_time_left]":
+                        size 22
+                        color "#8888a0"
+                        font "gui/Graduate-Regular.ttf"
+
+                grid 4 3:
+                    xalign 0.5
+                    spacing 10
+                    for i in range(12):
+                        button:
+                            xsize 90
+                            ysize 90
+                            background (Solid("#e0521f") if mj_matched[i] else (Solid("#33334a") if mj_revealed[i] else Solid("#101014")))
+                            action Function(mahjong_pick, i)
+                            at button_hover_anim
+                            text (mj_tiles[i] if (mj_revealed[i] or mj_matched[i]) else "?"):
+                                align (0.5, 0.5)
+                                size 40
+                                color "#ffffff"
+                                font "gui/Graduate-Regular.ttf"
+
+                if mj_result == "win":
+                    text "You matched them all!":
+                        xalign 0.5
+                        size 26
+                        color "#ffd700"
+                        font "gui/Graduate-Regular.ttf"
+                    textbutton "Continue":
+                        xalign 0.5
+                        action Return("win")
+                        text_font "gui/Graduate-Regular.ttf"
+                elif mj_result == "lose":
+                    text "Out of moves or time!":
+                        xalign 0.5
+                        size 26
+                        color "#e0521f"
+                        font "gui/Graduate-Regular.ttf"
+                    textbutton "Continue":
+                        xalign 0.5
+                        action Return("lose")
+                        text_font "gui/Graduate-Regular.ttf"
+
+    frame:
+        xalign 0.5
+        yalign 0.97
+        xsize 160
+        ysize 50
+        padding (2, 2)
+        background Solid("#33334a")
+        button:
+            xfill True
+            yfill True
+            background Solid("#101014")
+            hover_background Solid("#2a2a35")
+            action (ShowMenu("main_menu") if main_menu else Return())
+            text "BACK" align (0.5, 0.5) size 24 color "#8888a0" hover_color "#ffd700" font "gui/Graduate-Regular.ttf"
+
+
+
+# ==============================================================================
+# HELP
+# ==============================================================================
 
 screen help():
     tag menu
-    use game_menu(_("Help"), back_action=(ShowMenu("main_menu") if main_menu else Return()), scrollable=False):
+
+    $ back_action = ShowMenu("main_menu") if main_menu else Return()
+    key "game_menu" action back_action
+
+    use game_menu_overlay
+
+    frame:
+        xsize config.screen_width
+        ysize config.screen_height
+        background None
+        padding (80, 60)
+        at fade_slide_in(0.0, xoff=-30)
+
         vbox:
-            spacing 10
-            text _("Keyboard Controls")
-            text _("Enter / Space: Advance dialogue")
-            text _("Escape: Toggle Game Menu")
-            text _("Ctrl: Fast Forward while held")
-            text _("Tab: Toggle Skipping")
+            xsize (config.screen_width - 160)
+            spacing 20
+
+            use game_menu_header(_("Help"))
+
+            vbox:
+                spacing 10
+                text _("Keyboard Controls")
+                text _("Enter / Space: Advance dialogue")
+                text _("Escape: Toggle Game Menu")
+                text _("Ctrl: Fast Forward while held")
+                text _("Tab: Toggle Skipping")
+
+    use game_menu_back(back_action)
+
+
+# ==============================================================================
+# CONFIRM / NOTIFY / SKIP INDICATOR
+# ==============================================================================
 
 screen confirm(message, yes_action, no_action):
     modal True
     zorder 200
+
     add Solid("#00000099"):
-        xsize 2560
-        ysize 1440
+        xsize 1920
+        ysize 1080
+
     frame:
         xalign 0.5
         yalign 0.5
+        xsize 820
+        background Solid("#14141aee")
+        padding (50, 40)
         at confirm_pop
+
         vbox:
-            spacing 20
-            text message
+            xfill True
+            spacing 34
+
+            text message:
+                xalign 0.5
+                text_align 0.5
+                size 34
+                color "#f2e6d8"
+                font "gui/Graduate-Regular.ttf"
+
             hbox:
                 xalign 0.5
-                spacing 20
-                textbutton _("Yes"):
-                    action yes_action
-                textbutton _("No"):
-                    action no_action
+                spacing 24
+
+                frame:
+                    xsize 200
+                    ysize 66
+                    padding (3, 3)
+                    background Solid("#33334a")
+                    at button_hover_anim
+                    button:
+                        xfill True
+                        yfill True
+                        background Solid("#8a4a22")
+                        hover_background Solid("#b8631f")
+                        action yes_action
+                        text _("Yes"):
+                            align (0.5, 0.5)
+                            size 28
+                            color "#f2e6d8"
+                            hover_color "#ffffff"
+                            font "gui/Graduate-Regular.ttf"
+
+                frame:
+                    xsize 200
+                    ysize 66
+                    padding (3, 3)
+                    background Solid("#33334a")
+                    at button_hover_anim
+                    button:
+                        xfill True
+                        yfill True
+                        background Solid("#101014")
+                        hover_background Solid("#2a2a35")
+                        action no_action
+                        text _("No"):
+                            align (0.5, 0.5)
+                            size 28
+                            color "#8888a0"
+                            hover_color "#ffd700"
+                            font "gui/Graduate-Regular.ttf"
+
+    key "game_menu":
+        action no_action
 
     key "game_menu":
         action no_action
@@ -1179,10 +1777,16 @@ screen confirm(message, yes_action, no_action):
 screen notify(message):
     zorder 100
     frame:
-        xpos 0.05
-        yalign 0.2
+        xalign 0.99
+        yalign 0.93
+        xoffset -240
+        background Solid("#101014cc")
+        padding (14, 10)
         at notify_anim
-        text message
+        text message:
+            size 20
+            color "#ffffff"
+            font "gui/Graduate-Regular.ttf"
     timer 3.25:
         action Hide("notify")
 
@@ -1194,43 +1798,67 @@ screen skip_indicator():
         at fade_in(0.0)
         text _("Skipping...")
 
-screen skip_indicator():
-    zorder 100
-    frame:
-        xpos 0.05
-        yalign 0.1
-        text _("Skipping...")
 
-screen notify(message):
-    zorder 100
-    frame:
-        xpos 0.05
-        yalign 0.2
-        text message
-    timer 3.25:
-        action Hide("notify")
+# ==============================================================================
+# NVL MODE
+# ==============================================================================
 
-screen nvl(dialogue, items=None):
-    window:
-        xfill True
-        yfill True
-        viewport:
-            mousewheel True
-            draggable True
-            scrollbars "vertical"
-            vbox:
-                spacing 15
-                for d in dialogue:
-                    window:
-                        id d.window_id
-                        hbox:
-                            spacing 10
-                            if d.who:
-                                text d.who
-                            text d.what
-                if items:
-                    for i in items:
-                        textbutton i.caption:
-                            action i.action
-    if quick_menu:
-        use quick_menu
+# screen nvl(dialogue, items=None):
+#     window:
+#         xfill True
+#         yfill True
+#         background Solid("#0a0a0ef2")
+
+#         add Solid("#b8631f"):
+#             xsize config.screen_width
+#             ysize 2
+#             yalign 0.0
+#             yoffset 90
+
+#         viewport:
+#             id "nvl_viewport"
+#             xpos scaled(90)
+#             ypos 110
+#             xsize (config.screen_width - scaled(180))
+#             ysize (config.screen_height - 220)
+#             mousewheel True
+#             draggable True
+#             yinitial 1.0
+
+#             vbox:
+#                 spacing scaled(24)
+
+#                 for d in dialogue[-8:]:
+#                     window:
+#                         id d.window_id
+
+#                         vbox:
+#                             spacing scaled(6)
+
+#                             if d.who:
+#                                 text d.who:
+#                                     id "who"
+#                                     size scaled(persistent.dialogue_font_size + 2)
+#                                     bold True
+#                                     color "#ffd700"
+#                                     font "gui/Graduate-Regular.ttf"
+
+#                             text d.what:
+#                                 id "what"
+#                                 size scaled(persistent.dialogue_font_size)
+#                                 color "#e8e4dc"
+#                                 font "gui/Graduate-Regular.ttf"
+#                                 line_spacing scaled(10)
+
+#                 if items:
+#                     vbox:
+#                         spacing scaled(10)
+#                         for i in items:
+#                             textbutton i.caption:
+#                                 action i.action
+#                                 text_font "gui/Graduate-Regular.ttf"
+#                                 text_color "#8888a0"
+#                                 text_hover_color "#ffd700"
+
+#     if quick_menu:
+#         use quick_menu
