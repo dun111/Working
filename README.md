@@ -1,6 +1,10 @@
-<p align="center">
-  <img src="https://shields.io" alt="RenPy Version">
-  <img src="https://shields.io" alt="Status">
-  <img src="https://shields.io" alt="Genre">
-</p>
+<!-- Ren'Py Badge -->
+[![Made with Ren'Py](https://shields.io)](https://renpy.org)
+
+<!-- Python Badge -->
+[![Python](https://shields.io)](https://python.org)
+
+<!-- Status Badge -->
+![Status](https://shields.io)
+
 Departure at 4, Embark on an epic adventure on board the Grekhov Express. Find the killer and untangle the mystery of the Grekhov and the dark secrets it contains. Interact with the characters, explore the carriages and figure out a way to escape before its too late...
