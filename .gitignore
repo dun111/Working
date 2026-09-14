@@ -1,0 +1,17 @@
+game/movies/REDACTED.mp4
+game/movies/main_menu_bg.webm
+# === Ren'Py Compiled Scripts & Cache ===
+*.rpyc
+*.rpymc
+*.rpyb
+game/cache/
+
+# === Ren'Py Logs & Crash Reports ===
+errors.txt
+files.txt
+log.txt
+traceback.txt
+
+# === System & OS Files ===
+.DS_Store
+**/.DS_Store
