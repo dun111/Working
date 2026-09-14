@@ -1,3 +1,3 @@
-![Made with Ren'Py](renpy.svg) ![Python](python.svg) ![Status](status.svg)
+<img src="https://badgen.net" alt="Made with Ren'Py"> <img src="https://badgen.net" alt="Python"> <img src="https://badgen.net" alt="Status">
 
 Departure at 4, Embark on an epic adventure on board the Grekhov Express. Find the killer and untangle the mystery of the Grekhov and the dark secrets it contains. Interact with the characters, explore the carriages and figure out a way to escape before its too late...
