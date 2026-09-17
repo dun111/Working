@@ -52,6 +52,11 @@ default c2_p2_found_body = False
 default c2_p2_reinterviewed_eduard = False
 default c2_p2_reinterviewed_agatha = False
 
+# All clues that are present in the game
+default obtain_clue_drug_wrapper = False
+default obtain__Alexander_Alibi = False
+default obtain__Hidden_Tile = False
+default 
 # Loop Tracking
 default in_loop = False
 
@@ -791,5 +796,191 @@ label part2_chapter_end:
     l "This isn't just going to be about finding who was angry at him. Someone wanted this scene in a very specific way.{w=2}"
     l "...I don't think I'm getting off this train until I find out why.{w=2}"
     scene black with dissolve
-    centered "{i}ryan start here{/i}"
     return
+
+label p2_full_investigation:
+    show louis neutral at speaker_focus(xalign=0.5)
+    "{i}Louis heads toward the sleeper cabin, hoping Kimmy or Himmel saw something.{/i}"
+    l "Louis: “Sorry… I know this isn’t really my business, but...”{w=2}"
+    "{i}He nudges one of the bags open, just slightly. Something crinkles.{/i}"
+    "{i}Louis finds a small, crumpled wrapper wedged between the folds of a coat. Printed on it, half torn{/i}"
+    show louis neutral at speaker_foucus(xalign=0.5)
+    l "...APLE SUGAR… BANNED SUBSTANCE, RESTRICTED USE ONLY{w=2}"
+    l "...This is the same stuff Alexander was selling.{w=2}"
+    l "Why would Himmel have this?{w=2}"
+    $ obtain_clue_drug_wrapper = True
+    show kimmy neutral at speaker_background(xalign=0.9)
+    show louis neutral at speaker_focus(xalign=0.1)
+    l "Kimmy, can I ask you something a little... sensitive?{w=2}"
+    k "Sensitive is my favorite kind of question, sugar. Go on.{w=2}"
+    l "Did Himmel ever buy anything from the storage carriage? From a man named Alexander?{w=2}"
+    "{i}Kimmy’s smile falters, just barely.{/i}"
+    k "...He said it was for his nerves. Train rides make him anxious, he said. I didn’t ask questions, matchstick. A wife who asks too many questions doesn’t stay a wife for long.{w=2}"
+    l "Did he owe Alexander money?{w=2}"
+    k "How would I know? I don’t manage his little vices. I manage the family business.{w=2}"
+    l "Did Shunyu know about this? About Himmel buying from Alexander?"
+    k "Everyone on this train gossips like it’s the last thing they’ll ever do. Of course he knew. He probably teased Himmel about it , he teased everyone about everything.{w=2}"
+    $ p2_full_investigation = True
+    return
+
+label p2_c4_Alexander:
+    if obtain_clue_drug_wrapper == True:
+        show louis neutral at speaker_focus(xalign=0.1)
+        "{i}Alexander is slumped in his corner, twitchier than before, sweat on his brow despite the cold.{/i}"
+        l "Alexander. I found this in Himmel’s luggage.{w=2}"
+        "{i}Louis holds up the wrapper{/i}"
+        show alexander neutral at speaker_background(xalighn=0.9)
+        al "...Ha. Haha. So? Rich folk get nervous too, y’know.{w=2}"
+        l "Did he pay you? In full?{w=2}"
+        "{i}Alexander goes quiet, picking at his sleeve.{/i}"
+        al "...No. Not in full. Kept saying ‘next stop, next stop.’ There ain’t no next stop on this train, is there?{w=2}"
+        l "And Shunyu,  you told me before he still owed you too.{w=2}"
+        al "Yeah. Yeah, he did. Funny thing, huh? Two men who owe me money, and one of ’em ends up dead with a glass stickin’ outta him.{w=2}"
+        l "Are you admitting to something?{w=2}"
+        "{i}Alexander laughs, too loud, too long{/i}"
+        al "I’m admitting I’m really good at picking customers who don’t pay. That’s all I’m admitting to, brother.{w=2}"
+        l "Where were you when Shunyu was killed?{w=2}"
+        al "Here. Same as always. Ask the postman, he’s always lurking round here too.{w=2}"
+        l "Two unpaid debts. Two people connected to him, and one of them’s already dead.{w=2}"
+        l "...Alexander had a reason. But did he have the chance?{w=2}"
+        l "He said the postman would vouch for him. Guess it's worth checking.{w=2}"
+        $ p2_c4_Alexander = True
+        return
+
+
+label p2_c4_Pattison:
+    show louis neutral at speaker_focus(xalign=0.1)
+    "{i}Pattison is exactly where he always is, sorting the same mail, murmuring the same rhyme under his breath.{/i}"
+    l "Pattison. I need to ask you something important.{w=2}"
+    show pattison neutral at speaker_background(xalign=0.9)
+    p "This goes to the clock, while this goes to the end...{w=2}"
+    l "Pattison, please. Was Alexander here the whole night? In this carriage?{w=2}"
+    "{i}Pattison stops sorting. Look at Louis properly for the first time.{/i}"
+    p "He’s always here. Never leaves. Poor thing thinks the walls listen back to him.{w=2}"
+    l "So he didn’t leave at all? Not even for a minute?{w=2}"
+    p "I don’t watch him every second, sir. I look at the mail. But I would’ve heard the door. It creaks something awful.{w=2}"
+    l "Did you hear it? The door, I mean. Any time in the last hour?{w=2}"
+    "{i}Pattison tilts his head, thinking, or pretending to.{/i}"
+    p "...No. No, I don’t believe I did.{w=2}"
+    l "So he really didn’t leave.{w=2}"
+    p "That’s what I said, isn’t it?{w=2}"
+    l "...Right. Thank you, Pattison.{w=2}"
+    p "This goes to the clock, while this goes to the end...{w=2}"
+    "{i}He returns to his sorting like the conversation never happened.{/i}"
+    l "No creaking door. No one saw him leave. If Pattison’s telling the truth, Alexander physically couldn’t have made it to Carriage 2 and back without being noticed.{w=2}"
+    l "...He had every reason to want Shunyu gone. He just didn’t have the chance to actually do it.{w=2}"
+    $ obtain__Alexander_Alibi = True
+    return
+
+label p2_Misha_clue_obtain:
+    show louis neutral at speaker_focus(xalign=0.1)
+    "{i}The sleeper cabin is colder than before. The four rooms all sit slightly ajar, as if something moved through recently and didn’t bother closing doors behind it.{/i}"
+    "{i}Interact with the sticking-up carpet{/i}"
+    l "This again... It was like this the first time too."
+    "{i}He kneels, and this time, pulls at the loose edge.{/i}"
+    "{i}Underneath, tucked flat against the floorboard, is a single mahjong tile  the exact match to the one missing from Shunyu’s winning hand.{/i}"
+    l "...No. No way.{w=2}"
+    l "This was under Misha’s carpet the whole time.{w=2}"
+    $ obtain__Hidden_Tile = True
+    return
+
+label p2_c4_Sebastian:
+    show louis neutral at speaker_focus(xalign=0.1)
+    "{i}Sebastian stands exactly where he always does, posture rigid, eyes forward.{/i}"\
+    l "Sebastian. I need to ask you about Misha.{w=2}"
+    show sebastian neutral at speaker_background(xalign=0.9)
+    seb "Mr. Popov has been in this cabin all evening, Mr. Louis. Under my supervision.{w=2}"
+    l "The whole evening? Never once out of your sight?{w=2}"
+    "{i}A pause. Barely long enough to notice. But Louis notices.{/i}"
+    seb "...Children require attending to. Baths. Meals. There are moments when a butler must step away{w=2}"
+    l "How many moments?{w=2}"
+    seb "I fail to see the relevance of this line of questioning.{w=2}"
+    "{i}Louis holds up the tile.{/i}"
+    l "I found this under the carpet in his room, Sebastian. It matches the murder scene exactly.{w=2}"
+    "{i}Sebastian’s composure cracks, just barely  a flicker, gone as fast as it came.{/i}"
+    seb "...Mr. Popov collects things. Trinkets. It means nothing.{w=2}"
+    l "A dead man is missing a tile from his hand. That same tile turns up hidden in a child’s bedroom. That means something, Sebastian.{w=2}"
+    seb "I would ask you to choose your next words very carefully, Mr. Louis."
+    l "Is that a threat{w=2}"
+    seb "It is a warning. For your own sake.{w=2}"
+    $ p2_c4_Sebastian = True
+    return
+
+label p2_c4_Misha:
+    show louis neutal at speaker_focus(xalign=0.1)
+    show misha neutral at speaker_background(xalign=0.9)
+    l "...Misha?{w=2}"\
+    "{i}Misha doesn’t look up.{/i}"
+    mi "Tuck it in his hand… tuck it in his hand… that’s how you keep the score...{w=2}"
+    l "What score? Misha, what are you talking about?{w=2}"
+    "[i]Misha finally looks up, and smiles calmly.{/i}"
+    mi "You found it, didn’t you? Under the carpet.{w=2}"
+    l "...H-how did you{w=2}"
+    mi "Everyone always finds it eventually. That’s the game.{w=2}"
+    l "This isn’t a game, Misha! Someone died!{w=2}"
+    "{i}Misha tilts his head, genuinely, unsettlingly confused.{/i}"
+    mi "He’ll come back though. They always come back. Don’t they?{w=2}"
+    show sebastian neutal 
+    seb "Mr. Popov. That’s enough.{w=2}"
+    "{i}Misha goes quiet immediately, returning to his blocks as if nothing happened at all.{/i}"
+    "{i}Louis to himself{/i}"
+    l "They always come back.’ What does that even mean...{w=2}"
+    l "I have everything I think I’m going to get. The tile. The blood. The alibis. It’s time to decide.{w=2}"
+    $ p2_c4_Misha = True
+    return
+
+label p2_c4_Gathering:
+    show louis neutral at speaker_focus(xalign=0.1)
+    "{i}The train lurches. Every character you spoke to has spoken to gathers. Eduard behind his bar, Agatha with her kit, Dorothy clutching her ticket punch, Fedora with her notepad ready, Pattison murmuring at the doorway, Alexander shaking in the corner, Kimmy and Himmel arm in arm, Sebastian standing protectively in front of Misha.{w=2}"
+    show fedora at speaker_background(xalign=0.9)
+    f "Well? You’ve had your little investigation. Who’s it going to be, matchstick?{w=2}"
+    l ".....{w=2}"
+    menu:
+        "who is the suspect"
+        "Eduard":
+            show louis neutral at speaker_focus(xalign=0.1)
+            show eduard netural at speaker_background(xalign=0.9)
+            l "It was you"
+            ed "Me?? I- I never even left the counter."
+
+        "Alexander":
+            show louis neutral at speaker_focus(xalign=0.1)
+            show alexander netural at speaker_background(xalign=0.9)
+            l "It was you"
+            al "Wha? no, no no no, I didn’t leave this carriage, ask the postman, ASK HIM"
+        "Agatha":
+            show louis neutral at speaker_focus(xalign=0.1)
+            show agatha netural at speaker_background(xalign=0.9)
+            l "It was you"
+            a "...You’re joking. Tell me you’re joking."
+        "Misha":
+            l "It was you"
+            m "Suit yourself, brother."
+
+
+
+
+
+
+
+
+
+
+
+   
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
