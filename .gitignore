@@ -1,5 +1,7 @@
 game/movies/REDACTED.mp4
 game/movies/main_menu_bg.webm
+game/movies/ending_video.mp4
+game/movies/ending_video.webm
 # === Ren'Py Compiled Scripts & Cache ===
 *.rpyc
 *.rpymc
