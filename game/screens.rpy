@@ -16,8 +16,30 @@
 # rbox(color, radius) = a flat box tinted to any colour (alpha supported).
 # (init -5 so styles below can use it)
 init -5 python:
+    # --- rounded boxes ---------------------------------------------------------
+    # rbox(color, r) is the background used by nearly every panel and button.
+    # It's a 9-slice Frame of a white rounded-corner mask (gui/round/rN.png,
+    # made by tools/gen_ui_assets.py) tinted to `color`. The nearest generated
+    # radius is used, and results are cached so screens that redraw every frame
+    # don't rebuild their backgrounds each time.
+    ROUND_RADII = (2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 30, 34, 38, 40, 48,
+                   64, 96, 128, 160, 200, 256)
+    _rbox_cache = {}
+
     def rbox(color, r=14):
-        return Solid(Color(color))
+        key = (color, r)
+        d = _rbox_cache.get(key)
+        if d is None:
+            c = Color(color)
+            if r <= 0:
+                d = Solid(c)
+            else:
+                rr = min(ROUND_RADII, key=lambda v: abs(v - r))
+                d = Transform(Frame("gui/round/r%d.png" % rr, rr, rr),
+                              matrixcolor=TintMatrix(c.replace_opacity(1.0)),
+                              alpha=c.alpha)
+            _rbox_cache[key] = d
+        return d
 
     # --- shared helpers ------------------------------------------------------
     def anim_t(t):
@@ -107,7 +129,18 @@ style say_dialogue is default
 image pill_mask = Frame("images/pill_mask.png", 30, 30, 30, 30)
 
 init python:
-    def C(name, tag=None, **kwargs):
+    def C(name, tag=None, plate=None, creepy=False, **kwargs):
+        """
+        Character with an optional sprite tag (used for automatic speaker focus
+        and the talking animations) and a name-plate colour for the say screen.
+        creepy=True makes their lines shake (see the say screen).
+        """
+        if tag:
+            kwargs.setdefault("image", tag)
+        if plate:
+            kwargs["show_plate"] = plate
+        if creepy:
+            kwargs["show_creepy"] = True
         return Character(name, **kwargs)
 
     config.overlay_screens.append("quick_menu")
@@ -133,12 +166,12 @@ define gui.sidebar_margin = 28
 define gui.sidebar_padding = 35
 define gui.sidebar_content_width = gui.sidebar_width - (gui.sidebar_padding * 2)
 
-define PREF_PANEL_W = 1380
+# settings panel width: 1380 at 1920 wide, grows on wider screens
+define PREF_PANEL_W = GAME_W - 540
 
-# Key on the main menu.  KEY_SCALE 1.0 = the old size.  1.5 = 50% bigger.
-define KEY_SCALE = 1.5
-# (kept as an int: a float ypos means "fraction of the container" in Ren'Py)
-define KEY_Y = int(-120 * KEY_SCALE)
+# Key on the main menu.  KEY_SCALE 1.0 = the original size; everything about
+# the key (string, loop, swing) scales with it.
+define KEY_SCALE = 2.35
 
 
 # ==============================================================================
@@ -258,6 +291,28 @@ transform train_shake:
 transform no_shake:
     pass
 
+# the main menu: the carriage never stops rumbling, and every couple of
+# seconds the wheels go over a joint in the track
+transform menu_rumble:
+    xoffset 0
+    yoffset 0
+    block:
+        linear 0.05 xoffset -3 yoffset 2
+        linear 0.05 xoffset 3 yoffset -2
+        linear 0.05 xoffset -2 yoffset 3
+        linear 0.05 xoffset 3 yoffset -1
+        linear 0.05 xoffset -3 yoffset -2
+        linear 0.05 xoffset 2 yoffset 2
+        linear 0.05 xoffset -2 yoffset -3
+        linear 0.05 xoffset 3 yoffset 1
+        repeat 5
+        # clack-clack
+        easeout 0.06 yoffset 9 xoffset -4
+        easein 0.12 yoffset -2 xoffset 2
+        easeout 0.06 yoffset 7 xoffset 3
+        easein 0.16 yoffset 0 xoffset 0
+        repeat
+
 # Hover = a small lift. Offsets never change layout size, so neighbouring
 # buttons no longer jitter.
 transform button_hover_anim:
@@ -316,15 +371,21 @@ transform entry_arrow:
     on idle:
         ease 0.15 xoffset 0
 
+# fades in/out at the ends so it never shows over a button's rounded corners
 transform shine_sweep(delay=1.5):
     alpha 0.0
     xpos -90
     pause delay
     block:
-        alpha 0.25
         xpos -90
-        linear 0.9 xpos 420
         alpha 0.0
+        parallel:
+            linear 0.9 xpos 410
+        parallel:
+            linear 0.22 alpha 0.0
+            linear 0.12 alpha 0.25
+            pause 0.3
+            linear 0.14 alpha 0.0
         pause 3.5
         repeat
 
@@ -383,19 +444,43 @@ transform tilt(a=0):
 # scene automatically: the speaker's sprite zooms up and brightens, every other
 # sprite shrinks and dims. Positions are remembered from your show statements.
 
+# First appearance slides in from the sprite's own side of the screen; after
+# that the speaker hops on every new line and everyone else eases back;
+# "hide" fades the sprite out.
 transform _sp_focus(xalign=0.7):
     xanchor 0.5
     xalign xalign
     yalign 1.0
     yoffset 40
-    linear anim_t(0.3) zoom 1.08 alpha 1.0
+    on show:
+        alpha 0.0
+        zoom 1.04
+        xoffset (hover_lift(-80) if xalign < 0.5 else hover_lift(80))
+        easein anim_t(0.4) alpha 1.0 zoom 1.08 xoffset 0
+    on replace:
+        parallel:
+            linear anim_t(0.3) zoom 1.08 alpha 1.0 xoffset 0
+        parallel:
+            # little hop every time this character starts a new line
+            easeout anim_t(0.11) yoffset 40 - hover_lift(14)
+            easein anim_t(0.16) yoffset 40
+    on hide:
+        easeout anim_t(0.3) alpha 0.0
 
 transform _sp_bg(xalign=0.3):
     xanchor 0.5
     xalign xalign
     yalign 1.0
     yoffset 40
-    linear anim_t(0.3) zoom 0.94 alpha 0.55
+    on show:
+        alpha 0.0
+        zoom 0.92
+        xoffset (hover_lift(-80) if xalign < 0.5 else hover_lift(80))
+        easein anim_t(0.4) alpha 0.55 zoom 0.94 xoffset 0
+    on replace:
+        linear anim_t(0.3) zoom 0.94 alpha 0.55 xoffset 0
+    on hide:
+        easeout anim_t(0.3) alpha 0.0
 
 # tag -> (xalign, "f" focused / "b" background) for every sprite shown on master
 default sprite_info = {}
@@ -405,16 +490,23 @@ default rumble_on = False
 init python:
     _STRING_TYPES = (type(u""), type(""))
 
-    # variable used in the script  ->  image tag of that character's sprite
-    SPEAKER_TAGS = {
-        "d": "dorothy", "l": "louis", "f": "fedora",
-        "ed": "eduard", "s": "shunyu", "k": "kimmy",
-        "h": "himmel", "seb": "sebastian", "mi": "misha", "a": "agatha",
-        "ic": "ichora", "p": "pattison", "al": "alexander",
-        "shunyu_monster": "shunyu_monster",
-        "himmel_monster": "himmel_monster",
-        "conductor_monster": "conductor_monster",
-    }
+    class TALK(object):
+        """
+        Who is talking right now. Plain class attributes, so none of this ends
+        up in saves or rollback.
+          typing  - sprite tag whose line is still typing out (drives the bob)
+          who     - script variable of the last speaker ("l", "d", ...)
+          changed - True when this line has a different speaker than the last
+        """
+        typing = None
+        who = None
+        changed = True
+
+    def speaker_tag(who):
+        """Script variable name ("l") -> sprite tag ("louis"), or None."""
+        if not isinstance(who, _STRING_TYPES):
+            return None
+        return getattr(getattr(store, who, None), "image_tag", None)
 
     _sp_pending = {}
 
@@ -454,15 +546,25 @@ init python:
 
     # re-focus the scene whenever someone starts talking
     def _focus_cb(event, interact=True, **kwargs):
+        who = getattr(store, "_last_say_who", None)
+        tag = speaker_tag(who)
+
+        if event in ("slow_done", "end"):
+            TALK.typing = None
+            return
+        if event == "show":
+            TALK.typing = tag
+            return
         if event != "begin":
             return
+
+        TALK.changed = (who != TALK.who)
+        TALK.who = who
         try:
             apply_rumble()
         except Exception:
             pass
         try:
-            who = getattr(store, "_last_say_who", None)
-            tag = SPEAKER_TAGS.get(who) if isinstance(who, _STRING_TYPES) else None
             info = getattr(store, "sprite_info", None)
             if not tag or info is None:
                 return
@@ -475,7 +577,8 @@ init python:
                     continue
                 x, st = info[t]
                 want = "f" if t == tag else "b"
-                if st == want:
+                # the speaker is always re-shown so it hops on every line
+                if st == want and t != tag:
                     continue
                 fn = speaker_focus if want == "f" else speaker_background
                 tr = fn(xalign=x)
@@ -576,14 +679,13 @@ transform toast_timer:
 
 image carriage_6 = Solid("#0a0a0e")
 image carriage_6_fog = At(Solid("#4a0a0a"), carriage_6_ambient)
-image shunyu_monster neutral = Solid("#4a2a4a", xsize=420, ysize=760)
-image himmel_monster neutral = Solid("#2a4a4a", xsize=420, ysize=760)
-image conductor_monster neutral = Solid("#4a4a2a", xsize=520, ysize=900)
+# Character sprites (and the Carriage 6 monsters) live in characters.rpy
 
 image black = Solid("#000000")
-image Train station = Solid("#1a1a24")
-image bg carriage_1 = "images/bg_carriage_1.webp"
-image bg carriage_5 = "images/bg_carriage_5.webp"
+# The opening / loop / ending conversations on the train use the mosaic too
+image Train station = "talk_bg"
+image bg carriage_1 = wide_bg("images/bg_carriage_1.webp")
+image bg carriage_5 = wide_bg("images/bg_carriage_5.webp")
 
 # Placeholder backgrounds: the real bg carriage 2/3/4 .webp files are not in
 # the project yet. Replace each Solid with "images/bg_carriage_N.webp" once the
@@ -592,24 +694,15 @@ image bg carriage_2 = Solid("#2a2430")
 image bg carriage_3 = Solid("#242a30")
 image bg carriage_4 = Solid("#2a3024")
 
-image talk to fedora = "bg carriage_1"
-image talk to eduard = "bg carriage_2"
-image talk to shunyu = "bg carriage_2"
-image talk to kimmy = "bg carriage_3"
-image talk to himmel = "bg carriage_3"
-image talk to sebastian = "bg carriage_3"
-image talk to misha = "bg carriage_3"
-image talk to agatha = "bg carriage_4"
-image talk to ichora = "bg carriage_4"
-image engine room = "bg carriage_4"
-image talk to pattison = "bg carriage_5"
-image talk to alexander = "bg carriage_5"
+# "talk to <name>" conversation backgrounds live in characters.rpy
 
 # Part 2 look: a flat red tint with a pulsing heartbeat wash on top
 screen loop_overlay():
     zorder 50
     add Solid("#3a000020")
     add Solid("#ff2a1a") at heartbeat
+    add "gui/vignette.png":
+        xysize (config.screen_width, config.screen_height)
 
 
 # ==============================================================================
@@ -676,7 +769,7 @@ init python:
             store.found_blackberry_secret = True
             renpy.notify("Ryan is black (berry)")
         else:
-            renpy.notify("You already found the secret. Stop clicking it. Please.")
+            blackberry_click()      # keeps going in secrets.rpy...
 
     _crop_cache = {}
 
@@ -694,97 +787,44 @@ init python:
         _crop_cache[path] = info
         return info
 
+    _autocrop_disp = {}
+
     def autocrop_image(path):
-        info = autocrop_info(path)
-        if info is None:
-            return path
-        return Transform(path, crop=info)
+        """The image with its transparent padding cropped off (built once)."""
+        d = _autocrop_disp.get(path)
+        if d is None:
+            info = autocrop_info(path)
+            d = path if info is None else Transform(path, crop=info)
+            _autocrop_disp[path] = d
+        return d
 
     # --- main-menu key ---------------------------------------------------------
-    # The key HANGS from the end of the string: the hole of its ring is anchored
-    # to the string tip.
-    #
-    # KEY_HOLE_FRAC : how far down the visible key the ring hole is
-    # KEY_NUDGE_Y   : NEGATIVE = key moves UP, positive = down (pixels)
-    # KEY_NUDGE_X   : NEGATIVE = left, positive = right (pixels)
-    # KEY_TRIM      : the png's empty padding in SOURCE pixels (l, t, r, b)
-    KEY_HOLE_FRAC = 0.14
-    KEY_NUDGE_Y = -285
-    KEY_NUDGE_X = 0
-    KEY_TRIM = None
-    _key_cache = {}
+    # Measured from images/Key.webp (source pixels). The file has a stray pixel
+    # at the very top, so the key is cropped to its real bounds rather than
+    # auto-detected at runtime (which used to scan pixels on every launch).
+    KEY_CROP = (43, 903, 555, 1138)     # x, y, w, h of the key in the png
+    KEY_RING_CX = 277                   # ring centre, from the crop's left edge
+    KEY_BAR = (0, 79)                   # ring's top bar (top, bottom) from crop top
 
-    def _alpha_bbox(surf, min_alpha=60, step=3):
-        """Bounding box of every pixel with alpha >= min_alpha (ignores glow)."""
-        w, h = surf.get_size()
-        get = surf.get_at
+    # On screen (inside the swinging container, whose top is the hook):
+    KEY_ZOOM = 0.257 * KEY_SCALE        # key size
+    KEY_HANG = int(136 * KEY_SCALE)     # how far below the hook the ring top sits
 
-        def row_hit(y):
-            for x in range(0, w, step):
-                if get((x, y))[3] >= min_alpha:
-                    return True
-            return False
+    # gui/key_loop.png (tools/gen_ui_assets.py) is drawn at 4x for KEY_SCALE 1.5:
+    # loop centre 34px and knot 10.5px below the image top, 34px wide.
+    _LOOP_SC = KEY_ZOOM / 0.385
+    KEY_LOOP_ZOOM = 0.25 * _LOOP_SC
+    _bar_mid = (KEY_BAR[0] + KEY_BAR[1]) / 2.0 * KEY_ZOOM
+    KEY_LOOP_Y = int(KEY_HANG + _bar_mid + 4 * _LOOP_SC - 34 * _LOOP_SC)
+    KEY_STRING_H = int(KEY_LOOP_Y + 10.5 * _LOOP_SC)
+    KEY_IMG_X = -int(KEY_RING_CX * KEY_ZOOM)
+    KEY_W = int(KEY_CROP[2] * KEY_ZOOM)
+    KEY_H = int(KEY_CROP[3] * KEY_ZOOM)
 
-        top = None
-        for y in range(0, h, step):
-            if row_hit(y):
-                top = y
-                break
-        if top is None:
-            return None
-        bottom = top
-        for y in range(h - 1, top - 1, -step):
-            if row_hit(y):
-                bottom = y
-                break
-
-        def col_hit(x):
-            for y in range(top, bottom + 1, step):
-                if get((x, y))[3] >= min_alpha:
-                    return True
-            return False
-
-        left = 0
-        for x in range(0, w, step):
-            if col_hit(x):
-                left = x
-                break
-        right = w - 1
-        for x in range(w - 1, -1, -step):
-            if col_hit(x):
-                right = x
-                break
-        return (left, top, right - left + 1, bottom - top + 1)
-
-    def key_visual(path, target_h):
-        """Returns (displayable, w, h): padding cropped off, scaled to target_h tall."""
-        ck = (path, target_h)
-        if ck in _key_cache:
-            return _key_cache[ck]
-        if not renpy.loadable(path):
-            return None, 0, 0
-
-        iw, ih = renpy.image_size(path)
-        x, y, cw, ch = 0, 0, iw, ih
-        if KEY_TRIM:
-            tl, tt, tr, tb = KEY_TRIM
-            x, y, cw, ch = tl, tt, iw - tl - tr, ih - tt - tb
-        else:
-            try:
-                surf = renpy.load_surface(path)
-                bb = _alpha_bbox(surf, min_alpha=200)
-                if bb:
-                    x, y, cw, ch = bb
-            except Exception:
-                pass
-
-        z = float(target_h) / ch
-        w_px = int(cw * z)
-        h_px = int(ch * z)
-        img = Transform(Transform(path, crop=(x, y, cw, ch)), zoom=z)
-        out = Fixed(img, xsize=w_px, ysize=h_px)
-        _key_cache[ck] = (out, w_px, h_px)
-        return _key_cache[ck]
+    KEY_IMAGE = Transform(Transform("images/Key.webp", crop=KEY_CROP), zoom=KEY_ZOOM)
+    # the whole loop sits behind the key; only its front strand is drawn on top
+    KEY_LOOP_BACK = Transform("gui/key_loop.png", zoom=KEY_LOOP_ZOOM)
+    KEY_LOOP_FRONT = Transform("gui/key_loop_front.png", zoom=KEY_LOOP_ZOOM)
 
     def latest_save():
         try:
@@ -840,6 +880,22 @@ init python:
         cur = persistent.dialogue_font_size
         idx = FONT_SIZE_STEPS.index(cur) if cur in FONT_SIZE_STEPS else 1
         persistent.dialogue_font_size = FONT_SIZE_STEPS[(idx + 1) % len(FONT_SIZE_STEPS)]
+
+    def erase_everything():
+        """Delete every save, achievement and persistent unlock, then restart."""
+        for slot in renpy.list_saved_games(fast=True):
+            try:
+                renpy.unlink_save(slot)
+            except Exception:
+                pass
+        try:
+            achievement.clear_all()
+            achievement.sync()
+        except Exception:
+            pass
+        persistent._clear(progress=True)
+        renpy.save_persistent()
+        renpy.full_restart()
 
     def reset_preferences():
         acts = [
@@ -948,7 +1004,7 @@ define ACHIEVEMENTS = [
     {"id": "block_party", "title": _("Block Party"), "description": _("Beat Misha's block game."), "hidden": False},
     {"id": "full_steam", "title": _("Full Steam Ahead"), "description": _("Keep the engine pressure stable."), "hidden": False},
     {"id": "sorted", "title": _("Return to Sender"), "description": _("Help Pattison sort the mail."), "hidden": False},
-    {"id": "game_night", "title": _("Game Night"), "description": _("Win every minigame on the train."), "hidden": False, "stat_max": 6},
+    {"id": "game_night", "title": _("Game Night"), "description": _("Win every minigame on the train."), "hidden": False, "stat_max": 14},
 ]
 
 init python:
@@ -1128,34 +1184,35 @@ screen ach_toast(title, desc):
             padding (20, 16, 20, 20)
             background rbox("#14141aee", 16)
 
-            if toast_icon:
-                add toast_icon:
-                    xysize (84, 84)
-                    fit "contain"
-                    xalign 1.0
-                    yalign 0.0
-
-            vbox:
-                spacing 6
-                text _("ACHIEVEMENT UNLOCKED"):
-                    size 14
-                    color "#e6a817"
-                    font GFONT
-                text title:
-                    size 28
-                    color "#ffffff"
-                    font GFONT
-                    xsize (350 if toast_icon else 450)
-                text desc:
-                    size 16
-                    color "#8888a0"
-                    font GFONT
-                    xsize (350 if toast_icon else 450)
-                null height 6
-                add rbox("#e6a817", 2):
-                    xsize 456
-                    ysize 3
-                    at toast_timer
+            # (one hbox child: a frame given two children wraps them in a
+            # full-screen fixed, which made the toast fill the screen height)
+            hbox:
+                spacing 16
+                vbox:
+                    spacing 6
+                    xsize (360 if toast_icon else 456)
+                    text _("ACHIEVEMENT UNLOCKED"):
+                        size 14
+                        color "#e6a817"
+                        font GFONT
+                    text title:
+                        size 28
+                        color "#ffffff"
+                        font GFONT
+                    text desc:
+                        size 16
+                        color "#8888a0"
+                        font GFONT
+                    null height 6
+                    add rbox("#e6a817", 2):
+                        xsize (360 if toast_icon else 456)
+                        ysize 3
+                        at toast_timer
+                if toast_icon:
+                    add toast_icon:
+                        xysize (80, 80)
+                        fit "contain"
+                        yalign 0.0
     timer 4.8 action Hide("ach_toast")
 
 
@@ -1463,29 +1520,291 @@ screen menu_entry(caption, act, delay=0.0, bright=False):
                 font GFONT
                 yalign 0.5
 
+define MENU_TAGLINES = [
+    "Ryan is #####",
+    "Blackberries are black",
+    "AWWWWHHH",
+    "Larp music intensifies",
+    "Something is lurking",
+    "Foreshadowing??",
+]
+
+init python:
+    def next_tagline(i):
+        """A random tagline that isn't the one already showing."""
+        return renpy.random.choice([n for n in range(len(MENU_TAGLINES)) if n != i])
+
+transform tagline_swap:
+    on appear:
+        alpha 1.0
+    on show:
+        # wait for the old line to fade out first, so they never overlap
+        alpha 0.0
+        yoffset 6
+        pause 0.22
+        easein 0.35 alpha 1.0 yoffset 0
+    on hide:
+        easeout 0.2 alpha 0.0
+
+screen menu_tagline(xa=0.5, size=16):
+    default tag_i = renpy.random.randint(0, len(MENU_TAGLINES) - 1)
+    # SetLocalVariable: this screen is "use"d, so it has its own scope
+    timer 4.0 repeat True action SetLocalVariable("tag_i", next_tagline(tag_i))
+    for ti, tline in enumerate(MENU_TAGLINES):
+        showif ti == tag_i:
+            text tline:
+                xalign xa
+                size size
+                color "#8888a0"
+                font GFONT
+                at tagline_swap
+
+# ---- main menu: cinematic, with bits of the departure board ----------------------
+# The carriage fills the screen, darker on the left where the menu is. The logo
+# sits top-left with the tagline centered under it, and the menu is a list
+# bottom-left where every option has its own departure time (they flip and
+# change, then go back to 4:00).
+#
+# Everything lines up on CINE_X.
+
+define CINE_X = 110                         # the left edge everything starts on
+define CINE_EDGE = 50                       # gap at the top and bottom of the screen
+define CINE_COL_W = 600                     # how wide the whole left column is
+define CINE_LOGO_W = 420                    # how wide the logo is
+define CINE_RAIL_H = 120                    # how tall the train-and-rail strip is
+define CINE_TRAIN_W = 220                   # how wide the train is
+
+init python:
+    _LEFT_SHADE = []
+
+    def left_shade():
+        """Dark on the left of the screen, fading smoothly to nothing."""
+        if not _LEFT_SHADE:
+            w = int(config.screen_width * 0.62)
+            n = 160
+            step = w / float(n)
+            strips = []
+            for k in range(n):
+                # strips sit edge to edge (no overlap), so there are no lines
+                x0, x1 = int(round(k * step)), int(round((k + 1) * step))
+                a = 0.82 * (1.0 - k / float(n)) ** 1.6
+                strips.append(At(Solid("#000000"), Transform(xpos=x0, xsize=max(1, x1 - x0),
+                                                             ysize=config.screen_height, alpha=a)))
+            _LEFT_SHADE.append(Fixed(*strips, xysize=(w, config.screen_height)))
+        return _LEFT_SHADE[0]
+define CINE_TIME_W = 120                    # width of the time in front of each option
+
+transform passing_light:
+    xpos -900
+    alpha 0.0
+    block:
+        pause 4.0
+        alpha 0.12
+        linear 2.6 xpos (config.screen_width + 200)
+        alpha 0.0
+        xpos -900
+        pause 5.0
+        repeat
+
+transform board_flip(key, d=0.0):
+    yzoom 0.0
+    pause d
+    ease 0.14 yzoom 1.0
+    ease 0.05 yzoom 0.86
+    ease 0.07 yzoom 1.0
+
+transform board_blink:
+    alpha 1.0
+    block:
+        pause 0.7
+        alpha 0.3
+        pause 0.5
+        alpha 1.0
+        repeat
+
+transform cine_hover:
+    on idle:
+        ease 0.2 xoffset 0
+    on hover:
+        ease 0.2 xoffset 16
+
+transform cine_line:
+    xzoom 0.0
+    on idle:
+        ease 0.2 xzoom 0.0
+    on hover:
+        ease 0.3 xzoom 1.0
+
+# the times in front of the options: one at a time flips to a nearby time,
+# and every so often they all go back to 4:00
+default board_times = []
+
+init python:
+    BOARD_NEAR = ["3:47", "3:52", "3:56", "3:58", "3:59", "4:01", "4:03", "4:07", "4:12", "4:21"]
+
+    class _BOARD(object):
+        ticks = 0
+
+    def board_time(i):
+        if i < len(store.board_times):
+            return store.board_times[i]
+        return "4:00"
+
+    def board_tick(n):
+        times = (list(store.board_times) + ["4:00"] * n)[:n]
+        _BOARD.ticks += 1
+        if _BOARD.ticks % 7 == 0:
+            times = ["4:00"] * n            # back to 4:00, all at once
+        else:
+            times[renpy.random.randint(0, n - 1)] = renpy.random.choice(BOARD_NEAR)
+        store.board_times = times
+        renpy.restart_interaction()
+
+# one option: its time, its name (a line draws under it when you point at it)
+screen cine_entry(i, label, act, primary=False):
+    $ t = board_time(i)
+    button:
+        padding (0, 3)
+        background None
+        action act
+        at fade_slide_in(0.4 + i * 0.06, xoff=-30), cine_hover
+        hbox:
+            fixed:
+                xysize (CINE_TIME_W, (56 if primary else 42))
+                text t:
+                    yalign 0.5
+                    size (30 if primary else 24)
+                    color (("#ffd76a" if primary else "#c9a24a") if t == "4:00" else "#e0521f")
+                    font CREDIT_FONT
+                    at board_flip(("t", i, t), 0.05)
+            vbox:
+                yalign 0.5
+                spacing 3
+                hbox:
+                    spacing 22
+                    text label:
+                        size (44 if primary else 30)
+                        color ("#e0521f" if primary else "#cfcac0")
+                        hover_color ("#ff7a3d" if primary else "#ffffff")
+                        font GFONT
+                    if primary:
+                        text _("BOARDING"):
+                            yalign 0.5
+                            size 20
+                            color "#e0521f"
+                            font CREDIT_FONT
+                            at board_blink
+                add Solid("#e0521f"):
+                    xysize (int(len(label) * (26 if primary else 18)), 3)
+                    at cine_line
+
+# ---- the little train on its rail (left column) ---------------------------------
+# It rocks gently as if it's moving and puffs smoke. Click it and it fades away
+# into the dark; a few seconds later it fades back in.
+
+define TRAIN_CROP = (0, 230, 2048, 1075)    # just the train, out of Train_BP.webp
+
+transform train_rock:
+    yoffset 0
+    block:
+        ease 0.18 yoffset -2
+        ease 0.18 yoffset 0
+        repeat
+
+transform train_arrive:
+    alpha 0.0
+    blur 8
+    xoffset -40
+    ease 1.4 alpha 1.0 blur 0 xoffset 0
+
+transform smoke_puff(d):
+    alpha 0.0
+    zoom 0.4
+    yoffset 0
+    pause d
+    block:
+        alpha 0.55
+        zoom 0.4
+        yoffset 0
+        xoffset 0
+        parallel:
+            easeout 1.8 yoffset -60 xoffset -40 zoom 1.4
+        parallel:
+            linear 1.8 alpha 0.0
+        pause 0.3
+        repeat
+
+screen menu_train():
+    $ th = int(CINE_TRAIN_W * TRAIN_CROP[3] / float(TRAIN_CROP[2]))
+    $ tx = (CINE_COL_W - CINE_TRAIN_W) // 2
+    # the rail and its sleepers
+    for k in range(CINE_COL_W // 26 + 1):
+        add Solid("#e6a8172a"):
+            pos (k * 26, CINE_RAIL_H - 9)
+            xysize (12, 6)
+    add Solid("#e6a81766"):
+        ypos CINE_RAIL_H - 12
+        xysize (CINE_COL_W, 2)
+    # the train
+    if renpy.loadable("images/Train_BP.webp"):
+        button:
+            pos (tx, CINE_RAIL_H - 12 - th)
+            xysize (CINE_TRAIN_W, th)
+            padding (0, 0)
+            background None
+            action Function(train_poke)
+            at (train_leave if train_gone else train_arrive)
+            fixed:
+                xysize (CINE_TRAIN_W, th)
+                at train_rock
+                add Transform("images/Train_BP.webp", crop=TRAIN_CROP, xysize=(CINE_TRAIN_W, th), alpha=0.85)
+                # smoke from the chimney
+                for k in range(3):
+                    add rbox("#cfcac0", 9):
+                        xysize (18, 18)
+                        pos (int(CINE_TRAIN_W * 0.75), int(th * 0.02))
+                        at smoke_puff(k * 0.7)
+
 screen main_menu():
     tag menu
 
     $ newest_save = latest_save()
     $ fx = persistent.menu_fx and not persistent.reduce_motion
     use secret_listener
+    use cheat_hotkey
+    on "show" action Function(check_departure)
+    timer 15.0 repeat True action Function(check_departure)
+    timer 1.0 action Function(check_halloween)
 
     # ---- Atmosphere -----------------------------------------------------------
     add "images/1st_carriage_Visualnovel_Background.webp":
         fit "cover"
         xysize (config.screen_width, config.screen_height)
-        at (menu_bg_drift if not persistent.reduce_motion else menu_bg_still)
+        at ((menu_bg_drift, menu_rumble) if (persistent.screen_shake_enabled and not persistent.reduce_motion)
+            else (menu_bg_drift if not persistent.reduce_motion else menu_bg_still))
     add Solid("#08080cb8")
 
-    fixed:
-        at (train_shake if (persistent.screen_shake_enabled and not persistent.reduce_motion) else no_shake)
+    # a light from outside sweeps through the carriage now and then
+    if fx:
+        add Transform("gui/glow.png", matrixcolor=TintMatrix("#ffd9a0")):
+            xysize (700, int(config.screen_height * 1.6))
+            yalign 0.5
+            at passing_light
 
-        text "4:00":
-            xalign 0.78
-            yalign 0.52
-            size 520
-            color "#ffffff08"
-            font GFONT
+    fixed:
+        at (menu_rumble if (persistent.screen_shake_enabled and not persistent.reduce_motion) else no_shake)
+
+        # psst: click the big 4:00 four times (empty_train.rpy)
+        textbutton "4:00":
+            xalign 0.74
+            yalign 0.5
+            padding (0, 0)
+            background None
+            text_size 520
+            text_color clock_color()
+            text_hover_color clock_color()
+            text_font GFONT
+            action Function(clock_poke)
 
         if fx:
             for sy, sdur, sdelay, slen in MENU_STREAKS:
@@ -1501,150 +1820,205 @@ screen main_menu():
                     ysize esz
                     at ember(edur, edelay, esway)
 
-        # Key swinging from a string - scaled by KEY_SCALE.
-        $ key_string_h = int(170 * KEY_SCALE)
-        $ key_img, key_w, key_h = key_visual("images/Key.webp", int(520 * KEY_SCALE))
+        # Key swinging from a string - scaled by KEY_SCALE. The string comes
+        # down from the hook and is looped round the top bar of the key's ring.
         fixed:
-            xpos 0.80
+            xpos 0.76
             ypos 0
             xysize (int(340 * KEY_SCALE), int(840 * KEY_SCALE))
             at (key_drop if not persistent.reduce_motion else key_static)
 
-            add Solid("#7a7a88", xsize=3, ysize=key_string_h):
+            add Solid("#7a7a88", xsize=3, ysize=KEY_STRING_H):
                 xalign 0.5
 
-            if key_img is not None:
+            if renpy.loadable("images/Key.webp"):
+                add KEY_LOOP_BACK:
+                    xalign 0.5
+                    ypos KEY_LOOP_Y
+
                 button:
                     background None
                     padding (0, 0)
-                    xysize (key_w, key_h)
-                    xanchor 0.5
+                    xysize (KEY_W, KEY_H)
                     xpos 0.5
-                    yanchor KEY_HOLE_FRAC
-                    ypos key_string_h
-                    yoffset KEY_NUDGE_Y
-                    xoffset KEY_NUDGE_X
+                    xoffset KEY_IMG_X
+                    ypos KEY_HANG
                     action Function(key_poke)      # easter egg: poke it
-                    add key_img
-            else:
-                text "KEY":
+                    add (KEY_IMAGE_GOLD if has_pass("gold_key") else KEY_IMAGE)
+
+                add KEY_LOOP_FRONT:
                     xalign 0.5
-                    ypos 200
-                    size 120
+                    ypos KEY_LOOP_Y
 
-    # ---- Sidebar card ---------------------------------------------------------
-    fixed:
-        xpos gui.sidebar_margin
-        ypos gui.sidebar_margin
-        xsize gui.sidebar_width
-        ysize (config.screen_height - gui.sidebar_margin * 2)
+    # soft dark edges
+    add "gui/vignette.png":
+        xysize (config.screen_width, config.screen_height)
+        alpha 0.8
 
-        add rbox("#000000aa", 40):
-            xsize gui.sidebar_width
-            ysize (config.screen_height - gui.sidebar_margin * 2)
-            xoffset 6
-            yoffset 12
-            blur 22
+    # ---- The menu --------------------------------------------------------------
+    $ rows = [((_("NEW GAME") if newest_save else _("PLAY")), Start(), True)]
+    if newest_save:
+        $ rows.append((_("CONTINUE"), Function(renpy.load, newest_save), False))
+    $ rows += [(_("LOAD GAME"), ShowMenu("load"), False),
+               (_("SETTINGS"), ShowMenu("preferences"), False),
+               (_("ACHIEVEMENTS"), ShowMenu("achievements"), False),
+               (_("EXTRAS"), ShowMenu("extras_menu"), False),
+               (_("CREDITS"), ShowMenu("about"), False)]
+    if renpy.variant("pc"):
+        $ rows.append((_("QUIT"), Quit(confirm=True), False))
+    timer 2.6 repeat True action Function(board_tick, len(rows))
 
+    # ---- Darker on the left, fading out across the screen ----------------------
+    add left_shade()
+
+    # something walks through the carriage if you leave the menu alone (secrets.rpy)
+    if idle_walk:
+        add Transform("images/louis_neutral.png", matrixcolor=flat_color("#050002"), zoom=0.9):
+            at idle_walker
+
+    # ---- Tickets (EXTRAS > GAMEPASS) ---------------------------------------------
+    frame:
+        xalign 1.0
+        xoffset -40
+        ypos 34
+        padding (20, 10)
+        background rbox("#0c0c10d8", 16)
+        at fade_slide_in(1.0, xoff=40)
+        hbox:
+            spacing 12
+            if has_pass("eric"):
+                text _("DEV"):
+                    yalign 0.5
+                    size 18
+                    color "#61afef"
+                    font CREDIT_FONT
+            add rbox("#e6a817", 5):
+                yalign 0.5
+                xysize (30, 20)
+            text (_("TICKETS  %d") % (persistent.tickets or 0)):
+                yalign 0.5
+                size 20
+                color "#e6a817"
+                font GFONT
+            null width 8
+            add circ_coin(20):
+                yalign 0.5
+            text (_("COINS  %d") % (persistent.coins or 0)):
+                yalign 0.5
+                size 20
+                color "#ffd76a"
+                font GFONT
+
+    # ---- The left column ---------------------------------------------------------
+    # Everything is the same width (CINE_COL_W) and centered on the same line:
+    # logo, tagline, the train on its rail, then the departure board.
+    vbox:
+        xpos CINE_X
+        yalign 0.5
+        spacing 0
+
+        # the logo (psst: click it three times)
+        button:
+            xalign 0.5
+            xysize (CINE_LOGO_W, int(CINE_LOGO_W * 808 / 1239.0))
+            padding (0, 0)
+            background None
+            action Function(logo_poke)
+            at fade_slide_in(0.1)
+            if logo_glitched:
+                add Transform("images/Game_Logo_Purple.webp", fit="contain", xysize=(CINE_LOGO_W, int(CINE_LOGO_W * 808 / 1239.0))) at logo_glitch
+            else:
+                add "game_logo_cycle":
+                    xysize (CINE_LOGO_W, int(CINE_LOGO_W * 808 / 1239.0))
+                    fit "contain"
+
+        null height 8
+
+        # the tagline, centered under the logo
+        fixed:
+            xsize CINE_COL_W
+            ysize 30
+            at fade_slide_in(0.2)
+            use menu_tagline(0.5, 20)
+
+        null height 6
+
+        # the train, on its rail (psst: click it)
+        fixed:
+            xysize (CINE_COL_W, CINE_RAIL_H)
+            at fade_slide_in(0.3)
+            use menu_train
+
+        null height 22
+
+        # the departure board: the menu
         frame:
-            xfill True
-            yfill True
-            padding (2, 2)
-            background rbox("#ffffff22", 40)
-
-            frame:
-                xfill True
-                yfill True
-                background rbox("#14141ab8", 38)
-                padding (0, 0)
-                clipping True
-
-                if renpy.loadable("images/Train_BP.webp"):
-                    frame:
-                        xpos 18
-                        yalign 1.0
-                        yoffset 40
-                        xysize (380, 380)
-                        background None
-                        padding (0, 0)
-                        clipping True
-                        at fade_slide_in(0.7, xoff=-60)
-                        add "images/Train_BP.webp":
-                            xysize (380, 380)
-                            fit "contain"
-                            align (0.0, 1.0)
-                            xoffset -30
-                            rotate -12
-                            alpha 0.3
-
-                vbox:
-                    xpos gui.sidebar_padding - 2
-                    ypos 40
-                    xsize gui.sidebar_content_width
-                    spacing 26
-
-                    add "game_logo_cycle":
-                        xsize gui.sidebar_content_width
-                        ysize 240
-                        fit "contain"
-                        at fade_slide_in(0.1)
-
-                    text _("A MURDER MYSTERY ON THE GREKHOV EXPRESS"):
-                        xalign 0.5
-                        text_align 0.5
-                        size 14
-                        color "#8888a0"
+            xsize CINE_COL_W
+            padding (24, 16, 24, 14)
+            background rbox("#0a0a0ecc", 18)
+            at fade_slide_in(0.35)
+            vbox:
+                spacing 0
+                # header (psst: click it)
+                button:
+                    xfill True
+                    ysize 42
+                    padding (0, 0)
+                    background None
+                    action Show("slot_machine")
+                    text _("DEPARTURES"):
+                        yalign 0.5
+                        size 24
+                        color "#e6a817"
+                        hover_color "#ffd76a"
+                        font CREDIT_FONT
+                    text _("GREKHOV EXPRESS"):
+                        xalign 1.0
+                        yalign 0.5
+                        size 18
+                        color "#55556a"
+                        hover_color "#8888a0"
+                        font CREDIT_FONT
+                hbox:
+                    text _("TIME"):
+                        min_width CINE_TIME_W
+                        size 13
+                        color "#44445a"
                         font GFONT
-                        at fade_slide_in(0.2)
+                    text _("DESTINATION"):
+                        size 13
+                        color "#44445a"
+                        font GFONT
+                null height 6
+                add Solid("#2a2a35"):
+                    xysize (CINE_COL_W - 48, 2)
+                null height 8
+                for i, (lab, act, primary) in enumerate(rows):
+                    use cine_entry(i, lab, act, primary)
+                    if i < len(rows) - 1:
+                        add Solid("#ffffff0d"):
+                            xysize (CINE_COL_W - 48, 1)
+                null height 8
+                add Solid("#2a2a35"):
+                    xysize (CINE_COL_W - 48, 2)
+                null height 6
+                # psst: click the version number five times
+                textbutton (_("v4:00") if version_pokes >= 5 else "v[config.version]"):
+                    xalign 1.0
+                    padding (0, 0)
+                    background None
+                    text_size 14
+                    text_color ("#e0521f" if version_pokes >= 5 else "#55556a")
+                    text_hover_color "#8888a0"
+                    text_font GFONT
+                    action Function(version_poke)
 
-                    frame:
-                        xsize gui.sidebar_content_width
-                        ysize 64
-                        background rbox("#e0521f", 22)
-                        padding (2, 2)
-                        clipping True
-                        at fade_slide_in(0.3)
-
-                        button:
-                            xfill True
-                            yfill True
-                            background None
-                            hover_background rbox("#00000033", 20)
-                            action Start()
-
-                            add Solid("#ffffff"):
-                                xsize 70
-                                ysize 40
-                                yalign 0.5
-                                at shine_sweep
-
-                            text (_("NEW GAME") if newest_save else _("PLAY")):
-                                align (0.5, 0.5)
-                                size 32
-                                color "#0a0a0e"
-                                hover_color "#ffffff"
-                                font GFONT
-
-                    vbox:
-                        xsize gui.sidebar_content_width
-                        spacing 8
-
-                        if newest_save:
-                            use menu_entry(_("CONTINUE"), Function(renpy.load, newest_save), 0.34, True)
-                        use menu_entry(_("LOAD GAME"), ShowMenu("load"), 0.40)
-                        use menu_entry(_("SETTINGS"), ShowMenu("preferences"), 0.48)
-                        use menu_entry(_("ACHIEVEMENTS"), ShowMenu("achievements"), 0.56)
-                        use menu_entry(_("EXTRAS"), ShowMenu("extras_menu"), 0.60)
-                        use menu_entry(_("CREDITS"), ShowMenu("about"), 0.64)
-                        if renpy.variant("pc"):
-                            use menu_entry(_("QUIT"), Quit(confirm=True), 0.72)
-
-                text "v[config.version]":
-                    xalign 0.95
-                    yalign 0.985
-                    size 14
-                    color "#55556a"
-                    font GFONT
+    # the timers for the main-menu secrets (secrets.rpy)
+    if logo_glitched:
+        timer 2.6 action SetVariable("logo_glitched", False)
+    if train_gone:
+        timer 9.0 action SetVariable("train_gone", False)
+    timer 60.0 action Function(idle_watch)
 
     # ---- Studio logo (easter egg) ----------------------------------------------
     if renpy.loadable("images/Blackberry_Studios.webp"):
@@ -1679,49 +2053,63 @@ screen main_menu():
 # DIALOGUE (SAY) SCREEN
 # ==============================================================================
 
-screen say(who, what):
+transform plate_pop:
+    xoffset hover_lift(-30)
+    alpha 0.0
+    easein anim_t(0.25) xoffset 0 alpha 1.0
+
+transform plate_still:
+    alpha 1.0
+
+screen say(who, what, plate="#8a4a22", creepy=False):
     window:
         id "window"
         xalign 0.5
         yalign 1.0
-        xsize config.screen_width
-        ysize 310
-        background Solid(Color("#0a0a0e").replace_opacity(persistent.dialogue_opacity))
+        yoffset -18
+        xsize (config.screen_width - 56)
+        ysize 290
+        background rbox(Color("#0a0a0e").replace_opacity(persistent.dialogue_opacity), 26)
         at say_rise
 
-        add Solid("#e0521f"):
-            xsize config.screen_width
-            ysize 2
+        # accent line along the top edge, inset so it clears the rounded corners
+        add rbox("#e0521f", 2):
+            xalign 0.5
+            xsize (config.screen_width - 56 - 64)
+            ysize 3
             yalign 0.0
 
         if who:
-            add rbox("#8a4a22", 22):
+            fixed:
                 xpos 40
                 ypos 44
-                xsize 260
-                ysize 44
+                xysize (260, 44)
+                at (plate_pop if TALK.changed else plate_still)
 
-            text who:
-                id "who"
-                xpos 170
-                xanchor 0.5
-                ypos 66
-                yanchor 0.5
-                size (persistent.dialogue_font_size - 2)
-                bold True
-                color "#f2e6d8"
-                font GFONT
+                add rbox(plate, 22):
+                    xysize (260, 44)
+
+                text who:
+                    id "who"
+                    align (0.5, 0.5)
+                    size (persistent.dialogue_font_size - 2)
+                    bold True
+                    color "#f2e6d8"
+                    font GFONT
 
         text what:
             id "what"
             xpos 40
             xsize 0.85
-            ypos 112
+            ypos 104
             size persistent.dialogue_font_size
             color "#e8e4dc"
             font say_font()
             line_spacing 10
             outlines ([(2, "#000000", 0, 0)] if persistent.text_outline else [])
+            if creepy:
+                color "#e8b4ac"
+                textshader (None if persistent.reduce_motion else "jitter:u__jitter=(2.5, 2.5)")
 
         # little "next" diamond bottom-right
         add rbox("#e0521f", 2):
@@ -1817,6 +2205,7 @@ screen quick_menu():
                 (_("Q.Save"), QuickSave()),
                 (_("Q.Load"), QuickLoad()),
                 (_("Clues"), ShowMenu("clues")),
+                (_("People"), ShowMenu("manifest")),
                 (_("Prefs"), ShowMenu("preferences")),
             ]:
                 button:
@@ -1915,6 +2304,7 @@ screen game_menu_nav():
                 (_("LOAD"), ShowMenu("load")),
                 (_("HISTORY"), ShowMenu("history")),
                 (_("CLUES"), ShowMenu("clues")),
+                (_("PASSENGERS"), ShowMenu("manifest")),
                 (_("ACHIEVEMENTS"), ShowMenu("achievements")),
                 (_("SETTINGS"), ShowMenu("preferences")),
                 (_("MAIN MENU"), MainMenu()),
@@ -1938,11 +2328,11 @@ screen game_menu_nav():
 # ==============================================================================
 
 define CLUE_LIST = [
-    ("clue_tile_mismatch", "THE WRONG TILE", "The tile in Shunyu's hand is not part of his winning hand. Someone put it there after."),
-    ("clue_body_moved", "A MOVED BODY", "Most of the blood is by the bar counter, not where he was found. He was moved after death."),
-    ("clue_drug_wrapper", "THE WRAPPER", "A banned maple sugar wrapper in Himmel's luggage. He owed Alexander money."),
-    ("clue_hidden_tile", "THE HIDDEN TILE", "The missing mahjong tile was tucked flat under the carpet in Misha's room."),
-    ("clue_alexander_alibi", "ALEXANDER'S ALIBI", "Pattison would have heard the creaking door. Alexander never left the storage carriage."),
+    ("clue_tile_mismatch", "THE WRONG TILE", "\"That's not even from his hand. He had three of the dragon tiles laid out, not that one. Someone put that there after.\""),
+    ("clue_body_moved", "A MOVED BODY", "\"He didn't die in this chair. He was moved here after.\""),
+    ("clue_drug_wrapper", "THE WRAPPER", "\"...APLE SUGAR… BANNED SUBSTANCE, RESTRICTED USE ONLY.\" Why would Himmel have this?"),
+    ("clue_hidden_tile", "THE HIDDEN TILE", "\"This was under Misha's carpet the whole time.\""),
+    ("clue_alexander_alibi", "ALEXANDER'S ALIBI", "\"I would've heard the door. It creaks something awful.\""),
 ]
 
 init python:
@@ -2038,6 +2428,7 @@ screen clue_hotkey():
     zorder 1
     if not main_menu:
         key "j" action ShowMenu("clues")
+        key "m" action ShowMenu("manifest")
 
 
 # ==============================================================================
@@ -2198,6 +2589,24 @@ screen preferences():
                 hover_color "#e0521f"
                 font GFONT
 
+        null height 8
+
+        # wipes every save, unlock and setting, then starts the game over
+        button:
+            xsize 300
+            ysize 50
+            padding (0, 0)
+            background rbox("#3a0a0a66", 22)
+            hover_background rbox("#a8281a66", 22)
+            action Confirm(_("Erase EVERYTHING? Every save, achievement, unlock, ticket, coin and setting will be deleted and the game will start fresh."), Function(erase_everything))
+            at (fade_slide_in(0.35), button_hover_anim)
+            text _("ERASE ALL DATA"):
+                align (0.5, 0.5)
+                size 15
+                color "#a8281a"
+                hover_color "#ff6b5a"
+                font GFONT
+
     # ---------------- CONTENT (each tab slides in/out) ----------------
     fixed:
         xpos 420
@@ -2220,6 +2629,9 @@ screen preferences():
                     for dsz, dlabel in DIALOGUE_SIZES:
                         use pref_toggle(dlabel, SetField(persistent, "dialogue_font_size", dsz), selected=(persistent.dialogue_font_size == dsz), w=90)
 
+                use pref_row(_("FILL WIDE SCREENS"), _("Use the whole screen on ultrawide and 16:10 monitors. Restart the game to apply."), 0.0):
+                    use pref_toggle(_("ON"), SetField(persistent, "fill_screen", True), selected=(persistent.fill_screen is not False))
+                    use pref_toggle(_("OFF"), SetField(persistent, "fill_screen", False), selected=(persistent.fill_screen is False))
                 use pref_onoff(_("MENU EFFECTS"), _("Light streaks and embers on the main menu."), "menu_fx", 0.18)
                 use pref_onoff(_("ACHIEVEMENT POPUPS"), _("Show a banner when you unlock an achievement."), "ach_toasts", 0.24)
 
@@ -2287,7 +2699,8 @@ screen preferences():
                 spacing 14
                 at tab_page
 
-                use pref_onoff(_("REDUCE MOTION"), _("Stops shaking, swaying, embers, zooms and dialogue animations."), "reduce_motion", 0.0)
+                use pref_onoff(_("JUMPSCARES"), _("Jumpscares, the scary sounds and the shadows on the maps."), "jumpscares", 0.0)
+                use pref_onoff(_("REDUCE MOTION"), _("Stops shaking, swaying, embers, zooms and dialogue animations."), "reduce_motion", 0.03)
                 use pref_onoff(_("TEXT OUTLINE"), _("Black outline around dialogue for easier reading."), "text_outline", 0.06)
                 use pref_onoff(_("READABLE FONT"), _("Swap the dialogue font for a plain, clear one."), "readable_font", 0.12)
 
@@ -2470,17 +2883,24 @@ screen history():
 # CREDITS  (ticket cards scrolling past a title panel)
 # ==============================================================================
 
-define CREDITS_LIST = [
-    ("DIRECTION & DESIGN", ["Eric Zheng"]),
-    ("GAME UI & PROGRAMMING", ["Eric Zheng"]),
-    ("FINANCIAL AND BUDGET DIRECTOR", ["Eric Zheng"]),
-    ("R&D AND TECHNICAL SUPPORT", ["Eric Zheng"]),
-    ("VISUAL EFFECTS AND ANIMATION", ["Eric Zheng"]),
-    ("PROGRAMMING", ["Ryan"]),
-    ("LEAD GRAPHIC DESIGNERS", ["Hannah", "Aydin"]),
-    ("STORY & WRITING", ["Hannah"]),
-    ("CHARACTER DESIGN", ["Hannah", "Aydin"]),
-    ("MAP DESIGN", ["Aydin"]),
+# The crew. "key" is what you type on the main menu to find them (secrets.rpy).
+define CREW = [
+    {"key": "hannah", "name": "Hannah", "roles": [
+        "Lead graphic designer", "Lead designer", "Story writer",
+        "Character designer", "Map designer"]},
+    {"key": "aydin", "name": "Aydin", "roles": [
+        "Lead designer", "Lead graphic designer", "Character designer",
+        "Lead website developer / manager"]},
+    {"key": "hanyu", "name": "Hanyu", "roles": [
+        "Emotional support animal"]},
+    {"key": "eric", "name": "Eric", "roles": [
+        "Head Chief Supreme Programmer", "Game UI manager and supervisor",
+        "Commander General Generalist of generalism",
+        "Executive director of developing and engineering",
+        "Chief Financial Officer", "Head visionist", "R&D department lead"]},
+    {"key": "ryan", "name": "Ryan", "roles": [
+        "Programmer?", "Senior Junior Developer", "Probationary writer",
+        "General Helper", "Probably a researcher"]},
 ]
 
 init python:
@@ -2493,9 +2913,98 @@ init python:
         except Exception:
             pass
 
+# the little badge next to each name (what they did)
+define CREW_BADGES = {"eric": "</>", "hannah": "✎", "aydin": "www", "ryan": "☕", "hanyu": "♥"}
+
+# one ticket card in the credits: number stub, name, every role they took on
+screen crew_card(ci, c):
+    $ card_h = max(150, 96 + 34 * len(c["roles"]))
+    hbox:
+        frame:
+            xsize 150
+            ysize card_h
+            background rbox(credit_accent(), 26)
+            text ("%02d" % (ci + 1)):
+                align (0.5, 0.5)
+                size 54
+                color "#0a0a0e"
+                font GFONT
+
+        # perforation dots
+        vbox:
+            xsize 24
+            yalign 0.5
+            spacing 10
+            for _d in range(max(6, len(c["roles"]) + 3)):
+                add rbox("#33334a", 4):
+                    xalign 0.5
+                    xsize 8
+                    ysize 8
+
+        vbox:
+            yalign 0.5
+            spacing 4
+            xoffset 14
+            hbox:
+                spacing 18
+                text c["name"]:
+                    size 60
+                    color "#f2ead8"
+                    hover_color credit_accent()
+                    font CREDIT_FONT
+                    outlines [(0, "#00000080", 2, 3)]
+                if c["key"] in CREW_BADGES:
+                    frame:
+                        yalign 0.6
+                        padding (12, 4)
+                        background rbox("#22222c", 10)
+                        text CREW_BADGES[c["key"]]:
+                            size 22
+                            color "#8888a0"
+                            hover_color "#e8e4dc"
+                            font "DejaVuSans.ttf"
+            null height 4
+            for role in c["roles"]:
+                hbox:
+                    spacing 12
+                    add rbox(credit_accent(), 2):
+                        xysize (8, 8)
+                        yalign 0.5
+                    text role:
+                        size 22
+                        color "#e6a817"
+                        font GFONT
+
+# credits: cards slide in one after another, lean out when you point at them,
+# and the logo floats
+transform card_in(d):
+    alpha 0.0
+    xoffset 260
+    pause d
+    easein 0.6 alpha 1.0 xoffset 0
+
+transform card_hover:
+    on idle:
+        ease 0.25 xoffset 0 zoom 1.0
+    on hover:
+        ease 0.25 xoffset -18 zoom 1.01
+
+transform logo_float:
+    yoffset 0
+    block:
+        ease 2.4 yoffset -10
+        ease 2.4 yoffset 0
+        repeat
+
 screen about():
     tag menu
     key "game_menu" action (ShowMenu("main_menu") if main_menu else Return())
+
+    # larp music plays while the credits are open
+    on "show" action Function(credits_music_on)
+    on "replace" action Function(credits_music_on)
+    on "hide" action Function(credits_music_off)
+    on "replaced" action Function(credits_music_off)
     default cred_adj = ui.adjustment()
 
     add Solid("#08080c")
@@ -2542,13 +3051,12 @@ screen about():
                     ysize 260
                     fit "contain"
                     xalign 0.5
+                    at logo_float
 
-                text _("A MURDER MYSTERY ON THE GREKHOV EXPRESS"):
-                    xalign 0.5
-                    text_align 0.5
-                    size 14
-                    color "#8888a0"
-                    font GFONT
+                fixed:
+                    xfill True
+                    ysize 22
+                    use menu_tagline
 
                 null height 10
 
@@ -2568,60 +3076,33 @@ screen about():
     viewport:
         xpos 720
         ypos 70
-        xsize 1120
+        xsize (config.screen_width - 800)
         ysize 830
         yadjustment cred_adj
         mousewheel True
         draggable True
 
         vbox:
-            xsize 1100
+            xsize (config.screen_width - 820)
             spacing 22
 
             null height 760
 
-            for ci, (role, names) in enumerate(CREDITS_LIST):
+            for ci, c in enumerate(CREW):
+                # psst: everyone's card does something when you click it (credits_fx.rpy)
                 frame:
                     xfill True
-                    background rbox("#14141a", 26)
                     padding (0, 0)
-
-                    # ticket stub on the left
-                    hbox:
-                        frame:
-                            xsize 150
-                            ysize 130
-                            background rbox("#e0521f", 26)
-                            text ("%02d" % (ci + 1)):
-                                align (0.5, 0.5)
-                                size 54
-                                color "#0a0a0e"
-                                font GFONT
-
-                        # perforation dots
-                        vbox:
-                            xsize 24
-                            yalign 0.5
-                            spacing 10
-                            for _d in range(6):
-                                add rbox("#33334a", 4):
-                                    xalign 0.5
-                                    xsize 8
-                                    ysize 8
-
-                        vbox:
-                            yalign 0.5
-                            spacing 6
-                            xoffset 14
-                            text role:
-                                size 20
-                                color "#e0521f"
-                                font GFONT
-                            for nm in names:
-                                text nm:
-                                    size 44
-                                    color "#ffffff"
-                                    font GFONT
+                    background None
+                    at card_in(0.3 + ci * 0.15)
+                    button:
+                        xfill True
+                        padding (0, 0)
+                        background rbox("#14141a", 26)
+                        hover_background rbox("#1d1820", 26)
+                        action Function(credits_click, c["key"])
+                        at card_hover
+                        use crew_card(ci, c)
 
             frame:
                 xfill True
@@ -2776,9 +3257,7 @@ screen confirm(message, yes_action, no_action):
     modal True
     zorder 200
 
-    add Solid("#00000099"):
-        xsize 1920
-        ysize 1080
+    add Solid("#00000099")
 
     frame:
         xalign 0.5
@@ -2846,7 +3325,7 @@ screen skip_indicator():
 define flash = Fade(0.08, 0.0, 0.35, color="#ffffff")
 
 # Paper burns away from the middle outwards, ragged edge 120px wide
-define burn_reveal = ImageDissolve("images/burn_mask.png", 2.4, ramplen=120)
+define burn_reveal = ImageDissolve(Transform("images/burn_mask.png", xysize=(GAME_W, GAME_H)), 2.4, ramplen=120)
 
 transform map_settle:
     xalign 0.5
@@ -2962,12 +3441,12 @@ define MAP_TITLES = {
     "carriage_2_map": ("CARRIAGE 2", "THE LOUNGE"),
     "carriage_3_map": ("CARRIAGE 3", "SLEEPER CABINS"),
     "carriage_4_map": ("CARRIAGE 4", "STAFF CART"),
-    "carriage_5_map": ("CARRIAGE 5", "STAFF & STORAGE"),
+    "carriage_5_map": ("CARRIAGE 5", "THE MAIL ROOM"),
     "carriage_2_part2_map": ("CARRIAGE 2", "THE CRIME SCENE"),
     "carriage_2_part2_investigation_map": ("CARRIAGE 2", "THE CRIME SCENE"),
     "carriage_2_part2_after_map": ("CARRIAGE 2", "THE CRIME SCENE"),
     "carriage_3_part2_map": ("CARRIAGE 3", "SLEEPER CABINS"),
-    "carriage_5_part2_map": ("CARRIAGE 5", "STAFF & STORAGE"),
+    "carriage_5_part2_map": ("CARRIAGE 5", "THE MAIL ROOM"),
 }
 
 init python:
@@ -3106,829 +3585,18 @@ init python:
             except Exception:
                 pass
         sfx("win")
+        if key not in persistent.mg_won:
+            give_tickets(TICKETS_FOR["minigame"])
         persistent.mg_won = set(persistent.mg_won) | set([key])
         try:
-            achievement.progress("game_night", len(persistent.mg_won))
+            achievement.progress("game_night", len([k for k in persistent.mg_won if k in [g[0] for g in MINIGAME_LIST]]))
         except Exception:
             pass
 
 
 # ==============================================================================
-# 3. MINIGAME SHELL
+# 3. MINIGAMES  -  see minigames.rpy
 # ==============================================================================
-
-screen mg_shell(title, sub="", w=980, h=720, skippable=True):
-    modal True
-    zorder 300
-
-    add Solid("#000000b8")
-
-    fixed:
-        xalign 0.5
-        yalign 0.5
-        xsize w
-        ysize h
-        at confirm_pop
-
-        add rbox("#000000aa", 40):
-            xsize w
-            ysize h
-            xoffset 8
-            yoffset 14
-            blur 24
-
-        frame:
-            xsize w
-            ysize h
-            background rbox("#14141aee", 40)
-            padding (44, 34)
-
-            vbox:
-                spacing 12
-                text title:
-                    size 32
-                    color "#ffd700"
-                    font GFONT
-                add rbox("#e0521f", 2):
-                    xsize 160
-                    ysize 6
-                if sub:
-                    text sub:
-                        size 17
-                        color "#8888a0"
-                        font GFONT
-                        xsize w - 90
-                null height 6
-                transclude
-
-    if persistent.mg_skip_allowed:
-        fixed:
-            xalign (0.38 if renpy.get_screen("mahjong_minigame") else 0.5)
-            yalign 0.975
-            xsize 160
-            ysize 48
-            use rbtn(_("SKIP"), Return("win"), w=160, h=48, r=14, size=20)
-
-screen mg_continue(result):
-    hbox:
-        xalign 0.5
-        use rbtn(_("CONTINUE"), Return(result), w=260, h=58, r=22, size=24, bg="#8a4a22", hov="#b8631f", col="#f2e6d8", hcol="#ffffff")
-
-
-# ==============================================================================
-# MINIGAME A  -  LOCKPICK  (Carriage 1 cupboard)
-# ==============================================================================
-
-default lp_pos = 0.0
-default lp_dir = 1
-default lp_pins = 0
-default lp_fails = 0
-default lp_zone = 0.4
-default lp_w = 0.2
-default lp_speed = 0.9
-default lp_result = None
-
-init python:
-    def lockpick_reset():
-        m = mg_mult()
-        store.lp_pos = 0.0
-        store.lp_dir = 1
-        store.lp_pins = 0
-        store.lp_fails = 0
-        store.lp_result = None
-        store.lp_w = 0.2 / m
-        store.lp_speed = 0.9 * m
-        store.lp_zone = renpy.random.uniform(0.15, 0.85 - store.lp_w)
-
-    def lockpick_tick():
-        if store.lp_result is not None:
-            return
-        store.lp_pos += store.lp_dir * store.lp_speed * 0.025
-        if store.lp_pos >= 1.0:
-            store.lp_pos = 1.0
-            store.lp_dir = -1
-        elif store.lp_pos <= 0.0:
-            store.lp_pos = 0.0
-            store.lp_dir = 1
-        renpy.restart_interaction()
-
-    def lockpick_turn():
-        if store.lp_result is not None:
-            return
-        if store.lp_zone <= store.lp_pos <= store.lp_zone + store.lp_w:
-            store.lp_pins += 1
-            if store.lp_pins < 3:
-                sfx("lock_click")
-            if store.lp_pins >= 3:
-                store.lp_result = "win"
-                mg_record("lockpick", "tumbler_talent")
-            else:
-                store.lp_w = max(0.07, store.lp_w * 0.9)
-                store.lp_speed *= 1.12
-                store.lp_zone = renpy.random.uniform(0.1, 0.9 - store.lp_w)
-        else:
-            store.lp_fails += 1
-            if store.lp_fails >= 3:
-                store.lp_result = "lose"
-                sfx("lose")
-            else:
-                sfx("lock_snap")
-        renpy.restart_interaction()
-
-screen mg_lockpick():
-    use mg_shell(_("PICK THE LOCK"), _("Press TURN (or SPACE) while the marker is inside the green zone. Set 3 pins. 3 slips and the pick snaps.")):
-        if lp_result is None:
-            timer 0.025 repeat True action Function(lockpick_tick)
-            key "K_SPACE" action Function(lockpick_turn)
-
-        null height 14
-        hbox:
-            xalign 0.5
-            spacing 18
-            for i in range(3):
-                add rbox("#e6a817" if i < lp_pins else "#33334a", 26):
-                    xsize 54
-                    ysize 54
-
-        null height 18
-        fixed:
-            xalign 0.5
-            xsize 860
-            ysize 56
-            add rbox("#101014", 22):
-                xsize 860
-                ysize 56
-            add rbox("#2fa84f", 6):
-                xpos 10 + int(lp_zone * 840)
-                xsize max(14, int(lp_w * 840))
-                ysize 36
-                yalign 0.5
-            add rbox("#ffffff", 4):
-                xpos 10 + int(lp_pos * 840) - 4
-                xsize 8
-                ysize 56
-
-        null height 14
-        text "Slips: [lp_fails] / 3":
-            xalign 0.5
-            size 22
-            color "#8888a0"
-            font GFONT
-
-        null height 10
-        if lp_result is None:
-            hbox:
-                xalign 0.5
-                use rbtn(_("TURN"), Function(lockpick_turn), w=260, h=64, r=22, size=28, bg="#8a4a22", hov="#b8631f", col="#f2e6d8", hcol="#ffffff")
-        elif lp_result == "win":
-            text _("CLICK!"):
-                xalign 0.5
-                size 34
-                color "#ffd700"
-                font GFONT
-            use mg_continue("win")
-        else:
-            text _("The pick snapped."):
-                xalign 0.5
-                size 30
-                color "#e0521f"
-                font GFONT
-            use mg_continue("lose")
-
-
-# ==============================================================================
-# MINIGAME B  -  SWEEP THE GLASS  (Carriage 2 broken glass)
-# ==============================================================================
-
-default sh_pos = []
-default sh_got = [False] * 6
-default sh_time = 30
-default sh_result = None
-
-init python:
-    def shards_reset():
-        store.sh_pos = [(renpy.random.randint(20, 770), renpy.random.randint(20, 250), renpy.random.randint(-70, 70)) for _i in range(6)]
-        store.sh_got = [False] * 6
-        store.sh_time = int(30 / mg_mult())
-        store.sh_result = None
-
-    def shards_pick(i):
-        if store.sh_result is not None:
-            return
-        store.sh_got[i] = True
-        if all(store.sh_got):
-            store.sh_result = "win"
-            mg_record("shards", "sharp_eyes")
-        renpy.restart_interaction()
-
-    def shards_tick():
-        if store.sh_result is not None or not mg_timed():
-            return
-        store.sh_time -= 1
-        if store.sh_time <= 0:
-            store.sh_time = 0
-            store.sh_result = "lose"
-        renpy.restart_interaction()
-
-screen mg_shards():
-    use mg_shell(_("SWEEP UP THE GLASS"), _("Click every shard before time runs out.")):
-        if sh_result is None and mg_timed():
-            timer 1.0 repeat True action Function(shards_tick)
-
-        hbox:
-            xalign 0.5
-            spacing 40
-            text "Shards left: [sh_got.count(False)]":
-                size 22
-                color "#8888a0"
-                font GFONT
-            if mg_timed():
-                text "Time: [sh_time]":
-                    size 22
-                    color "#8888a0"
-                    font GFONT
-
-        null height 10
-        fixed:
-            xalign 0.5
-            xsize 860
-            ysize 330
-            add rbox("#0e0e12", 22):
-                xsize 860
-                ysize 330
-            for i, sp in enumerate(sh_pos):
-                if not sh_got[i]:
-                    button:
-                        xpos sp[0]
-                        ypos sp[1]
-                        xsize 72
-                        ysize 30
-                        background rbox("#bfe6f2", 8)
-                        hover_background rbox("#ffffff", 8)
-                        action Function(shards_pick, i)
-                        at tilt(sp[2])
-
-        null height 18
-        if sh_result == "win":
-            text _("All swept up."):
-                xalign 0.5
-                size 30
-                color "#ffd700"
-                font GFONT
-            use mg_continue("win")
-        elif sh_result == "lose":
-            text _("Out of time!"):
-                xalign 0.5
-                size 30
-                color "#e0521f"
-                font GFONT
-            use mg_continue("lose")
-
-
-# ==============================================================================
-# MINIGAME C  -  MAHJONG  (Carriage 2, Shunyu)
-# ==============================================================================
-
-default mj_tiles = []
-default mj_matched = [False] * 12
-default mj_revealed = [False] * 12
-default mj_first = None
-default mj_pending = None
-default mj_lock = False
-default mj_result = None
-default mj_moves_left = 14
-default mj_time_left = 45
-
-init python:
-    MJ_FACES = ["I", "II", "III", "IV", "V", "VI"]
-
-    def mahjong_reset():
-        d = persistent.mg_difficulty
-        faces = MJ_FACES * 2
-        renpy.random.shuffle(faces)
-        store.mj_tiles = faces
-        store.mj_matched = [False] * 12
-        store.mj_revealed = [False] * 12
-        store.mj_first = None
-        store.mj_pending = None
-        store.mj_lock = False
-        store.mj_result = None
-        store.mj_moves_left = [18, 14, 11][d]
-        store.mj_time_left = [60, 45, 35][d]
-
-    def _mahjong_check_end():
-        if store.mj_result is not None:
-            return
-        if all(store.mj_matched):
-            store.mj_result = "win"
-            mg_record("mahjong", "high_roller_win")
-        elif not store.mj_lock and store.mj_moves_left <= 0:
-            store.mj_result = "lose"
-
-    def mahjong_pick(i):
-        if store.mj_result is not None or store.mj_lock:
-            return
-        if store.mj_matched[i] or store.mj_revealed[i]:
-            return
-        store.mj_revealed[i] = True
-        if store.mj_first is None:
-            store.mj_first = i
-        else:
-            j = store.mj_first
-            store.mj_first = None
-            store.mj_moves_left -= 1
-            if store.mj_tiles[i] == store.mj_tiles[j]:
-                store.mj_matched[i] = True
-                store.mj_matched[j] = True
-                store.mj_revealed[i] = False
-                store.mj_revealed[j] = False
-            else:
-                store.mj_pending = (i, j)
-                store.mj_lock = True
-            _mahjong_check_end()
-        renpy.restart_interaction()
-
-    def mahjong_hide_mismatch():
-        if store.mj_pending is not None:
-            for idx in store.mj_pending:
-                store.mj_revealed[idx] = False
-        store.mj_pending = None
-        store.mj_lock = False
-        _mahjong_check_end()
-        renpy.restart_interaction()
-
-    def mahjong_tick():
-        if store.mj_result is not None or not mg_timed():
-            return
-        store.mj_time_left -= 1
-        if store.mj_time_left <= 0:
-            store.mj_time_left = 0
-            store.mj_result = "lose"
-        renpy.restart_interaction()
-
-screen mahjong_minigame():
-    use mg_shell(_("MAHJONG - MATCH THE TILES"), "", w=760, h=700, skippable=False):
-        if mj_result is None and mg_timed():
-            timer 1.0 repeat True action Function(mahjong_tick)
-        if mj_lock:
-            timer 0.9 action Function(mahjong_hide_mismatch)
-
-        hbox:
-            xalign 0.5
-            spacing 30
-            text "Moves left: [mj_moves_left]":
-                size 22
-                color "#8888a0"
-                font GFONT
-            if mg_timed():
-                text "Time: [mj_time_left]":
-                    size 22
-                    color "#8888a0"
-                    font GFONT
-
-        null height 8
-        grid 4 3:
-            xalign 0.5
-            spacing 12
-            for i in range(12):
-                button:
-                    xsize 120
-                    ysize 100
-                    background rbox("#e0521f" if mj_matched[i] else ("#33334a" if mj_revealed[i] else "#101014"), 22)
-                    hover_background rbox("#e0521f" if mj_matched[i] else "#2a2a35", 22)
-                    action Function(mahjong_pick, i)
-                    at button_hover_anim
-                    text (mj_tiles[i] if (mj_revealed[i] or mj_matched[i]) else "?"):
-                        align (0.5, 0.5)
-                        size 38
-                        color "#ffffff"
-                        font GFONT
-
-        null height 8
-        if mj_result == "win":
-            text _("You matched them all!"):
-                xalign 0.5
-                size 26
-                color "#ffd700"
-                font GFONT
-            use mg_continue("win")
-        elif mj_result == "lose":
-            text _("Out of moves or time!"):
-                xalign 0.5
-                size 26
-                color "#e0521f"
-                font GFONT
-            use mg_continue("lose")
-
-    fixed:
-        xalign 0.5
-        yalign 0.975
-        xsize 200
-        ysize 50
-        use rbtn(_("WALK AWAY"), Return("lose"), w=200, h=50, r=14, size=22)
-
-
-# ==============================================================================
-# MINIGAME D  -  MISHA'S BLOCKS  (Carriage 3 toys)
-# ==============================================================================
-
-define MS_COLORS = ["#a83a2e", "#2c6a9c", "#2c8a4f", "#c9a21a"]
-define MS_LIT    = ["#ff8a7a", "#7fcaff", "#7dffb0", "#fff08a"]
-define MS_ROUNDS = 4
-
-default ms_seq = []
-default ms_round = 1
-default ms_step = -1
-default ms_lit_i = None
-default ms_phase = "show"
-default ms_idx = 0
-default ms_strikes = 0
-default ms_result = None
-
-init python:
-    def blocks_reset():
-        store.ms_seq = [renpy.random.randint(0, 3) for _i in range(MS_ROUNDS + 1)]
-        store.ms_round = 1
-        store.ms_step = -1
-        store.ms_lit_i = None
-        store.ms_phase = "show"
-        store.ms_idx = 0
-        store.ms_strikes = 0
-        store.ms_result = None
-
-    def blocks_show_step():
-        if store.ms_phase != "show" or store.ms_result is not None:
-            return
-        n = store.ms_round + 1
-        k = store.ms_step
-        if k % 2 == 0:
-            i = k // 2
-            if i >= n:
-                store.ms_phase = "input"
-                store.ms_idx = 0
-                store.ms_lit_i = None
-            else:
-                store.ms_lit_i = store.ms_seq[i]
-        else:
-            store.ms_lit_i = None
-        store.ms_step += 1
-        renpy.restart_interaction()
-
-    def blocks_unlight():
-        store.ms_lit_i = None
-        renpy.restart_interaction()
-
-    def blocks_pick(i):
-        if store.ms_phase != "input" or store.ms_result is not None:
-            return
-        store.ms_lit_i = i
-        n = store.ms_round + 1
-        if store.ms_seq[store.ms_idx] == i:
-            store.ms_idx += 1
-            if store.ms_idx >= n:
-                store.ms_round += 1
-                if store.ms_round > MS_ROUNDS:
-                    store.ms_result = "win"
-                    mg_record("blocks", "block_party")
-                else:
-                    store.ms_phase = "show"
-                    store.ms_step = -1
-        else:
-            store.ms_strikes += 1
-            if store.ms_strikes >= [4, 3, 2][persistent.mg_difficulty]:
-                store.ms_result = "lose"
-            else:
-                store.ms_phase = "show"
-                store.ms_step = -1
-        renpy.restart_interaction()
-
-screen mg_blocks():
-    use mg_shell(_("MISHA'S BLOCKS"), _("Watch the order the blocks light up, then repeat it. Don't lose track.")):
-        if ms_phase == "show" and ms_result is None:
-            timer (0.6 / mg_mult()) repeat True action Function(blocks_show_step)
-        if ms_phase == "input" and ms_lit_i is not None:
-            timer 0.25 action Function(blocks_unlight)
-
-        $ ms_max = [4, 3, 2][persistent.mg_difficulty]
-        hbox:
-            xalign 0.5
-            spacing 40
-            text "Round [ms_round] / [MS_ROUNDS]":
-                size 22
-                color "#8888a0"
-                font GFONT
-            text "Mistakes: [ms_strikes] / [ms_max]":
-                size 22
-                color "#8888a0"
-                font GFONT
-            text ("WATCH" if ms_phase == "show" else "YOUR TURN"):
-                size 22
-                color ("#e6a817" if ms_phase == "show" else "#6dffa5")
-                font GFONT
-
-        null height 14
-        grid 2 2:
-            xalign 0.5
-            spacing 18
-            for i in range(4):
-                button:
-                    xsize 190
-                    ysize 150
-                    background rbox(MS_LIT[i] if ms_lit_i == i else MS_COLORS[i], 26)
-                    hover_background rbox(MS_LIT[i], 26)
-                    action Function(blocks_pick, i)
-                    at button_hover_anim
-
-        null height 14
-        if ms_result == "win":
-            text _("Misha claps, once."):
-                xalign 0.5
-                size 28
-                color "#ffd700"
-                font GFONT
-            use mg_continue("win")
-        elif ms_result == "lose":
-            text _("Misha knocks the tower over."):
-                xalign 0.5
-                size 28
-                color "#e0521f"
-                font GFONT
-            use mg_continue("lose")
-
-
-# ==============================================================================
-# MINIGAME E  -  ENGINE PRESSURE  (Carriage 4 engine)
-# ==============================================================================
-
-define EP_GOAL = 12.0
-
-default ep_p = 50.0
-default ep_drift = 4.0
-default ep_ok = 0.0
-default ep_t = 35.0
-default ep_result = None
-
-init python:
-    def engine_reset():
-        m = mg_mult()
-        store.ep_p = 50.0
-        store.ep_drift = 4.0 * m
-        store.ep_ok = 0.0
-        store.ep_t = 35.0 / m
-        store.ep_result = None
-
-    def engine_tick():
-        if store.ep_result is not None:
-            return
-        m = mg_mult()
-        if renpy.random.random() < 0.07:
-            store.ep_drift = renpy.random.uniform(-9.0, 13.0) * m
-        store.ep_p += store.ep_drift * 0.1
-        if 38.0 <= store.ep_p <= 64.0:
-            store.ep_ok += 0.1
-        if mg_timed():
-            store.ep_t -= 0.1
-        if store.ep_p >= 100.0 or store.ep_p <= 0.0:
-            store.ep_p = max(0.0, min(100.0, store.ep_p))
-            store.ep_result = "lose"
-        elif store.ep_ok >= EP_GOAL:
-            store.ep_result = "win"
-            mg_record("engine", "full_steam")
-        elif mg_timed() and store.ep_t <= 0.0:
-            store.ep_result = "lose"
-        renpy.restart_interaction()
-
-    def engine_push(amount):
-        if store.ep_result is not None:
-            return
-        store.ep_p = max(0.0, min(100.0, store.ep_p + amount))
-        renpy.restart_interaction()
-
-screen mg_engine():
-    use mg_shell(_("KEEP STEAM PRESSURE STEADY"), _("Stoke the fire (UP) or vent steam (DOWN). Keep the needle in the green for 12 seconds. Hit 0 or 100 and it's over.")):
-        if ep_result is None:
-            timer 0.1 repeat True action Function(engine_tick)
-            key "K_UP" action Function(engine_push, 9)
-            key "K_DOWN" action Function(engine_push, -9)
-
-        hbox:
-            xalign 0.5
-            spacing 40
-            text "Stable: [ep_ok:.1f] / [EP_GOAL:.0f] s":
-                size 22
-                color "#8888a0"
-                font GFONT
-            if mg_timed():
-                text "Time: [ep_t:.0f]":
-                    size 22
-                    color "#8888a0"
-                    font GFONT
-
-        null height 18
-        fixed:
-            xalign 0.5
-            xsize 860
-            ysize 70
-            add rbox("#101014", 22):
-                xsize 860
-                ysize 70
-            add rbox("#2fa84f", 6):
-                xpos 10 + int(0.38 * 840)
-                xsize int(0.26 * 840)
-                ysize 50
-                yalign 0.5
-            add rbox("#ff5a3c" if (ep_p > 85 or ep_p < 15) else "#ffffff", 4):
-                xpos 10 + int(ep_p / 100.0 * 840) - 5
-                xsize 10
-                ysize 70
-
-        null height 6
-        hbox:
-            xalign 0.5
-            text "0":
-                size 16
-                color "#55556a"
-                font GFONT
-            null width 800
-            text "100":
-                size 16
-                color "#55556a"
-                font GFONT
-
-        null height 22
-        if ep_result is None:
-            hbox:
-                xalign 0.5
-                spacing 30
-                use rbtn(_("VENT  (DOWN)"), Function(engine_push, -9), w=300, h=70, r=22, size=24)
-                use rbtn(_("STOKE  (UP)"), Function(engine_push, 9), w=300, h=70, r=22, size=24, bg="#8a4a22", hov="#b8631f", col="#f2e6d8", hcol="#ffffff")
-        elif ep_result == "win":
-            text _("Steady as she goes."):
-                xalign 0.5
-                size 30
-                color "#ffd700"
-                font GFONT
-            use mg_continue("win")
-        else:
-            text _("The boiler shrieks."):
-                xalign 0.5
-                size 30
-                color "#e0521f"
-                font GFONT
-            use mg_continue("lose")
-
-
-# ==============================================================================
-# MINIGAME F  -  SORT THE MAIL  (Carriage 5 mail room)
-# ==============================================================================
-
-define ML_LETTERS = [
-    ("Pendulum order #44 - rush", "clock"),
-    ("Invoice: 800 brass cogs", "clock"),
-    ("Clockwork quarterly report", "clock"),
-    ("Mainspring parts, fragile", "clock"),
-    ("FINAL NOTICE: last stop", "end"),
-    ("Terminal arrival timetable", "end"),
-    ("\"Open only at the end\"", "end"),
-    ("Memorial service invitation", "end"),
-    ("Counterfeit ticket stamps", "fake"),
-    ("Forged wax seal: OFFICIAL", "fake"),
-    ("Fake perkel notes x2000", "fake"),
-    ("Return to sender: no such person", "fake"),
-    ("Postcard: Wish you were here!", "friend"),
-    ("Birthday card for Dorothy", "friend"),
-    ("Letter from an old pal", "friend"),
-    ("Thank-you note from a friend", "friend"),
-]
-
-default ml_letters = []
-default ml_idx = 0
-default ml_ok = 0
-default ml_bad = 0
-default ml_t = 9.0
-default ml_fb = ""
-default ml_result = None
-
-init python:
-    ML_COUNT = 10
-
-    def mail_allowed():
-        return [4, 3, 2][persistent.mg_difficulty]
-
-    def mail_tmax():
-        return 9.0 / mg_mult()
-
-    def mail_reset():
-        pool = list(ML_LETTERS)
-        renpy.random.shuffle(pool)
-        store.ml_letters = pool[:ML_COUNT]
-        store.ml_idx = 0
-        store.ml_ok = 0
-        store.ml_bad = 0
-        store.ml_t = mail_tmax()
-        store.ml_fb = ""
-        store.ml_result = None
-
-    def _mail_next():
-        store.ml_idx += 1
-        store.ml_t = mail_tmax()
-        if store.ml_bad > mail_allowed():
-            store.ml_result = "lose"
-        elif store.ml_idx >= ML_COUNT:
-            store.ml_result = "win"
-            mg_record("mail", "sorted")
-
-    def mail_pick(bin_name):
-        if store.ml_result is not None:
-            return
-        if store.ml_letters[store.ml_idx][1] == bin_name:
-            store.ml_ok += 1
-            store.ml_fb = "RIGHT PILE"
-        else:
-            store.ml_bad += 1
-            store.ml_fb = "WRONG PILE"
-        _mail_next()
-        renpy.restart_interaction()
-
-    def mail_tick():
-        if store.ml_result is not None or not mg_timed():
-            return
-        store.ml_t -= 0.1
-        if store.ml_t <= 0:
-            store.ml_bad += 1
-            store.ml_fb = "TOO SLOW"
-            _mail_next()
-        renpy.restart_interaction()
-
-screen mg_mail():
-    use mg_shell(_("SORT THE MAIL"), _("\"This goes to the clock, while this goes to the end. This goes to the fake ones and this goes to the friend.\"")):
-        if ml_result is None and mg_timed():
-            timer 0.1 repeat True action Function(mail_tick)
-
-        $ ml_max = mail_allowed()
-        hbox:
-            xalign 0.5
-            spacing 40
-            text "Letter [min(ml_idx + 1, ML_COUNT)] / [ML_COUNT]":
-                size 22
-                color "#8888a0"
-                font GFONT
-            text "Mistakes: [ml_bad] / [ml_max]":
-                size 22
-                color "#8888a0"
-                font GFONT
-            if mg_timed() and ml_result is None:
-                text "[ml_t:.1f]":
-                    size 22
-                    color "#e6a817"
-                    font GFONT
-
-        null height 12
-        if ml_result is None:
-            frame:
-                xalign 0.5
-                xsize 780
-                ysize 150
-                background rbox("#e8dcc0", 22)
-                text ml_letters[ml_idx][0]:
-                    align (0.5, 0.5)
-                    text_align 0.5
-                    xsize 700
-                    size 30
-                    color "#2a1f10"
-                    font GFONT
-            null height 8
-            text ml_fb:
-                xalign 0.5
-                size 20
-                color ("#6dffa5" if ml_fb == "RIGHT PILE" else "#ff7b6b")
-                font GFONT
-            null height 8
-            hbox:
-                xalign 0.5
-                spacing 16
-                use rbtn(_("CLOCK"), Function(mail_pick, "clock"), w=200, h=70, r=22, size=24)
-                use rbtn(_("END"), Function(mail_pick, "end"), w=200, h=70, r=22, size=24)
-                use rbtn(_("FAKE"), Function(mail_pick, "fake"), w=200, h=70, r=22, size=24)
-                use rbtn(_("FRIEND"), Function(mail_pick, "friend"), w=200, h=70, r=22, size=24)
-        elif ml_result == "win":
-            null height 40
-            text _("Every letter has a home."):
-                xalign 0.5
-                size 30
-                color "#ffd700"
-                font GFONT
-            null height 30
-            use mg_continue("win")
-        else:
-            null height 40
-            text _("The mail pile collapses."):
-                xalign 0.5
-                size 30
-                color "#e0521f"
-                font GFONT
-            null height 30
-            use mg_continue("lose")
 
 
 # ##############################################################################
@@ -3967,6 +3635,8 @@ init python:
     ]
 
     def unlock_ending(key):
+        if key not in persistent.endings_seen:
+            give_tickets(TICKETS_FOR["ending"])
         persistent.endings_seen = set(persistent.endings_seen) | set([key])
         if len(persistent.endings_seen) >= len(ENDINGS):
             try:
@@ -3990,18 +3660,18 @@ init python:
     # ------------------------------------------------------------------ cast book
     # (flag in the save, name, role, blurb). flag None = always known.
     CAST = [
-        (None,                 "Dorothy",   "Ticket conductor",     "Punches tickets and asks very few questions. Not paid enough for this."),
-        ("c1_talked_fedora",   "Fedora",    "Reporter",             "Here for a story. Her editor, Twinkles, is always calling."),
-        ("c2_talked_eduard",   "Eduard",    "Bartender",            "Keeps a tab on everyone, especially the man at the mahjong table."),
-        ("c2_talked_shunyu",   "Shunyu",    "Gambler",              "Cannot stop winning. Wants you to join in."),
-        ("c3_talked_kimmy",    "Kimmy",     "Clock heiress",        "Family clock business. Travelling with her darling Himmel."),
-        ("c3_talked_himmel",   "Himmel",    "Kimmy's partner",      "Jumpy around strangers. Says the toilet is to the left."),
-        ("c3_talked_sebastian","Sebastian", "Butler",               "Guards the child in his care with perfect posture."),
-        ("c3_talked_misha",    "Misha",     "Child, Carriage 3",    "Plays quietly with his blocks. Stares."),
-        ("c4_talked_agatha",   "Agatha",    "Train medic",          "Short on patience, long on bandages."),
-        ("c4_talked_ichora",   "Ichora",    "Engineer",             "Was expecting you. Gave you a key."),
-        ("c5_talked_pattison", "Pattison",  "Mail worker",          "Sorts the mail to a rhyme only he understands."),
-        ("c5_talked_alexander","Alexander", "Storage carriage",     "Sells the banned super maple sugar. First one is free."),
+        (None,                 "Dorothy",   "Ticket inspector", "\"Excuse me sir, tickets please.\""),
+        ("c1_talked_fedora",   "Fedora",    "Reporter",         "\"I CAN'T WAIT to interview the conductor!\""),
+        ("c2_talked_eduard",   "Eduard",    "Bartender",        "\"Good evening lad, I'm Eduard, your bartender.\""),
+        ("c2_talked_shunyu",   "Shunyu",    "Gambler",          "\"Yes! I can't stop winning!\""),
+        ("c3_talked_kimmy",    "Kimmy",     "Carriage 3",       "\"My family has a clock business, so we're quite well off.\""),
+        ("c3_talked_himmel",   "Himmel",    "Carriage 3",       "\"It's to the left! Now leave me alone!\""),
+        ("c3_talked_sebastian","Sebastian", "Butler",           "\"My name is Sebastian, the butler for Mr. Popov, the child in this cabin.\""),
+        ("c3_talked_misha",    "Misha",     "Carriage 3",       "Misha stares, no response."),
+        ("c4_talked_agatha",   "Agatha",    "Staff cart",       "\"Put the bandaid on and stop wasting my time.\""),
+        ("c4_talked_ichora",   "Ichora",    "Engineer",         "\"The name's Ichora, I'm the train's engineer.\""),
+        ("c5_talked_pattison", "Pattison",  "Mail",             "\"This goes to the clock, while this goes to the end.\""),
+        ("c5_talked_alexander","Alexander", "Mail room",        "\"The banned super maple sugar!!!\""),
     ]
 
     def cast_rows():
@@ -4085,7 +3755,7 @@ init python:
         return "You have everything. Decide who did it."
 
     # ------------------------------------------------------------------ secrets
-    KONAMI = ["u", "u", "d", "d", "l", "r", "l", "r", "b", "a"]
+    KONAMI = ["UP", "UP", "DOWN", "DOWN", "LEFT", "RIGHT", "LEFT", "RIGHT", "b", "a"]
     _konami_buf = []
 
     def konami_feed(k):
@@ -4121,26 +3791,23 @@ init python:
             renpy.notify("Ichora says: 'Hey! That is MY key!'")
         renpy.restart_interaction()
 
-    SECRET_NOTES = [
-        "Every timetable on this train says 4:00. Every single one.",
-        "Pattison's rhyme has four lines. Not all of them are about mail.",
-        "Thank you for playing, detective.  - Blackberry Studios",
-    ]
+    # SECRET_NOTES lives in secrets.rpy
 
 # ---- Konami listener (used by the main menu) ---------------------------------
 screen secret_listener():
-    key "K_UP" action Function(konami_feed, "u")
-    key "K_DOWN" action Function(konami_feed, "d")
-    key "K_LEFT" action Function(konami_feed, "l")
-    key "K_RIGHT" action Function(konami_feed, "r")
-    key "K_b" action Function(konami_feed, "b")
-    key "K_a" action Function(konami_feed, "a")
+    key "K_UP" action Function(secret_key, "UP")
+    key "K_DOWN" action Function(secret_key, "DOWN")
+    key "K_LEFT" action Function(secret_key, "LEFT")
+    key "K_RIGHT" action Function(secret_key, "RIGHT")
+    for ch in SECRET_LETTERS:
+        key ("K_" + ch) action Function(secret_key, ch)
 
 # ---- EXTRAS menu --------------------------------------------------------------
 init python:
     def extras_tabs():
-        tabs = [("endings", _("ENDINGS")), ("cast", _("CAST")), ("stats", _("STATS"))]
-        if "konami" in persistent.secrets:
+        tabs = [("endings", _("ENDINGS")), ("cast", _("CAST")), ("stats", _("STATS")), ("arcade", _("ARCADE")), ("gamepass", _("GAMEPASS"))]
+        tabs += dlc_tabs()
+        if persistent.secrets:
             tabs.append(("secret", _("4:01")))
         return tabs
 
@@ -4289,12 +3956,27 @@ screen extras_menu():
                                 xalign 1.0
                                 yalign 0.5
 
+            elif xt == "arcade":
+                use arcade_list(ex_w)
+
+            elif xt == "gamepass":
+                use gamepass_list(ex_w)
+
+            elif xt == "gallery":
+                use gallery_list(ex_w)
+
+            elif xt == "jukebox":
+                use jukebox_list(ex_w)
+
+            elif xt == "theatre":
+                use theatre_list(ex_w)
+
             elif xt == "secret":
                 text _("TICKET 4:01"):
                     size 40
                     color "#7fcaff"
                     font GFONT
-                for idx, note in enumerate(SECRET_NOTES):
+                for idx, note in enumerate(secret_notes()):
                     frame:
                         xfill True
                         background rbox("#0e1418", 22)

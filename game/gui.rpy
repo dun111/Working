@@ -9,7 +9,8 @@ init offset = -2
 ## Calling gui.init resets the styles to sensible default values, and sets the
 ## width and height of the game.
 init python:
-    gui.init(1920, 1080)
+    # GAME_W x GAME_H matches the monitor's shape (see display.rpy)
+    gui.init(GAME_W, GAME_H)
 
 ## Enable checks for invalid or unstable properties in screens or transforms
 define config.check_conflicting_properties = True
