@@ -1,4 +1,4 @@
-﻿init offset = -1
+init offset = -1
 
 # ==============================================================================
 # DEPARTURE AT 4:00  -  screens.rpy
@@ -888,6 +888,8 @@ default persistent.mg_skip_allowed = True
 default persistent.autosave_on = True
 default persistent.film_transition = True
 default persistent.old_map = True
+default persistent.menu_style = "new"         # "new" or "classic" (the rounded sidebar)
+default persistent.dialogue_style = "classic" # dialogue box look: classic / minimal / paper / film
 default persistent.ach_toasts = True
 default persistent.mg_won = set()
 
@@ -1895,13 +1897,15 @@ screen main_menu():
         $ rows.append((_("QUIT"), Quit(confirm=True), False))
     timer 2.6 repeat True action Function(board_tick, len(rows))
 
-    # ---- Darker on the left, fading out across the screen ----------------------
-    add left_shade()
+    if persistent.menu_style != "classic":
+        # ---- Darker on the left, fading out across the screen ----------------------
+        add left_shade()
 
-    # something walks through the carriage if you leave the menu alone (secrets.rpy)
-    if idle_walk:
-        add Transform("images/louis_neutral.png", matrixcolor=flat_color("#050002"), zoom=0.9):
-            at idle_walker
+        # something walks through the carriage if you leave the menu alone (secrets.rpy)
+        if idle_walk:
+            add Transform("images/louis_neutral.png", matrixcolor=flat_color("#050002"), zoom=0.9):
+                at idle_walker
+
 
     # ---- Tickets (EXTRAS > GAMEPASS) ---------------------------------------------
     frame:
@@ -1936,109 +1940,226 @@ screen main_menu():
                 color "#ffd76a"
                 font GFONT
 
-    # ---- The left column ---------------------------------------------------------
-    # Everything is the same width (CINE_COL_W) and centered on the same line:
-    # logo, tagline, the train on its rail, then the departure board.
-    vbox:
-        xpos CINE_X
-        yalign 0.5
-        spacing 0
-
-        # the logo (psst: click it three times)
-        button:
-            xalign 0.5
-            xysize (CINE_LOGO_W, int(CINE_LOGO_W * 808 / 1239.0))
-            padding (0, 0)
-            background None
-            action Function(logo_poke)
-            at fade_slide_in(0.1)
-            if logo_glitched:
-                add Transform("images/Game_Logo_Purple.webp", fit="contain", xysize=(CINE_LOGO_W, int(CINE_LOGO_W * 808 / 1239.0))) at logo_glitch
-            else:
-                add "game_logo_cycle":
-                    xysize (CINE_LOGO_W, int(CINE_LOGO_W * 808 / 1239.0))
-                    fit "contain"
-
-        null height 8
-
-        # the tagline, centered under the logo
+    # Settings > Display > MAIN MENU STYLE: the classic sidebar, or the new layout
+    if persistent.menu_style == "classic":
+        # ---- Sidebar card ---------------------------------------------------------
         fixed:
-            xsize CINE_COL_W
-            ysize 30
-            at fade_slide_in(0.2)
-            use menu_tagline(0.5, 20)
+            xpos gui.sidebar_margin
+            ypos gui.sidebar_margin
+            xsize gui.sidebar_width
+            ysize (config.screen_height - gui.sidebar_margin * 2)
 
-        null height 6
+            add rbox("#000000aa", 40):
+                xsize gui.sidebar_width
+                ysize (config.screen_height - gui.sidebar_margin * 2)
+                xoffset 6
+                yoffset 12
+                blur 22
 
-        # the train, on its rail (psst: click it)
-        fixed:
-            xysize (CINE_COL_W, CINE_RAIL_H)
-            at fade_slide_in(0.3)
-            use menu_train
+            frame:
+                xfill True
+                yfill True
+                padding (2, 2)
+                background rbox("#ffffff22", 40)
 
-        null height 22
-
-        # the departure board: the menu
-        frame:
-            xsize CINE_COL_W
-            padding (24, 16, 24, 14)
-            background rbox("#0a0a0ecc", 18)
-            at fade_slide_in(0.35)
-            vbox:
-                spacing 0
-                # header (psst: click it)
-                button:
+                frame:
                     xfill True
-                    ysize 42
+                    yfill True
+                    background rbox("#14141ab8", 38)
                     padding (0, 0)
-                    background None
-                    action Show("slot_machine")
-                    text _("DEPARTURES"):
-                        yalign 0.5
-                        size 24
-                        color "#e6a817"
-                        hover_color "#ffd76a"
-                        font CREDIT_FONT
-                    text _("GREKHOV EXPRESS"):
-                        xalign 1.0
-                        yalign 0.5
-                        size 18
+                    clipping True
+
+                    if renpy.loadable("images/Train_BP.webp"):
+                        frame:
+                            xpos 18
+                            yalign 1.0
+                            yoffset 40
+                            xysize (380, 380)
+                            background None
+                            padding (0, 0)
+                            clipping True
+                            at fade_slide_in(0.7, xoff=-60)
+                            add "images/Train_BP.webp":
+                                xysize (380, 380)
+                                fit "contain"
+                                align (0.0, 1.0)
+                                xoffset -30
+                                rotate -12
+                                alpha 0.3
+
+                    vbox:
+                        xpos gui.sidebar_padding - 2
+                        ypos 40
+                        xsize gui.sidebar_content_width
+                        spacing 26
+
+                        add "game_logo_cycle":
+                            xsize gui.sidebar_content_width
+                            ysize 240
+                            fit "contain"
+                            at fade_slide_in(0.1)
+
+                        fixed:
+                            xfill True
+                            ysize 22
+                            at fade_slide_in(0.2)
+                            use menu_tagline
+
+                        frame:
+                            xsize gui.sidebar_content_width
+                            ysize 64
+                            background rbox("#e0521f", 22)
+                            padding (2, 2)
+                            clipping True
+                            at fade_slide_in(0.3)
+
+                            button:
+                                xfill True
+                                yfill True
+                                background None
+                                hover_background rbox("#00000033", 20)
+                                action Start()
+
+                                add Solid("#ffffff"):
+                                    xsize 70
+                                    ysize 40
+                                    yalign 0.5
+                                    at shine_sweep
+
+                                text (_("NEW GAME") if newest_save else _("PLAY")):
+                                    align (0.5, 0.5)
+                                    size 32
+                                    color "#0a0a0e"
+                                    hover_color "#ffffff"
+                                    font GFONT
+
+                        vbox:
+                            xsize gui.sidebar_content_width
+                            spacing 8
+
+                            if newest_save:
+                                use menu_entry(_("CONTINUE"), Function(renpy.load, newest_save), 0.34, True)
+                            use menu_entry(_("LOAD GAME"), ShowMenu("load"), 0.40)
+                            use menu_entry(_("SETTINGS"), ShowMenu("preferences"), 0.48)
+                            use menu_entry(_("ACHIEVEMENTS"), ShowMenu("achievements"), 0.56)
+                            use menu_entry(_("EXTRAS"), ShowMenu("extras_menu"), 0.60)
+                            use menu_entry(_("CREDITS"), ShowMenu("about"), 0.64)
+                            if renpy.variant("pc"):
+                                use menu_entry(_("QUIT"), Quit(confirm=True), 0.72)
+
+                    text "v[config.version]":
+                        xalign 0.95
+                        yalign 0.985
+                        size 14
                         color "#55556a"
-                        hover_color "#8888a0"
-                        font CREDIT_FONT
-                hbox:
-                    text _("TIME"):
-                        min_width CINE_TIME_W
-                        size 13
-                        color "#44445a"
                         font GFONT
-                    text _("DESTINATION"):
-                        size 13
-                        color "#44445a"
-                        font GFONT
-                null height 6
-                add Solid("#2a2a35"):
-                    xysize (CINE_COL_W - 48, 2)
-                null height 8
-                for i, (lab, act, primary) in enumerate(rows):
-                    use cine_entry(i, lab, act, primary)
-                    if i < len(rows) - 1:
-                        add Solid("#ffffff0d"):
-                            xysize (CINE_COL_W - 48, 1)
-                null height 8
-                add Solid("#2a2a35"):
-                    xysize (CINE_COL_W - 48, 2)
-                null height 6
-                # psst: click the version number five times
-                textbutton (_("v4:00") if version_pokes >= 5 else "v[config.version]"):
-                    xalign 1.0
-                    padding (0, 0)
-                    background None
-                    text_size 14
-                    text_color ("#e0521f" if version_pokes >= 5 else "#55556a")
-                    text_hover_color "#8888a0"
-                    text_font GFONT
-                    action Function(version_poke)
+
+
+    else:
+        # ---- The left column ---------------------------------------------------------
+        # Everything is the same width (CINE_COL_W) and centered on the same line:
+        # logo, tagline, the train on its rail, then the departure board.
+        vbox:
+            xpos CINE_X
+            yalign 0.5
+            spacing 0
+
+            # the logo (psst: click it three times)
+            button:
+                xalign 0.5
+                xysize (CINE_LOGO_W, int(CINE_LOGO_W * 808 / 1239.0))
+                padding (0, 0)
+                background None
+                action Function(logo_poke)
+                at fade_slide_in(0.1)
+                if logo_glitched:
+                    add Transform("images/Game_Logo_Purple.webp", fit="contain", xysize=(CINE_LOGO_W, int(CINE_LOGO_W * 808 / 1239.0))) at logo_glitch
+                else:
+                    add "game_logo_cycle":
+                        xysize (CINE_LOGO_W, int(CINE_LOGO_W * 808 / 1239.0))
+                        fit "contain"
+
+            null height 8
+
+            # the tagline, centered under the logo
+            fixed:
+                xsize CINE_COL_W
+                ysize 30
+                at fade_slide_in(0.2)
+                use menu_tagline(0.5, 20)
+
+            null height 6
+
+            # the train, on its rail (psst: click it)
+            fixed:
+                xysize (CINE_COL_W, CINE_RAIL_H)
+                at fade_slide_in(0.3)
+                use menu_train
+
+            null height 22
+
+            # the departure board: the menu
+            frame:
+                xsize CINE_COL_W
+                padding (24, 16, 24, 14)
+                background rbox("#0a0a0ecc", 18)
+                at fade_slide_in(0.35)
+                vbox:
+                    spacing 0
+                    # header (psst: click it)
+                    button:
+                        xfill True
+                        ysize 42
+                        padding (0, 0)
+                        background None
+                        action Show("slot_machine")
+                        text _("DEPARTURES"):
+                            yalign 0.5
+                            size 24
+                            color "#e6a817"
+                            hover_color "#ffd76a"
+                            font CREDIT_FONT
+                        text _("GREKHOV EXPRESS"):
+                            xalign 1.0
+                            yalign 0.5
+                            size 18
+                            color "#55556a"
+                            hover_color "#8888a0"
+                            font CREDIT_FONT
+                    hbox:
+                        text _("TIME"):
+                            min_width CINE_TIME_W
+                            size 13
+                            color "#44445a"
+                            font GFONT
+                        text _("DESTINATION"):
+                            size 13
+                            color "#44445a"
+                            font GFONT
+                    null height 6
+                    add Solid("#2a2a35"):
+                        xysize (CINE_COL_W - 48, 2)
+                    null height 8
+                    for i, (lab, act, primary) in enumerate(rows):
+                        use cine_entry(i, lab, act, primary)
+                        if i < len(rows) - 1:
+                            add Solid("#ffffff0d"):
+                                xysize (CINE_COL_W - 48, 1)
+                    null height 8
+                    add Solid("#2a2a35"):
+                        xysize (CINE_COL_W - 48, 2)
+                    null height 6
+                    # psst: click the version number five times
+                    textbutton (_("v4:00") if version_pokes >= 5 else "v[config.version]"):
+                        xalign 1.0
+                        padding (0, 0)
+                        background None
+                        text_size 14
+                        text_color ("#e0521f" if version_pokes >= 5 else "#55556a")
+                        text_hover_color "#8888a0"
+                        text_font GFONT
+                        action Function(version_poke)
+
 
     # the timers for the main-menu secrets (secrets.rpy)
     if logo_glitched:
@@ -2088,58 +2209,109 @@ transform plate_pop:
 transform plate_still:
     alpha 1.0
 
+# Settings > Display > DIALOGUE BOX STYLE picks one of these looks:
+#   classic  the dark rounded box with a coloured name plate
+#   minimal  no box - a soft dark fade up from the bottom of the screen
+#   paper    old parchment with dark ink, like the maps
+#   film     a black subtitle bar along the bottom, everything centred
+init python:
+    _SAY_FADE = []
+
+    def say_fade():
+        """Dark at the bottom of the screen, fading to nothing (minimal style)."""
+        if not _SAY_FADE:
+            h, n = 360, 72
+            strips = []
+            for k in range(n):
+                y0, y1 = int(k * h / float(n)), int((k + 1) * h / float(n))
+                strips.append(At(Solid("#000000"), Transform(ypos=y0, ysize=y1 - y0, xsize=config.screen_width,
+                                                             alpha=0.9 * (k / float(n)) ** 1.4)))
+            _SAY_FADE.append(Fixed(*strips, xysize=(config.screen_width, h)))
+        return _SAY_FADE[0]
+
 screen say(who, what, plate="#8a4a22", creepy=False):
+    $ ds = persistent.dialogue_style
+    $ op = persistent.dialogue_opacity
+
+    if ds == "minimal":
+        add say_fade():
+            yalign 1.0
+
     window:
         id "window"
         xalign 0.5
         yalign 1.0
-        yoffset -18
-        xsize (config.screen_width - 56)
-        ysize 290
-        background rbox(Color("#0a0a0e").replace_opacity(persistent.dialogue_opacity), 26)
+        yoffset (0 if ds in ("film", "minimal") else -18)
+        xsize (config.screen_width if ds in ("film", "minimal") else config.screen_width - 56)
+        ysize (230 if ds in ("film", "minimal") else 290)
+        background (None if ds == "minimal" else
+                    (Solid(Color("#000000").replace_opacity(op)) if ds == "film" else
+                     (Frame(rbox(Color("#e9dfc8").replace_opacity(op), 26), 26, 26) if ds == "paper" else
+                      rbox(Color("#0a0a0e").replace_opacity(op), 26))))
         at say_rise
 
-        # accent line along the top edge, inset so it clears the rounded corners
-        add rbox("#e0521f", 2):
-            xalign 0.5
-            xsize (config.screen_width - 56 - 64)
-            ysize 3
-            yalign 0.0
+        if ds == "classic":
+            # accent line along the top edge, inset so it clears the rounded corners
+            add rbox("#e0521f", 2):
+                xalign 0.5
+                xsize (config.screen_width - 56 - 64)
+                ysize 3
+                yalign 0.0
+        elif ds == "paper":
+            add rbox("#7a1f12", 2):
+                xalign 0.5
+                xsize (config.screen_width - 56 - 64)
+                ysize 3
+                yalign 0.0
+                yoffset 10
 
         if who:
-            fixed:
-                xpos 40
-                ypos 44
-                xysize (260, 44)
-                at (plate_pop if TALK.changed else plate_still)
-
-                add rbox(plate, 22):
+            if ds == "classic" or ds == "paper":
+                fixed:
+                    xpos 40
+                    ypos 44
                     xysize (260, 44)
-
+                    at (plate_pop if TALK.changed else plate_still)
+                    add rbox((plate if ds == "classic" else "#7a1f12"), 22):
+                        xysize (260, 44)
+                    text who:
+                        id "who"
+                        align (0.5, 0.5)
+                        size (persistent.dialogue_font_size - 2)
+                        bold True
+                        color "#f2e6d8"
+                        font GFONT
+            else:
+                # minimal / film: just the name, in the speaker's colour
                 text who:
                     id "who"
-                    align (0.5, 0.5)
-                    size (persistent.dialogue_font_size - 2)
+                    xpos (0.5 if ds == "film" else 60)
+                    xanchor (0.5 if ds == "film" else 0.0)
+                    ypos 26
+                    size (persistent.dialogue_font_size - 4)
                     bold True
-                    color "#f2e6d8"
+                    color "#ffd76a"
                     font GFONT
+                    at (plate_pop if TALK.changed else plate_still)
 
         text what:
             id "what"
-            xpos 40
-            xsize 0.85
-            ypos 104
+            xpos (0.5 if ds == "film" else (60 if ds == "minimal" else 40))
+            xanchor (0.5 if ds == "film" else 0.0)
+            xsize (0.8 if ds == "film" else 0.85)
+            text_align (0.5 if ds == "film" else 0.0)
+            ypos (72 if ds in ("film", "minimal") else 104)
             size persistent.dialogue_font_size
-            color "#e8e4dc"
+            color ("#2a1f10" if ds == "paper" else "#e8e4dc")
             font say_font()
             line_spacing 10
-            outlines ([(2, "#000000", 0, 0)] if persistent.text_outline else [])
+            outlines ([(2, "#000000", 0, 0)] if (persistent.text_outline or ds == "minimal") and ds != "paper" else [])
             if creepy:
-                color "#e8b4ac"
+                color ("#8a1f12" if ds == "paper" else "#e8b4ac")
                 textshader (None if persistent.reduce_motion else "jitter:u__jitter=(2.5, 2.5)")
 
         # little "next" diamond bottom-right
-        add rbox("#e0521f", 2):
+        add rbox(("#7a1f12" if ds == "paper" else "#e0521f"), 2):
             xalign 0.97
             yalign 0.9
             xsize 16
@@ -2687,6 +2859,16 @@ screen preferences():
                 use pref_row(_("DIALOGUE FONT SIZE"), _("Size of the text in the dialogue box."), 0.12):
                     for dsz, dlabel in DIALOGUE_SIZES:
                         use pref_toggle(dlabel, SetField(persistent, "dialogue_font_size", dsz), selected=(persistent.dialogue_font_size == dsz), w=90)
+
+                use pref_row(_("DIALOGUE BOX STYLE"), _("How the dialogue box looks."), 0.0):
+                    use pref_toggle(_("CLASSIC"), SetField(persistent, "dialogue_style", "classic"), selected=(persistent.dialogue_style == "classic"), w=130)
+                    use pref_toggle(_("MINIMAL"), SetField(persistent, "dialogue_style", "minimal"), selected=(persistent.dialogue_style == "minimal"), w=130)
+                    use pref_toggle(_("PAPER"), SetField(persistent, "dialogue_style", "paper"), selected=(persistent.dialogue_style == "paper"), w=130)
+                    use pref_toggle(_("FILM"), SetField(persistent, "dialogue_style", "film"), selected=(persistent.dialogue_style == "film"), w=130)
+
+                use pref_row(_("MAIN MENU STYLE"), _("Classic: the rounded sidebar. New: the cinematic menu with the departure board."), 0.0):
+                    use pref_toggle(_("CLASSIC"), SetField(persistent, "menu_style", "classic"), selected=(persistent.menu_style == "classic"), w=130)
+                    use pref_toggle(_("NEW"), SetField(persistent, "menu_style", "new"), selected=(persistent.menu_style != "classic"), w=130)
 
                 use pref_row(_("FILL WIDE SCREENS"), _("Use the whole screen on ultrawide and 16:10 monitors. Restart the game to apply."), 0.0):
                     use pref_toggle(_("ON"), SetField(persistent, "fill_screen", True), selected=(persistent.fill_screen is not False))
