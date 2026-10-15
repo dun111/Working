@@ -12,6 +12,7 @@
 #
 # Only the look changes - the words stay as written. Everything that moves is
 # switched off with Settings > Accessibility > REDUCE MOTION.
+# Settings > Text > TEXT EFFECTS: FULL / STILL (colour and size, no movement) / OFF.
 # ==============================================================================
 
 # Shader tags (shake, wave...) need text shaders switched on. "typewriter"
@@ -20,11 +21,13 @@ define config.default_textshader = "typewriter"
 
 init python:
     def _fx_shader(shader, contents):
-        if persistent.reduce_motion:
+        if persistent.reduce_motion or persistent.text_fx != "full":
             return contents
         return [(renpy.TEXT_TAG, u"shader=" + shader)] + contents + [(renpy.TEXT_TAG, u"/shader")]
 
     def _fx_wrap(open_tags, close_tags, contents):
+        if persistent.text_fx == "off":
+            return contents
         return ([(renpy.TEXT_TAG, t) for t in open_tags] + contents +
                 [(renpy.TEXT_TAG, t) for t in close_tags])
 
