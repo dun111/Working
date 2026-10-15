@@ -685,7 +685,18 @@ image carriage_6_fog = At(Solid("#4a0a0a"), carriage_6_ambient)
 image black = Solid("#000000")
 # The opening / loop / ending conversations on the train use the mosaic too
 image Train station = "talk_bg"
-image bg carriage_1 = wide_bg("images/bg_carriage_1.webp")
+# Carriage 1 with Dorothy and Fedora drawn in; a different, wrecked version for
+# Part 2 (the loop). The art has transparent edges, so it sits on the dark fill.
+init python:
+    def carriage_art(path):
+        return Fixed(Solid("#150d0d"), Transform(path, xysize=(DESIGN_W, DESIGN_H)), xysize=(DESIGN_W, DESIGN_H))
+
+image bg carriage_1 = ConditionSwitch(
+    "in_loop", wide_bg(carriage_art("images/PT2_Carriage_1_With_CharacterS.webp")),
+    "True", wide_bg(carriage_art("images/Carriage_1_With_CharacterS.webp")))
+
+# the empty carriage (no one in it) - used by the empty train
+image bg carriage_1_empty = wide_bg("images/bg_carriage_1.webp")
 image bg carriage_5 = wide_bg("images/bg_carriage_5.webp")
 
 # Placeholder backgrounds: the real bg carriage 2/3/4 .webp files are not in
