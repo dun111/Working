@@ -2388,71 +2388,77 @@ screen quick_menu():
             hovered Function(_set_qm_hover, True)
             unhovered Function(_set_qm_hover, False)
 
-        hbox:
+        # one dark bar; every button sized to its label, text centred in it
+        frame:
             xpos 40
             yalign 1.0
-            yoffset -14
-            spacing 8
+            yoffset -12
+            padding (8, 5)
+            background rbox("#0a0a0ee0", 20)
             at (qm_shown if quick_menu_hover else qm_hidden)
-            for qm_label, qm_act in [
-                (_("Home"), MainMenu(confirm=True)),
-                (_("Back"), Rollback()),
-                (_("History"), ShowMenu("history")),
-                (_("Skip"), Skip()),
-                (_("Auto"), Preference("auto-forward", "toggle")),
-                (_("Save"), ShowMenu("save")),
-                (_("Q.Save"), QuickSave()),
-                (_("Q.Load"), QuickLoad()),
-                (_("Clues"), ShowMenu("clues")),
-                (_("People"), ShowMenu("manifest")),
-                (_("Prefs"), ShowMenu("preferences")),
-            ]:
-                button:
-                    xsize 96
-                    ysize 34
-                    background rbox("#0a0a0ecc", 17)
-                    hover_background rbox("#ffffff22", 17)
-                    action qm_act
-                    at button_hover_anim
-                    text qm_label:
-                        align (0.5, 0.5)
-                        size 17
-                        color "#8888a0"
-                        hover_color "#ffd700"
-                        selected_color "#ffd700"
-                        font GFONT
-            # auto-forward speed, right there while Auto is on
-            if _preferences.afm_enable:
-                frame:
-                    ysize 34
-                    padding (12, 0)
-                    background rbox("#0a0a0ecc", 17)
-                    hbox:
-                        yalign 0.5
-                        spacing 8
-                        textbutton "−":
-                            yalign 0.5
-                            padding (6, 0)
-                            text_size 20
-                            text_color "#e8e4dc"
-                            text_hover_color "#ffd700"
-                            text_font "DejaVuSans.ttf"
-                            action Function(afm_adjust, -3)
-                        text auto_speed_label():
-                            yalign 0.5
-                            min_width 110
-                            text_align 0.5
-                            size 15
-                            color "#e6a817"
+            hbox:
+                spacing 2
+                for qm_label, qm_act in [
+                    (_("Home"), MainMenu(confirm=True)),
+                    (_("Back"), Rollback()),
+                    (_("History"), ShowMenu("history")),
+                    (_("Skip"), Skip()),
+                    (_("Auto"), Preference("auto-forward", "toggle")),
+                    (_("Save"), ShowMenu("save")),
+                    (_("Q.Save"), QuickSave()),
+                    (_("Q.Load"), QuickLoad()),
+                    (_("Clues"), ShowMenu("clues")),
+                    (_("People"), ShowMenu("manifest")),
+                    (_("Prefs"), ShowMenu("preferences")),
+                ]:
+                    button:
+                        ysize 34
+                        xminimum 74
+                        padding (16, 0)
+                        background None
+                        hover_background rbox("#ffffff1c", 15)
+                        selected_background rbox("#e0521f33", 15)
+                        action qm_act
+                        text qm_label:
+                            align (0.5, 0.5)
+                            layout "nobreak"
+                            size 16
+                            color "#a8a4b4"
+                            hover_color "#ffd700"
+                            selected_color "#ffd700"
                             font GFONT
-                        textbutton "+":
+                # auto-forward speed, right there while Auto is on
+                if _preferences.afm_enable:
+                    frame:
+                        ysize 34
+                        padding (12, 0)
+                        background rbox("#ffffff10", 15)
+                        hbox:
                             yalign 0.5
-                            padding (6, 0)
-                            text_size 20
-                            text_color "#e8e4dc"
-                            text_hover_color "#ffd700"
-                            text_font "DejaVuSans.ttf"
-                            action Function(afm_adjust, 3)
+                            spacing 8
+                            textbutton "−":
+                                yalign 0.5
+                                padding (6, 0)
+                                text_size 20
+                                text_color "#e8e4dc"
+                                text_hover_color "#ffd700"
+                                text_font "DejaVuSans.ttf"
+                                action Function(afm_adjust, -3)
+                            text auto_speed_label():
+                                yalign 0.5
+                                min_width 110
+                                text_align 0.5
+                                size 15
+                                color "#e6a817"
+                                font GFONT
+                            textbutton "+":
+                                yalign 0.5
+                                padding (6, 0)
+                                text_size 20
+                                text_color "#e8e4dc"
+                                text_hover_color "#ffd700"
+                                text_font "DejaVuSans.ttf"
+                                action Function(afm_adjust, 3)
 
 
 # ==============================================================================
@@ -3084,13 +3090,35 @@ init python:
         _FACE_CACHE[who] = face
         return face
 
+init python:
+    import re as _hre
+
+    def history_groups():
+        """[(who, [entries])] - one folder per speaker, in the order they first
+        spoke; narration gets a folder too (who = "")."""
+        order, groups = [], {}
+        for e in _history_list:
+            k = e.who or ""
+            if k not in groups:
+                groups[k] = []
+                order.append(k)
+            groups[k].append(e)
+        return [(k, groups[k]) for k in order]
+
+    def history_preview(what, n=70):
+        t = _hre.sub(r"\{[^}]*\}", "", what or "")
+        return (t[:n] + "…") if len(t) > n else t
+
 screen history():
     tag menu
+    default hist_view = "folders"     # "folders" or "timeline"
+    default hist_who = None           # an open folder (a speaker), or None
 
     $ back_action = ShowMenu("main_menu") if main_menu else Return()
     key "game_menu" action back_action
 
     $ h_w = config.screen_width - 200
+    $ groups = history_groups()
 
     add Solid("#0a0a0e")
     use game_menu_nav
@@ -3106,16 +3134,31 @@ screen history():
         ypos 104
         xysize (120, 4)
 
-    # everything that's been said, oldest at the top, newest at the bottom
+    # FOLDERS / TIMELINE
+    hbox:
+        xpos 80
+        ypos 128
+        spacing 10
+        for hv, hl in [("folders", _("CHARACTERS")), ("timeline", _("TIMELINE"))]:
+            button:
+                padding (18, 6)
+                background rbox(("#e0521f" if hist_view == hv else "#16161e"), 14)
+                hover_background rbox(("#f06a35" if hist_view == hv else "#22222e"), 14)
+                action [SetScreenVariable("hist_view", hv), SetScreenVariable("hist_who", None)]
+                text hl:
+                    size 16
+                    color ("#0a0a0e" if hist_view == hv else "#a8a4b4")
+                    font GFONT
+
     viewport:
         id "hist_vp"
         xpos 80
-        ypos 150
+        ypos 190
         xsize h_w
-        ysize (config.screen_height - 290)
+        ysize (config.screen_height - 330)
         mousewheel True
         draggable True
-        yinitial 1.0
+        yinitial (1.0 if (hist_view == "timeline" or hist_who is not None) else 0.0)
         vbox:
             xsize (h_w - 40)
             spacing 10
@@ -3124,56 +3167,156 @@ screen history():
                     size 22
                     color "#8888a0"
                     font GFONT
-            for entry in _history_list:
-                frame:
-                    xmaximum 1500
-                    padding (22, 14)
-                    background (rbox("#101014", 18) if entry.who else None)
-                    if entry.who:
-                        # a speaker: their face, their name, what they said
-                        hbox:
-                            spacing 22
-                            frame:
-                                xysize (84, 84)
-                                padding (0, 0)
-                                background rbox("#1d1d26", 14)
-                                $ face = history_face(entry.who)
-                                if face:
-                                    add face:
-                                        align (0.5, 0.5)
-                                else:
-                                    text "?":
-                                        align (0.5, 0.5)
-                                        size 34
-                                        color "#55556a"
+
+            # ---- every speaker as a folder ----
+            elif hist_view == "folders" and hist_who is None:
+                hbox:
+                    box_wrap True
+                    spacing 14
+                    xmaximum (h_w - 40)
+                    for who, entries in groups:
+                        button:
+                            xysize (440, 130)
+                            padding (16, 14)
+                            background rbox("#101014", 18)
+                            hover_background rbox("#1a1a22", 18)
+                            action SetScreenVariable("hist_who", who)
+                            hbox:
+                                spacing 16
+                                frame:
+                                    xysize (96, 96)
+                                    padding (0, 0)
+                                    background rbox("#1d1d26", 14)
+                                    $ face = history_face(who) if who else None
+                                    if face:
+                                        add Transform(face, xysize=(92, 92)):
+                                            align (0.5, 0.5)
+                                    else:
+                                        text ("…" if not who else "?"):
+                                            align (0.5, 0.5)
+                                            size 34
+                                            color "#55556a"
+                                            font GFONT
+                                vbox:
+                                    spacing 4
+                                    text (who or _("Narration")):
+                                        size 22
+                                        color "#ffd700"
+                                        hover_color "#ffffff"
                                         font GFONT
-                            vbox:
-                                spacing 6
-                                text entry.who:
-                                    size 18
-                                    color "#ffd700"
-                                    font GFONT
-                                text entry.what:
-                                    xmaximum 1200
-                                    size 22
-                                    color "#e8e4dc"
-                                    font say_font()
-                    else:
-                        # narration
-                        text entry.what:
-                            xmaximum 1300
-                            xoffset 106
-                            size 21
-                            color "#a8a4b4"
-                            italic True
-                            font say_font()
+                                    text (_("%d lines") % len(entries)):
+                                        size 14
+                                        color "#8888a0"
+                                        font GFONT
+                                    text history_preview(entries[-1].what):
+                                        xmaximum 290
+                                        size 15
+                                        color "#a8a4b4"
+                                        italic True
+                                        font say_font()
+
+            # ---- one speaker's folder, opened ----
+            elif hist_view == "folders":
+                $ entries = [e for e in _history_list if (e.who or "") == hist_who]
+                button:
+                    padding (14, 6)
+                    background rbox("#16161e", 12)
+                    hover_background rbox("#22222e", 12)
+                    action SetScreenVariable("hist_who", None)
+                    text _("‹  ALL CHARACTERS"):
+                        size 16
+                        color "#a8a4b4"
+                        hover_color "#ffd700"
+                        font GFONT
+                hbox:
+                    spacing 18
+                    $ face = history_face(hist_who) if hist_who else None
+                    if face:
+                        frame:
+                            xysize (110, 110)
+                            padding (0, 0)
+                            background rbox("#1d1d26", 16)
+                            add Transform(face, xysize=(104, 104)):
+                                align (0.5, 0.5)
+                    vbox:
+                        yalign 0.5
+                        text (hist_who or _("Narration")):
+                            size 34
+                            color "#ffd700"
+                            font GFONT
+                        text (_("%d lines") % len(entries)):
+                            size 16
+                            color "#8888a0"
+                            font GFONT
+                for n, e in enumerate(entries):
+                    frame:
+                        xmaximum 1500
+                        padding (22, 12)
+                        background rbox("#101014", 16)
+                        hbox:
+                            spacing 18
+                            text ("%d" % (n + 1)):
+                                min_width 36
+                                size 16
+                                color "#55556a"
+                                font GFONT
+                            text e.what:
+                                xmaximum 1300
+                                size 22
+                                color ("#e8e4dc" if hist_who else "#a8a4b4")
+                                italic (not hist_who)
+                                font say_font()
+
+            # ---- everything, in order ----
+            else:
+                for entry in _history_list:
+                    frame:
+                        xmaximum 1500
+                        padding (22, 14)
+                        background (rbox("#101014", 18) if entry.who else None)
+                        if entry.who:
+                            hbox:
+                                spacing 22
+                                frame:
+                                    xysize (84, 84)
+                                    padding (0, 0)
+                                    background rbox("#1d1d26", 14)
+                                    $ face = history_face(entry.who)
+                                    if face:
+                                        add face:
+                                            align (0.5, 0.5)
+                                    else:
+                                        text "?":
+                                            align (0.5, 0.5)
+                                            size 34
+                                            color "#55556a"
+                                            font GFONT
+                                vbox:
+                                    spacing 6
+                                    text entry.who:
+                                        size 18
+                                        color "#ffd700"
+                                        font GFONT
+                                    text entry.what:
+                                        xmaximum 1200
+                                        size 22
+                                        color "#e8e4dc"
+                                        font say_font()
+                        else:
+                            text entry.what:
+                                xmaximum 1300
+                                xoffset 106
+                                size 21
+                                color "#a8a4b4"
+                                italic True
+                                font say_font()
 
     vbar:
         style "pref_vbar"
         value YScrollValue("hist_vp")
         xpos config.screen_width - 96
-        ypos 150
-        ysize (config.screen_height - 290)
+        ypos 190
+        ysize (config.screen_height - 330)
 
     use game_menu_back(back_action)
 
