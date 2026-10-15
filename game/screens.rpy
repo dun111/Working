@@ -721,6 +721,11 @@ screen loop_overlay():
 # GLOBAL TRANSITIONS
 # ==============================================================================
 
+# Ren'Py opens its developer "Interactive Director" on D - but D is a game key
+# (the door minigame uses A/D), so that shortcut is switched off.
+init python:
+    config.keymap["director"] = []
+
 # keep more pictures loaded so carriages and characters don't stutter in
 define config.image_cache_size_mb = 512
 
@@ -961,10 +966,17 @@ init python:
             return ""
 
     def auto_speed_label():
+        """afm_time is the wait before auto moves on: lower = faster."""
         try:
-            return str(int(_preferences.afm_time))
+            t = int(_preferences.afm_time)
         except Exception:
             return ""
+        word = _("FAST") if t <= 10 else (_("NORMAL") if t <= 22 else _("SLOW"))
+        return "%s  %d" % (word, t)
+
+    def afm_adjust(step):
+        _preferences.afm_time = max(1, min(40, int(_preferences.afm_time) + step))
+        renpy.restart_interaction()
 
     def opacity_label():
         return str(int(round(persistent.dialogue_opacity * 100))) + "%"
@@ -2237,6 +2249,38 @@ screen quick_menu():
                         hover_color "#ffd700"
                         selected_color "#ffd700"
                         font GFONT
+            # auto-forward speed, right there while Auto is on
+            if _preferences.afm_enable:
+                frame:
+                    ysize 34
+                    padding (12, 0)
+                    background rbox("#0a0a0ecc", 17)
+                    hbox:
+                        yalign 0.5
+                        spacing 8
+                        textbutton "−":
+                            yalign 0.5
+                            padding (6, 0)
+                            text_size 20
+                            text_color "#e8e4dc"
+                            text_hover_color "#ffd700"
+                            text_font "DejaVuSans.ttf"
+                            action Function(afm_adjust, -3)
+                        text auto_speed_label():
+                            yalign 0.5
+                            min_width 110
+                            text_align 0.5
+                            size 15
+                            color "#e6a817"
+                            font GFONT
+                        textbutton "+":
+                            yalign 0.5
+                            padding (6, 0)
+                            text_size 20
+                            text_color "#e8e4dc"
+                            text_hover_color "#ffd700"
+                            text_font "DejaVuSans.ttf"
+                            action Function(afm_adjust, 3)
 
 
 # ==============================================================================
@@ -2658,7 +2702,7 @@ screen preferences():
                 use pref_row(_("TEXT SPEED"), _("How fast dialogue appears."), 0.0):
                     use pref_slider(Preference("text speed"), text_speed_label())
 
-                use pref_row(_("AUTO-FORWARD"), _("Delay before auto mode moves to the next line."), 0.06):
+                use pref_row(_("AUTO-FORWARD SPEED"), _("How long auto mode waits on each line. Slide left for faster, right for slower. (Also in the quick menu while Auto is on.)"), 0.06):
                     use pref_slider(Preference("auto-forward time"), auto_speed_label())
 
                 use pref_row(_("DIALOGUE BOX OPACITY"), _("How see-through the dialogue box is."), 0.12):
@@ -2842,6 +2886,22 @@ screen file_slots(title):
 # HISTORY
 # ==============================================================================
 
+init python:
+    _FACE_CACHE = {}
+
+    def history_face(who):
+        """A small head-and-shoulders picture of whoever said a line."""
+        if who in _FACE_CACHE:
+            return _FACE_CACHE[who]
+        face = None
+        tag = (who or "").lower().replace("the ", "").replace(" ", "_")
+        for img in (tag + " neutral", tag + "_monster neutral"):
+            if renpy.has_image(img):
+                face = Transform(img, crop=(0.2, 0.0, 0.6, 0.38), crop_relative=True, fit="contain", xysize=(80, 80))
+                break
+        _FACE_CACHE[who] = face
+        return face
+
 screen history():
     tag menu
 
@@ -2884,27 +2944,46 @@ screen history():
                     font GFONT
             for entry in _history_list:
                 frame:
-                    xfill True
-                    padding (24, 14)
-                    background rbox("#101014", 18)
-                    hbox:
-                        spacing 24
-                        fixed:
-                            xsize 190
-                            yfit True
-                            if entry.who:
-                                frame:
-                                    padding (14, 4)
-                                    background rbox("#2a1f3a", 10)
-                                    text entry.who:
-                                        size 18
-                                        color "#ffd700"
+                    xmaximum 1500
+                    padding (22, 14)
+                    background (rbox("#101014", 18) if entry.who else None)
+                    if entry.who:
+                        # a speaker: their face, their name, what they said
+                        hbox:
+                            spacing 22
+                            frame:
+                                xysize (84, 84)
+                                padding (0, 0)
+                                background rbox("#1d1d26", 14)
+                                $ face = history_face(entry.who)
+                                if face:
+                                    add face:
+                                        align (0.5, 0.5)
+                                else:
+                                    text "?":
+                                        align (0.5, 0.5)
+                                        size 34
+                                        color "#55556a"
                                         font GFONT
+                            vbox:
+                                spacing 6
+                                text entry.who:
+                                    size 18
+                                    color "#ffd700"
+                                    font GFONT
+                                text entry.what:
+                                    xmaximum 1200
+                                    size 22
+                                    color "#e8e4dc"
+                                    font say_font()
+                    else:
+                        # narration
                         text entry.what:
-                            xsize (h_w - 330)
-                            size 22
-                            color ("#e8e4dc" if entry.who else "#a8a4b4")
-                            italic (not entry.who)
+                            xmaximum 1300
+                            xoffset 106
+                            size 21
+                            color "#a8a4b4"
+                            italic True
                             font say_font()
 
     vbar:
@@ -3522,10 +3601,6 @@ screen old_map_fx():
                     xsize max(2, dsz - 2)
                     ysize max(2, dsz - 2)
                     at dust_mote(ddur * 1.8, ddelay, dsway)
-        if renpy.loadable("images/map_deco.png"):
-            add "images/map_deco.png":
-                xysize (config.screen_width, config.screen_height)
-                at map_deco_in
         # the carriage name: a slim plate at the very top
         frame:
             xalign 0.5
