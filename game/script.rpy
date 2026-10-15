@@ -332,9 +332,16 @@ label c1_fedora_dialogue:
     return
 
 label c1_interact_window:
-    "What a beautiful sight outside! You can see everything from this train!"
     if in_loop:
+        # Part 2: the view isn't the one he remembers
+        show louis confused at speaker_focus(xalign=0.1)
+        l "U-uhm… what?"
+        "Huh… It's dark.."
+        l "Huh??"
         $ jumpscare("window")
+        hide louis
+        return
+    "What a beautiful sight outside! You can see everything from this train!"
     return
 
 # c1_interact_cupboard lives at the bottom of this file (lockpick minigame)

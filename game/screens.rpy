@@ -2848,48 +2848,71 @@ screen history():
     $ back_action = ShowMenu("main_menu") if main_menu else Return()
     key "game_menu" action back_action
 
-    use game_menu_overlay
+    $ h_w = config.screen_width - 200
+
+    add Solid("#0a0a0e")
     use game_menu_nav
 
-    frame:
-        xsize config.screen_width
-        ysize config.screen_height
-        background None
-        padding (80, 60)
-        at fade_slide_in(0.0, xoff=-30)
+    text _("HISTORY"):
+        xpos 80
+        ypos 50
+        size 40
+        color "#ffffff"
+        font GFONT
+    add rbox("#e0521f", 2):
+        xpos 80
+        ypos 104
+        xysize (120, 4)
 
+    # everything that's been said, oldest at the top, newest at the bottom
+    viewport:
+        id "hist_vp"
+        xpos 80
+        ypos 150
+        xsize h_w
+        ysize (config.screen_height - 290)
+        mousewheel True
+        draggable True
+        yinitial 1.0
         vbox:
-            xsize (config.screen_width - 160)
-            spacing 20
-
-            use game_menu_header(_("HISTORY"))
-
-            viewport:
-                xsize (config.screen_width - 160)
-                ysize (config.screen_height - 260)
-                mousewheel True
-                draggable True
-                scrollbars "vertical"
-                yinitial 1.0
-                vbox:
-                    spacing 18
-                    for entry in _history_list:
-                        vbox:
-                            spacing 4
+            xsize (h_w - 40)
+            spacing 10
+            if not _history_list:
+                text _("The backlog is empty."):
+                    size 22
+                    color "#8888a0"
+                    font GFONT
+            for entry in _history_list:
+                frame:
+                    xfill True
+                    padding (24, 14)
+                    background rbox("#101014", 18)
+                    hbox:
+                        spacing 24
+                        fixed:
+                            xsize 190
+                            yfit True
                             if entry.who:
-                                text entry.who:
-                                    bold True
-                                    size 24
-                                    color "#ffd700"
-                                    font GFONT
-                            text entry.what:
-                                size 24
-                                color "#ffffff"
-                                font say_font()
-                    if not _history_list:
-                        text _("The backlog is empty."):
-                            color "#8888a0"
-                            font GFONT
+                                frame:
+                                    padding (14, 4)
+                                    background rbox("#2a1f3a", 10)
+                                    text entry.who:
+                                        size 18
+                                        color "#ffd700"
+                                        font GFONT
+                        text entry.what:
+                            xsize (h_w - 330)
+                            size 22
+                            color ("#e8e4dc" if entry.who else "#a8a4b4")
+                            italic (not entry.who)
+                            font say_font()
+
+    vbar:
+        style "pref_vbar"
+        value YScrollValue("hist_vp")
+        xpos config.screen_width - 96
+        ypos 150
+        ysize (config.screen_height - 290)
 
     use game_menu_back(back_action)
 
