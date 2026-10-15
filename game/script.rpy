@@ -254,7 +254,7 @@ label start:
     $ achievement.grant("first_departure")
 
     show dorothy happy at speaker_focus(xalign=0.9)
-    d "{i}(distant voice){/i} Thank you for boarding the Grekhov Express."
+    d "{i}(distant voice){/i} {whisper}Thank you for boarding the Grekhov Express.{/whisper}"
     "{i}Louis wakes up violently to the sound of train tracks.{/i}"
     show dorothy happy at speaker_background(xalign=0.9)
     show louis confused at speaker_focus(xalign=0.1)
@@ -314,11 +314,11 @@ label c1_fedora_dialogue:
         l "Uh, excuse me miss?"
         show louis neutral at speaker_background(xalign=0.1)
         show fedora neutral at speaker_focus(xalign=0.9)
-        f "Why Hello There, are you ready for the CALAMITY?"
+        f "Why Hello There, are you ready for the {shake}CALAMITY{/shake}?"
         l "Calamity?"
         f "I boarded this train to speak to the conductor after we arrived in Grekhov, I heard CALAMITY will open up once we reach there. It'll rack NUMBERS for the steamboat. I CAN'T WAIT to interview the KILLER."
         l "Killer?"
-        f "Well, it's been LOVELY talking to you, but my editor Twinkles is calling me. WATCH OUT."
+        f "Well, it's been LOVELY talking to you, but my editor Twinkles is calling me. {shake}WATCH OUT.{/shake}"
         l "OKAY…. or what?"
     else:
         show louis neutral at speaker_focus(xalign=0.1)
@@ -428,7 +428,7 @@ label c2_shunyu_dialogue:
     s "Playing Mahjong! Doncha just love winning!"
     "{i}Louis watches Shunyu pick up a tile.{/i}"
     show shunyu excited at speaker_focus(xalign=0.9)
-    s "JACKKKPOTTTTTTT!"
+    s "{wave}JACKKKPOTTTTTTT!{/wave}"
     show shunyu excited at speaker_background(xalign=0.9)
     l "R-right, well, I'll leave you-"
     show louis neutral at speaker_background(xalign=0.1)
@@ -442,7 +442,7 @@ label c2_shunyu_dialogue:
             call screen mahjong_minigame
             if _return == "win":
                 show shunyu excited at speaker_focus(xalign=0.9)
-                s "JACKKKPOTTTTTTT! You win $2! Look at that, beginner's luck!"
+                s "{wave}JACKKKPOTTTTTTT!{/wave} You win $2! Look at that, beginner's luck!"
                 $ played_mahjong = "won"
             else:
                 show shunyu neutral at speaker_focus(xalign=0.9)
@@ -461,7 +461,7 @@ label c2_interact_window:
     if window_looks == 5:
         $ jumpscare("window")
         $ secret_found("window", "window")
-        l "H-hello?? Who said that…"
+        l "{tremble}H-hello?? Who said that…{/tremble}"
         return
     "What a beautiful sight outside! You can see everything from this train!"
     return
@@ -495,7 +495,7 @@ label c3_kimmy_dialogue:
     l "N-no, my name is Louis… Nice to meet you."
     show louis neutral at speaker_background(xalign=0.1)
     show himmel neutral at speaker_focus(xalign=0.9)
-    h "O-oh my god dear! Why is there a STRANGER here! I-I might faint!"
+    h "{tremble}O-oh my god dear!{/tremble} Why is there a {scream}STRANGER{/scream} here! {tremble}I-I might faint!{/tremble}"
     show himmel neutral at speaker_background(xalign=0.9)
     k "Don't worry Sugar, he's not dangerous… I think."
     show kimmy neutral at speaker_background(xalign=0.5)
@@ -783,7 +783,7 @@ label part2_start:
     scene Train station
     with red_flash
     show dorothy neutral at speaker_focus(xalign=0.9)
-    d "{i}(distant voice){/i} Thank you for boarding the Grekhov Express."
+    d "{i}(distant voice){/i} {whisper}Thank you for boarding the Grekhov Express.{/whisper}"
     "{i}Louis wakes up violently to the sound of train tracks.{/i}"
     show dorothy neutral at speaker_background(xalign=0.9)
     show louis neutral at speaker_focus(xalign=0.1)
@@ -794,7 +794,7 @@ label part2_start:
     show dorothy neutral at speaker_background(xalign=0.9)
     show louis confused at speaker_focus(xalign=0.1)
     l "Didn't I already give you my ticket?"
-    "{i}Louis feels something in his pocket, looks down and sees the ticket is still there. Now, it has a word on it: “DO OR DIE.”{/i}"
+    "{i}Louis feels something in his pocket, looks down and sees the ticket is still there. Now, it has a word on it: {scream}“DO OR DIE.”{/scream}{/i}"
     $ ticket_flash()
     l "Huh??"
     show louis neutral at speaker_focus(xalign=0.1)
@@ -853,7 +853,7 @@ label c2_p2_broken_glass:
     u "Can yer shut up?"
     $ jumpscare("passenger", 0.6)
     show louis confused at speaker_focus(xalign=0.5)
-    l "H-hello?? Who said that…"
+    l "{tremble}H-hello?? Who said that…{/tremble}"
     "{i}No one is there.{/i}"
     return
 
@@ -871,7 +871,7 @@ label c2_p2_second_table:
     "{i}It's Shunyu.{/i}" with red_flash
     "{i}There's a jagged shard of glass buried in his side, dark red soaked deep into his shirt around it. His eyes are open. A mahjong tile is placed neatly in his open palm, resting there like it was set on purpose. The rest of the tiles from his winning hand are still fanned out in front of him on the table, undisturbed, as though he simply stopped playing mid-game and never picked it back up.{/i}"
     show louis confused at speaker_focus(xalign=0.5)
-    l "Shunyu? Shunyu!! Hey, wake up. C'mon, this isn't f- oh god, is that- is that GLASS"
+    l "{shake}Shunyu? Shunyu!!{/shake} Hey, wake up. C'mon, this isn't f- oh god, is that- is that {scream}GLASS{/scream}"
     "{i}Louis stumbles back, knocking into a barstool.{/i}" with jolt("h")
     $ c2_p2_found_body = True
     "{i}The noise brings Dorothy in from the corridor, still holding her ticket punch out of habit.{/i}"
@@ -905,7 +905,7 @@ label c2_p2_fedora_arrives:
     show louis confused at speaker_background(xalign=0.1)
     f "{i}(quiet, unusually so){/i} I told you to watch out."
     show fedora neutral at speaker_background(xalign=0.9)
-    l "What?? You knew this would-"
+    l "{shake}What??{/shake} You knew this would-"
     show louis confused at speaker_background(xalign=0.1)
     f "I said I CAN'T WAIT to interview the killer. I didn't say I knew who they were."
     "{i}She kneels by the body, professional mask sliding back over her face, though her hands are shaking slightly as she jots something down.{/i}"
@@ -1342,7 +1342,7 @@ label accusation_scene:
 label accusation_eduard:
     hide fedora
     show louis neutral at speaker_focus(xalign=0.1)
-    l "It was you."
+    l "{big}It was you.{/big}"
     show eduard neutral at speaker_focus(xalign=0.9)
     ed "Me?? I- I never even left the counter."
     jump wrong_ending
@@ -1350,7 +1350,7 @@ label accusation_eduard:
 label accusation_alexander:
     hide fedora
     show louis neutral at speaker_focus(xalign=0.1)
-    l "It was you."
+    l "{big}It was you.{/big}"
     show alexander neutral at speaker_focus(xalign=0.9)
     al "Wha? No, no no no, I didn't leave this carriage, ask the postman, ASK HIM!"
     jump wrong_ending
@@ -1358,7 +1358,7 @@ label accusation_alexander:
 label accusation_agatha:
     hide fedora
     show louis neutral at speaker_focus(xalign=0.1)
-    l "It was you."
+    l "{big}It was you.{/big}"
     show agatha neutral at speaker_focus(xalign=0.9)
     a "...You're joking. Tell me you're joking."
     jump wrong_ending
@@ -1396,7 +1396,7 @@ label accusation_misha:
     $ evidence_setup("misha neutral", "Misha", "You found it, didn't you? Under the carpet.", "clue_hidden_tile", "bg carriage_5")
     call play_required("mg_evidence", evidence_reset)
     l "The tile is missing from Shunyu's hand. Hidden under your carpet. The blood at the bar not matching where he was found, someone strong enough, or careless enough, to move a body without thinking twice about what that means. And you kept humming about a 'score.' About people coming back."
-    l "It was you the whole time, wasn't it?"
+    l "{big}It was you the whole time, wasn't it?{/big}"
     "{i}Sebastian steps forward, voice cracking for the first time since Louis met him.{/i}"
     show sebastian neutral at speaker_focus(xalign=0.5)
     seb "Mr. Popov, is this-"
@@ -1409,11 +1409,11 @@ label accusation_misha:
     "{i}Misha's eyes well up, not manipulation, not a performance. Genuine, dawning horror.{/i}"
     show louis neutral at speaker_background(xalign=0.1)
     mi "...Oh."
-    mi "Oh, no. No no no, that's not… that's not how the game is supposed to go!"
+    mi "{tremble}Oh, no. No no no,{/tremble} that's not… {shake}that's not how the game is supposed to go!{/shake}"
     scene black with dissolve
     "The train shudders violently. The key Ichora gave to Louis, now hoisted on his waist, is snatched and shoved into the keyhole of the Carriage 6 door. The door to Carriage 6, sealed the entire journey, creaks open on its own, spilling cold light into the carriage."
     show door_light
-    u "Truth accepted. Come see what you've won." with jolt()
+    u "{glitch}Truth accepted. Come see what you've won.{/glitch}" with jolt()
     scene bg carriage_5 with dissolve
     show door_light
     show sebastian neutral at speaker_focus(xalign=0.5)
@@ -1449,26 +1449,26 @@ label carriage_6_start:
     shunyu_monster "{i}(wet, clicking){/i} Wanna play... you can only lose 100[pct]... but win... 100,000[pct]..."
     show shunyu_monster neutral at speaker_background(xalign=0.2)
     show himmel_monster neutral at speaker_focus(xalign=0.8)
-    himmel_monster "{i}(rapid, overlapping with itself){/i} Next stop, next stop, next stop, there's no next stop, there's no next stop, there's-"
+    himmel_monster "{i}(rapid, overlapping with itself){/i} {shake}Next stop, next stop, next stop, there's no next stop, there's no next stop, there's-{/shake}"
     "{i}He doesn't seem to notice you.{/i}"
     show himmel_monster neutral at speaker_background(xalign=0.8)
     show conductor_monster neutral at speaker_focus(xalign=0.5)
     $ jumpscare("conductor", 0.7)
-    conductor_monster "Thank you for boarding…."
+    conductor_monster "{wave}Thank you for boarding….{/wave}"
     l "The ^#&#(*&?"
-    u "You found the truth. Good. Now see what the truth costs."
+    u "{glitch}You found the truth. Good. Now see what the truth costs.{/glitch}"
     "{i}The three shapes - Shunyu, Himmel, and the Conductor-thing - turn toward you at exactly the same moment.{/i}"
     l "...I figured out who did it. I did what you wanted. Isn't that enough?"
-    u "Knowing isn't the same as surviving."
+    u "{glitch}Knowing isn't the same as surviving.{/glitch}"
     l "What do you want from me?"
-    u "Not me. Him."
+    u "{glitch}Not me. Him.{/glitch}"
     show misha neutral at speaker_focus(xalign=0.5) with dissolve
     mi "This is my game. You have to play it right, or it doesn't end."
     l "...This whole carriage. This is all… this is what you imagine, isn't it? What you think happens when someone 'doesn't come back.'"
     u "A child's mind, given a body big enough to hold it. Everything he doesn't understand about death, it comes here to grow. Answer him truly, and it rests. Lie, or guess, or refuse, and it doesn't."
     l "...What happens if I get it wrong?"
     "{i}The Passenger's grin stretches wider. The Gentleman's shaking speeds up, wrappers peeling further off his skin like scabs. The Conductor-thing unfolds another half-foot taller, the ceiling groaning under it.{/i}"
-    u "You'll see. Three questions. Three chances. Choose carefully, Louis."
+    u "{glitch}You'll see.{/glitch} Three questions. Three chances. Choose carefully, Louis."
     hide misha with dissolve
     call play_required("mg_survive", survive_reset)
     jump c6_question_1
@@ -1531,7 +1531,7 @@ label c6_question_3:
     call play_required("mg_reveal", reveal_reset)
     "{i}The Conductor-thing unfolds to its full, impossible height, the faceless expanse of fabric-skin tilting down toward Louis. The mouth-hole opens, and Dorothy's stolen voice pours out, layered and wrong.{/i}"
     show conductor_monster neutral at speaker_focus(xalign=0.5)
-    conductor_monster "Thank you for boarding... the Grekhov Express... Tell me, passenger... what is a conductor FOR... if none of you ever truly get off?"
+    conductor_monster "Thank you for boarding... the Grekhov Express... Tell me, passenger... what is a conductor {scream}FOR{/scream}... if none of you ever truly get off?"
     menu:
         "“To keep the train running forever.”":
             l "Maybe… maybe just to keep it moving?"

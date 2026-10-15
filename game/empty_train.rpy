@@ -210,13 +210,110 @@ transform et_lights:
         pause 3.0
         repeat
 
-# dark edges, failing lights, and something at the edge of your eye
+# dark edges, failing lights, film grain, a red heartbeat at the edges of the
+# screen that gets faster carriage by carriage (et_level), and something at
+# the edge of your eye
+default et_level = 1
+
+transform grain_jitter:
+    block:
+        choice:
+            xoffset -24
+            yoffset -12
+        choice:
+            xoffset 18
+            yoffset 14
+        choice:
+            xoffset -8
+            yoffset 20
+        choice:
+            xoffset 26
+            yoffset -16
+        pause 0.05
+        repeat
+
+transform et_heartbeat(rest):
+    alpha 0.0
+    block:
+        ease 0.09 alpha 0.55
+        ease 0.22 alpha 0.12
+        ease 0.09 alpha 0.42
+        ease 0.45 alpha 0.0
+        pause rest
+        repeat
+
+# the camera can't keep still either
+transform et_breathe:
+    xalign 0.5
+    yalign 0.5
+    zoom 1.0
+    block:
+        ease 3.2 zoom 1.035 rotate 0.25
+        ease 3.2 zoom 1.0 rotate -0.2
+        repeat
+
 screen et_atmos():
     zorder 40
     add "gui/vignette.png":
         xysize (config.screen_width, config.screen_height)
+    if not persistent.reduce_motion:
+        add Transform("gui/vignette.png", matrixcolor=TintMatrix("#ff1a10")):
+            xysize (config.screen_width, config.screen_height)
+            at et_heartbeat(max(0.15, 1.5 - et_level * 0.24))
+        add Transform("gui/grain.png", xysize=(config.screen_width + 60, config.screen_height + 40), alpha=0.11):
+            pos (-30, -20)
+            at grain_jitter
     add Solid("#000000") at et_lights
-    timer 7.0 repeat True action Function(et_flash)
+    timer max(2.5, 8.0 - et_level) repeat True action Function(et_flash)
+
+# a hard cut: static, and for a moment it's right in front of you
+transform cut_static:
+    alpha 0.9
+    linear 0.35 alpha 0.0
+
+transform cut_glimpse:
+    xalign 0.5
+    yalign 1.0
+    alpha 0.0
+    pause 0.12
+    alpha 0.9
+    pause 0.07
+    alpha 0.0
+
+screen et_cut():
+    zorder 280
+    add Solid("#000000")
+    add Transform("gui/grain.png", xysize=(config.screen_width, config.screen_height)) at cut_static
+    if persistent.jumpscares:
+        add Transform(ET_SHADE, fit="contain", ysize=int(config.screen_height * 1.1)) at cut_glimpse
+
+label et_hard_cut:
+    show screen et_cut
+    $ renpy.pause(0.45, hard=True)
+    hide screen et_cut
+    return
+
+# the last thing you see (the finale): eyes far away in the dark, then it lunges
+screen et_finale():
+    zorder 300
+    add Solid("#000000")
+    fixed:
+        xysize (1, 1)
+        at es_eyes_far
+        add _eye(-46, 0, 46, 16)
+        add _eye(46, 0, 46, 16)
+    add SCARE_FACES["passenger"] at es_lunge
+    add Solid("#6a0000") at es_red
+    for k, (y, dx) in enumerate([(0.18, 60), (0.41, -90), (0.57, 120), (0.76, -70), (0.9, 40)]):
+        add Solid("#000000"):
+            xysize (config.screen_width, 40 + k * 9)
+            at es_band(y, dx, k * 0.04)
+
+# the crowd steps closer, all at once
+transform crowd_step(near):
+    xalign 0.5
+    yalign 1.0
+    ease 0.18 zoom (1.0 + near * 0.28)
 
 # it rushes at you
 transform et_rush:
@@ -343,9 +440,19 @@ screen et_c4():
     add ET_DARK:
         xysize (config.screen_width, config.screen_height)
 
+transform et_closeness_shake(amount):
+    block:
+        linear 0.05 xoffset amount
+        linear 0.05 xoffset (-amount)
+        repeat
+
 screen et_c5():
     add "et c5"
     timer 0.5 repeat True action Function(et_c5_tick)
+    # the closer it gets, the redder it goes
+    add Solid("#5a0000"):
+        xysize (config.screen_width, config.screen_height)
+        alpha (et_step / float(ET_STEPS) * 0.45)
     fixed:
         pos map_xy(0, 0)
         xysize (DESIGN_W, DESIGN_H)
@@ -365,23 +472,29 @@ screen et_c5():
             add et_vision(int(560 * z), 0.8):
                 xalign 0.5
                 yalign 1.0
-                at et_jitter
+                at et_jitter, et_closeness_shake(et_step * 2)
     # the door won't open first time
     use hs(DOOR_RIGHT, Function(et_c5_push), "Carriage 6", "door")
 
+default et_near = 0
+
 screen et_c6_crowd():
     zorder 5
+    # all of them step closer at once whenever et_near goes up
     fixed:
-        pos map_xy(0, 0)
-        xysize (DESIGN_W, DESIGN_H)
-        at Transform(zoom=MAP_K)
-        for i, (x, h) in enumerate([(80, 620), (300, 520), (480, 440), (620, 380),
-                                    (1180, 380), (1320, 440), (1500, 520), (1720, 620)]):
-            add et_shade(h):
-                xcenter x
-                yanchor 1.0
-                ypos 1080
-                at et_jitter
+        xysize (config.screen_width, config.screen_height)
+        at crowd_step(et_near)
+        fixed:
+            pos map_xy(0, 0)
+            xysize (DESIGN_W, DESIGN_H)
+            at Transform(zoom=MAP_K)
+            for i, (x, h) in enumerate([(80, 620), (300, 520), (480, 440), (620, 380),
+                                        (1180, 380), (1320, 440), (1500, 520), (1720, 620)]):
+                add et_shade(h):
+                    xcenter x
+                    yanchor 1.0
+                    ypos 1080
+                    at et_jitter
 
 
 # ------------------------------------------------------------------------------
@@ -399,100 +512,129 @@ label empty_train:
     $ et_wrong = 0
     $ et_step = 0
     $ et_push = 0
+    $ et_near = 0
+    $ et_level = 1
     scene black
     pause 2.0
     "{i}Louis wakes up violently to the sound of train tracks.{/i}"
     "{i}He opens his eyes.{/i}"
     scene et c1 with Dissolve(2.5)
+    if not persistent.reduce_motion:
+        show layer master at et_breathe
     show screen et_atmos
-    "{i}No one is there.{/i}"
-    l "...It's quiet. Way too quiet."
+    "{whisper}{i}No one is there.{/i}{/whisper}"
+    l "{tremble}...It's quiet. Way too quiet.{/tremble}"
 
     # 1 ------------------------------------------------------------------------
     call screen et_c1
-    $ et_flash()
+    call et_hard_cut
 
     # 2 ------------------------------------------------------------------------
-    scene et c2 with Dissolve(1.0)
+    $ et_level = 2
+    scene et c2
     "{i}Louis enters. The lights feel dimmer, creepier than before.{/i}"
     show expression et_vision(560, 0.8) as vision:
         xalign 0.5
         yalign 1.0
         et_jitter
     with Dissolve(1.5)
-    lv "...It's quiet. Way too quiet."
-    l "H-hello?? Who said that…"
+    lv "{glitch}...It's quiet. Way too quiet.{/glitch}"
+    l "{tremble}H-hello?? Who said that…{/tremble}"
     hide vision
     with Dissolve(0.08)
-    "{i}No one is there.{/i}"
+    "{whisper}{i}No one is there.{/i}{/whisper}"
     call screen et_c2
+    call et_hard_cut
 
     # 3 ------------------------------------------------------------------------
-    scene et c3 with Dissolve(1.0)
+    $ et_level = 3
+    scene et c3
     "{i}The sleeper cabin is colder than before. The four rooms all sit slightly ajar, as if something moved through recently and didn't bother closing doors behind it.{/i}"
     $ et_room_door = renpy.random.randint(0, 3)
 label et_c3_loop:
     call screen et_c3
     $ et_rooms_open = et_rooms_open + [_return]
     if _return == et_room_door:
+        call et_hard_cut
         jump et_c4_start
     $ et_wrong += 1
     if et_wrong == 1:
-        u "Be careful, young one. Do you really wanna do that?"
+        u "{glitch}Be careful, young one. Do you really wanna do that?{/glitch}"
     elif et_wrong == 2:
         $ et_scare()
     else:
-        mi "He'll come back though. They always come back. Don't they?"
+        mi "{wave}He'll come back though. They always come back. Don't they?{/wave}"
     jump et_c3_loop
 
     # 4 ------------------------------------------------------------------------
 label et_c4_start:
-    scene et c4 with Dissolve(0.3)
-    "Huh… It's dark.."
+    $ et_level = 4
+    scene et c4
+    "{whisper}Huh… It's dark..{/whisper}"
     $ et_c4_setup()
     call screen et_c4
-    $ et_flash()
+    call et_hard_cut
 
     # 5 ------------------------------------------------------------------------
 label et_c5_start:
+    $ et_level = 5
     $ et_step = 0
     $ et_push = 0
     $ et_watching = False
-    scene et c5 with Dissolve(1.0)
-    u "Not yet! Try to see the truth before you see the future."
+    scene et c5
+    u "{glitch}Not yet! Try to see the truth before you see the future.{/glitch}"
     call screen et_c5
     if _return == "caught":
         $ et_scare(1.0)
-        u "You'll see."
+        u "{glitch}You'll see.{/glitch}"
         jump et_c5_start
+    call et_hard_cut
 
     # 6 ------------------------------------------------------------------------
+    $ et_level = 6
     scene carriage_6 with fade
     show carriage_6_fog
     show screen et_c6_crowd
     "{i}You step through. The temperature drops.{/i}"
     show screen dark_eyes(((0.18, 0.22, 0.0), (0.82, 0.26, 0.4), (0.3, 0.55, 0.9), (0.7, 0.6, 1.3), (0.5, 0.15, 1.8)))
-    l "...It's so quiet. Why is it so quiet."
+    l "{tremble}...It's so quiet. Why is it so quiet.{/tremble}"
+    # they all step closer
+    $ et_near = 1
+    $ renpy.pause(0.6, hard=True)
     "{i}Two pairs of eyes glint in the blackness, watching.{/i}"
-    l "What do you want from me?"
-    u "Not me. Him."
+    $ et_near = 2
+    $ renpy.pause(0.6, hard=True)
+    l "{shake}What do you want from me?{/shake}"
+    u "{glitch}Not me. Him.{/glitch}"
     hide screen dark_eyes
+    # the lights die
+    show black as lights_out
+    with Dissolve(0.15)
+    $ renpy.pause(0.5, hard=True)
+    hide lights_out
     show expression et_vision(900, 0.9) as vision:
         xalign 0.5
         yalign 1.0
         yoffset 120
         et_jitter
-    with Dissolve(2.0)
-    lv "Man… This seems familiar…"
-    lv "“Here again?”"
-    $ et_scare(1.4)
+    with Dissolve(1.2)
+    lv "{glitch}Man… This seems familiar…{/glitch}"
+    lv "{glitch}“Here again?”{/glitch}"
+    # and then it comes for you
+    if persistent.jumpscares:
+        show screen et_finale
+        $ renpy.pause(ES_DARK + ES_HOLD, hard=True)
+        hide screen et_finale
     hide screen et_c6_crowd
     hide screen et_atmos
+    show layer master
     scene black
     "{i}Louis is hit with the darkness.{/i}"
     pause 2.5
     "{i}Louis wakes up violently to the sound of train tracks.{/i}"
-    l "I'm… back at the start?"
+    l "{tremble}I'm… back at the start?{/tremble}"
+    # one last look
+    call et_hard_cut
 
     $ persistent.empty_train_done = True
     $ secret_found("empty_train", "empty_train")

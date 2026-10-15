@@ -294,6 +294,57 @@ transform no_shake:
 
 # the main menu: the carriage never stops rumbling, and every couple of
 # seconds the wheels go over a joint in the track
+# RUMBLE STRENGTH: EXTREME - violent shaking, a slight tilt, and a hard
+# lurch every second or so like the train is jumping the tracks
+transform menu_rumble_extreme:
+    xoffset 0
+    yoffset 0
+    rotate 0
+    block:
+        linear 0.04 xoffset -12 yoffset 9 rotate -0.5
+        linear 0.04 xoffset 13 yoffset -8 rotate 0.4
+        linear 0.04 xoffset -10 yoffset 12 rotate -0.3
+        linear 0.04 xoffset 11 yoffset -10 rotate 0.5
+        linear 0.04 xoffset -13 yoffset -7 rotate -0.4
+        linear 0.04 xoffset 9 yoffset 11 rotate 0.3
+        repeat 4
+        # the lurch
+        easeout 0.07 xoffset -34 yoffset 28 rotate -1.4
+        easein 0.12 xoffset 26 yoffset -18 rotate 1.0
+        easeout 0.07 xoffset -20 yoffset 22 rotate -0.8
+        easein 0.14 xoffset 0 yoffset 0 rotate 0
+        repeat
+
+# in game the whole carriage shakes, zoomed in a little so the edges never show
+transform train_rumble_extreme:
+    xalign 0.5
+    yalign 0.5
+    zoom 1.07
+    rotate 0
+    block:
+        linear 0.045 xoffset -10 yoffset 7 rotate -0.4
+        linear 0.045 xoffset 11 yoffset -6 rotate 0.35
+        linear 0.045 xoffset -8 yoffset 9 rotate -0.25
+        linear 0.045 xoffset 10 yoffset -8 rotate 0.4
+        repeat 5
+        easeout 0.07 xoffset -28 yoffset 24 rotate -1.2
+        easein 0.13 xoffset 22 yoffset -14 rotate 0.9
+        easein 0.15 xoffset 0 yoffset 0 rotate 0
+        repeat
+
+init python:
+    def menu_rumble_at():
+        """The main menu's shake, from Settings > RUMBLE STRENGTH."""
+        if persistent.reduce_motion or not persistent.screen_shake_enabled:
+            return no_shake
+        return menu_rumble_extreme if persistent.rumble_extreme else menu_rumble
+
+    def set_rumble(level):
+        persistent.screen_shake_enabled = (level != "off")
+        persistent.rumble_extreme = (level == "extreme")
+        apply_rumble(True)
+        renpy.restart_interaction()
+
 transform menu_rumble:
     xoffset 0
     yoffset 0
@@ -875,6 +926,7 @@ init python:
 # ==============================================================================
 
 default persistent.screen_shake_enabled = True
+default persistent.rumble_extreme = False     # RUMBLE STRENGTH: EXTREME
 default persistent.dialogue_font_size = 30
 default persistent.dialogue_opacity = 0.93
 default persistent.menu_fx = True
@@ -936,6 +988,7 @@ init python:
             except Exception:
                 pass
         persistent.screen_shake_enabled = True
+        persistent.rumble_extreme = False
         persistent.dialogue_font_size = 30
         persistent.dialogue_opacity = 0.93
         persistent.menu_fx = True
@@ -1515,6 +1568,19 @@ label splashscreen:
 # MAIN MENU
 # ==============================================================================
 
+# what each main-menu option does (shown when you point at it)
+define MENU_HELP = {
+    "NEW GAME": _("Start the story from the beginning."),
+    "PLAY": _("Start the story from the beginning."),
+    "CONTINUE": _("Pick up from your latest save."),
+    "LOAD GAME": _("Choose a save to load."),
+    "SETTINGS": _("Display, text, sound, gameplay and accessibility."),
+    "ACHIEVEMENTS": _("See what you've unlocked."),
+    "EXTRAS": _("Endings, cast, stats, minigames, gamepasses and more."),
+    "CREDITS": _("The people who made the game."),
+    "QUIT": _("Close the game."),
+}
+
 screen menu_entry(caption, act, delay=0.0, bright=False):
     button:
         xsize gui.sidebar_content_width
@@ -1522,6 +1588,7 @@ screen menu_entry(caption, act, delay=0.0, bright=False):
         background rbox("#00000000", 14)
         hover_background rbox("#ffffff14", 14)
         action act
+        tooltip MENU_HELP.get(caption, "")
         at fade_slide_in(delay)
 
         # accent bar on the left edge (grows from the middle on hover)
@@ -1696,6 +1763,7 @@ screen cine_entry(i, label, act, primary=False):
         padding (0, 3)
         background None
         action act
+        tooltip MENU_HELP.get(label, "")
         at fade_slide_in(0.4 + i * 0.06, xoff=-30), cine_hover
         hbox:
             fixed:
@@ -1809,7 +1877,7 @@ screen main_menu():
     add "images/1st_carriage_Visualnovel_Background.webp":
         fit "cover"
         xysize (config.screen_width, config.screen_height)
-        at ((menu_bg_drift, menu_rumble) if (persistent.screen_shake_enabled and not persistent.reduce_motion)
+        at ((menu_bg_drift, menu_rumble_at()) if (persistent.screen_shake_enabled and not persistent.reduce_motion)
             else (menu_bg_drift if not persistent.reduce_motion else menu_bg_still))
     add Solid("#08080cb8")
 
@@ -1821,7 +1889,7 @@ screen main_menu():
             at passing_light
 
     fixed:
-        at (menu_rumble if (persistent.screen_shake_enabled and not persistent.reduce_motion) else no_shake)
+        at menu_rumble_at()
 
         # psst: click the big 4:00 four times (empty_train.rpy)
         textbutton "4:00":
@@ -1885,9 +1953,11 @@ screen main_menu():
         alpha 0.8
 
     # ---- The menu --------------------------------------------------------------
-    $ rows = [((_("NEW GAME") if newest_save else _("PLAY")), Start(), True)]
+    # with a save, CONTINUE comes first and is the highlighted one
     if newest_save:
-        $ rows.append((_("CONTINUE"), Function(renpy.load, newest_save), False))
+        $ rows = [(_("CONTINUE"), Function(renpy.load, newest_save), True), (_("NEW GAME"), Start(), False)]
+    else:
+        $ rows = [(_("PLAY"), Start(), True)]
     $ rows += [(_("LOAD GAME"), ShowMenu("load"), False),
                (_("SETTINGS"), ShowMenu("preferences"), False),
                (_("ACHIEVEMENTS"), ShowMenu("achievements"), False),
@@ -2047,6 +2117,13 @@ screen main_menu():
                             if renpy.variant("pc"):
                                 use menu_entry(_("QUIT"), Quit(confirm=True), 0.72)
 
+                        # what the option you're pointing at does
+                        text (GetTooltip() or ""):
+                            xsize gui.sidebar_content_width
+                            size 15
+                            color "#e6a817"
+                            font GFONT
+
                     text "v[config.version]":
                         xalign 0.95
                         yalign 0.985
@@ -2149,6 +2226,12 @@ screen main_menu():
                     add Solid("#2a2a35"):
                         xysize (CINE_COL_W - 48, 2)
                     null height 6
+                    # what the option you're pointing at does
+                    text (GetTooltip() or _("Point at an option to see what it does.")):
+                        size 15
+                        color ("#e6a817" if GetTooltip() else "#55556a")
+                        font GFONT
+                    null height 4
                     # psst: click the version number five times
                     textbutton (_("v4:00") if version_pokes >= 5 else "v[config.version]"):
                         xalign 1.0
@@ -2860,7 +2943,10 @@ screen preferences():
                     use pref_toggle(_("WINDOW"), Preference("display", "window"))
                     use pref_toggle(_("FULLSCREEN"), Preference("display", "fullscreen"))
 
-                use pref_onoff(_("SCREEN SHAKE / RUMBLE"), _("The main menu and the train gently rattle."), "screen_shake_enabled", 0.06)
+                use pref_row(_("RUMBLE STRENGTH"), _("How hard the train shakes, on the main menu and in the carriages. EXTREME is violent."), 0.06):
+                    use pref_toggle(_("OFF"), Function(set_rumble, "off"), selected=(not persistent.screen_shake_enabled), w=120)
+                    use pref_toggle(_("NORMAL"), Function(set_rumble, "normal"), selected=(persistent.screen_shake_enabled and not persistent.rumble_extreme), w=120)
+                    use pref_toggle(_("EXTREME"), Function(set_rumble, "extreme"), selected=(persistent.screen_shake_enabled and persistent.rumble_extreme), w=120)
 
                 use pref_row(_("DIALOGUE FONT SIZE"), _("Size of the text in the dialogue box."), 0.12):
                     for dsz, dlabel in DIALOGUE_SIZES:
@@ -3987,9 +4073,12 @@ init python:
         try:
             if getattr(store, "main_menu", False):
                 return
-            want = bool(persistent.screen_shake_enabled and not persistent.reduce_motion)
+            want = None
+            if persistent.screen_shake_enabled and not persistent.reduce_motion:
+                want = "extreme" if persistent.rumble_extreme else "normal"
             if force or store.rumble_on != want:
-                renpy.show_layer_at([train_rumble] if want else [], layer="master", reset=False)
+                t = {"normal": [train_rumble], "extreme": [train_rumble_extreme]}.get(want, [])
+                renpy.show_layer_at(t, layer="master", reset=False)
                 store.rumble_on = want
         except Exception:
             pass
