@@ -162,6 +162,7 @@ init python:
         persistent.credits_clicked = set()
         persistent.tickets = 0
         persistent.coins = 50
+        persistent.golden_found = set()
         persistent.passes = set()
         persistent.empty_train_done = False
         persistent.cast_called = set()

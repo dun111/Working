@@ -106,6 +106,7 @@ default door_c4_open = False
 
 screen carriage_1_map():
     add "bg carriage_1"
+    use golden_ticket("c1", 150, 470)    # hidden: secrets.rpy
     if in_loop or not c1_talked_fedora:
         use hs((700, 150, 200, 400), Call("c1_fedora_dialogue"), "Fedora", "talk")
     use hs((950, 620, 160, 160), Call("c1_interact_window"), "Window", delay=0.05)
@@ -117,6 +118,7 @@ screen carriage_1_map():
 
 screen carriage_2_map():
     add "bg carriage_2"
+    use golden_ticket("c2", 1760, 880)    # hidden: secrets.rpy
     use hs((0, 600, 80, 300), Jump("carriage_1_hub"), "", "back")
     if not c2_talked_eduard:
         use hs((350, 150, 180, 400), Call("c2_eduard_dialogue"), "Eduard", "talk")
@@ -129,6 +131,7 @@ screen carriage_2_map():
 
 screen carriage_3_map():
     add "bg carriage_3"
+    use golden_ticket("c3", 1820, 300)    # hidden: secrets.rpy
     use hs((0, 600, 80, 300), Jump("carriage_2_hub"), "", "back")
     if not c3_talked_kimmy:
         use hs((100, 150, 180, 400), Call("c3_kimmy_dialogue"), "Kimmy", "talk")
@@ -147,6 +150,7 @@ screen carriage_3_map():
 
 screen carriage_4_map():
     add "bg carriage_4"
+    use golden_ticket("c4", 420, 860)    # hidden: secrets.rpy
     use hs((0, 600, 80, 300), Jump("carriage_3_hub"), "", "back")
     if not c4_talked_agatha:
         use hs((250, 150, 220, 400), Call("c4_agatha_dialogue"), "Agatha", "talk")
@@ -159,6 +163,7 @@ screen carriage_4_map():
 
 screen carriage_5_map():
     add "bg carriage_5"
+    use golden_ticket("c5", 1700, 560)    # hidden: secrets.rpy
     use hs((0, 600, 80, 300), Jump("carriage_4_hub"), "", "back")
     if not c5_talked_pattison:
         use hs((250, 150, 220, 400), Call("c5_pattison_dialogue"), "Pattison", "talk")
@@ -173,6 +178,7 @@ screen carriage_5_map():
 
 screen carriage_2_part2_map():
     add "bg carriage_2"
+    use golden_ticket("c2b", 230, 900)    # hidden: secrets.rpy
     use hs((100, 150, 180, 400), Call("c2_p2_interact_window"), "Window")
     use hs((350, 150, 180, 400), Call("c2_p2_talk_eduard"), "Eduard", "talk", 0.05)
     use hs((600, 150, 180, 400), Call("c2_p2_overturned_table"), "Overturned table", delay=0.1)
@@ -196,6 +202,7 @@ screen carriage_2_part2_after_map():
 
 screen carriage_3_part2_map():
     add "bg carriage_3"
+    use golden_ticket("c3b", 1500, 120)    # hidden: secrets.rpy
     use hs((0, 600, 80, 300), Jump("carriage_2_part2_return"), "", "back")
 
     # Kimmy / Himmel only have something new to say once the wrapper is found
@@ -220,6 +227,7 @@ screen carriage_3_part2_map():
 # Alexander and Pattison live in carriage 5 (the mail room), same as part 1.
 screen carriage_5_part2_map():
     add "bg carriage_5"
+    use golden_ticket("c5b", 90, 200)    # hidden: secrets.rpy
     use hs((0, 600, 80, 300), Jump("carriage_3_part2_hub"), "", "back")
     if not alexander_reinterviewed:
         use hs((700, 150, 220, 400), Call("c5_p2_alexander_dialogue"), "Alexander", "talk")

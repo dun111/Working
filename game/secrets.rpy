@@ -247,6 +247,7 @@ default window_looks = 0
 
 define MORE_SECRET_ACHIEVEMENTS = [
     {"id": "empty_train", "title": _("Not me. Him."), "description": _("Ride the empty train to the end."), "hidden": True},
+    {"id": "golden_tickets", "title": _("Uh… uh… yes, the ticket."), "description": _("Find every golden ticket hidden on the train."), "hidden": False},
     {"id": "credits_all", "title": _("Anyone like who?"), "description": _("Click everyone in the credits."), "hidden": True},
     {"id": "cast_call", "title": _("Everyone."), "description": _("Type every passenger's name on the main menu."), "hidden": True},
     {"id": "quiet", "title": _("Way too quiet."), "description": _("Type a certain rapper's name on the main menu."), "hidden": True},
@@ -261,6 +262,7 @@ define MORE_SECRET_NOTES = [
     ("quiet", _("\"...It's quiet. Way too quiet.\"")),
     ("window", _("\"What a beautiful sight outside! You can see everything from this train!\"")),
     ("halloween", _("\"...I don't think this carriage was ever meant to be found.\"")),
+    ("golden", _("\"Uh… uh… yes, the ticket. I think it's somewhere here…\"")),
     ("logo", _("\"Man… This seems familiar…\"")),
     ("slots", _("\"JACKKKPOTTTTTTT! You win $2! Look at that, beginner's luck!\"")),
     ("train", _("\"Wow damn… So… Expensive cabin, huh?\"")),
@@ -495,4 +497,61 @@ transform idle_walker:
             ease 0.6 yoffset -8
             ease 0.6 yoffset 0
             repeat
+
+
+# ------------------------------------------------------------------------------
+# GOLDEN TICKETS
+# A tiny golden ticket is hidden on each carriage map (Part 1 and Part 2). It
+# glints every few seconds. Each one is worth coins and a ticket; find them all
+# for an achievement. They stay found across playthroughs.
+#   use golden_ticket("c1", x, y)    in a map screen (x, y in the 1920x1080 map)
+# ------------------------------------------------------------------------------
+
+default persistent.golden_found = set()
+
+define GOLDEN_IDS = ["c1", "c2", "c3", "c4", "c5", "c2b", "c3b", "c5b"]
+define GOLDEN_COINS = 25
+
+init python:
+    def find_golden(gid):
+        if gid in persistent.golden_found:
+            return
+        persistent.golden_found = set(persistent.golden_found) | set([gid])
+        n = len(persistent.golden_found)
+        sfx("win")
+        give_coins(GOLDEN_COINS)
+        give_tickets(1)
+        renpy.show_screen("map_stamp", _("GOLDEN TICKET"), "%d / %d" % (n, len(GOLDEN_IDS)))
+        if n >= len(GOLDEN_IDS):
+            secret_found("golden", "golden_tickets")
+            renpy.notify(_("\"Uh… uh… yes, the ticket. I think it's somewhere here…\""))
+        renpy.restart_interaction()
+
+# mostly hard to see; every few seconds it catches the light
+transform golden_glint(d=0.0):
+    alpha 0.22
+    pause d
+    block:
+        pause 3.2
+        ease 0.25 alpha 1.0 zoom 1.25
+        ease 0.45 alpha 0.22 zoom 1.0
+        repeat
+
+screen golden_ticket(gid, x, y):
+    if gid not in persistent.golden_found:
+        button:
+            pos (x + MAP_X0, y + MAP_Y0)
+            xysize (40, 28)
+            padding (0, 0)
+            background None
+            action Function(find_golden, gid)
+            at golden_glint((len(gid) * 0.37) % 2.0)
+            add rbox("#c9921a", 5):
+                xysize (40, 28)
+            add rbox("#ffd76a", 4):
+                pos (3, 3)
+                xysize (34, 22)
+            add Solid("#c9921a"):
+                pos (12, 3)
+                xysize (2, 22)
 

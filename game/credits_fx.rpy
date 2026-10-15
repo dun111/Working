@@ -248,11 +248,38 @@ init python:
         renpy.restart_interaction()
 
     def eric_scare():
-        """Eric's credit ends with this. It always plays, even with jumpscares off."""
+        """Eric's credit ends with this. It always plays, even with jumpscares off.
+        It's an overlay screen that closes itself (no new context, so it can't loop)."""
+        if renpy.get_screen("eric_jumpscare"):
+            return
+        import time
+        _ESCARE.start = time.time()
+        _ESCARE.can_skip = False
         renpy.music.set_volume(0.0, 0.05, channel="music")
-        renpy.invoke_in_new_context(renpy.call_screen, "eric_jumpscare")
+        renpy.show_screen("eric_jumpscare")
+
+    class _ESCARE(object):
+        start = 0.0
+        can_skip = False
+
+    def eric_scare_tick():
+        """Ends the scare by the clock (not a one-off timer, so it can't end
+        early or hang)."""
+        import time
+        t = time.time() - _ESCARE.start
+        if t >= ES_DARK + 0.3 and not _ESCARE.can_skip:
+            _ESCARE.can_skip = True
+            renpy.restart_interaction()
+        if t >= ES_DARK + ES_HOLD:
+            eric_scare_end()
+
+    def eric_scare_end():
+        if not renpy.get_screen("eric_jumpscare"):
+            return
+        renpy.hide_screen("eric_jumpscare")
         renpy.music.set_volume(1.0, 1.5, channel="music")
-        secret_found("eric_scare")
+        secret_found("eric_scare")      # after, so the "+tickets" pop-up doesn't spoil it
+        renpy.restart_interaction()
 
 screen mg_debug():
     use mg_scene(_("DEBUG"), _("Each piece of code has one broken line. Click it."), "black", skippable=False):
@@ -645,6 +672,8 @@ transform es_band(y, dx, delay):
 screen eric_jumpscare():
     modal True
     zorder 400
+    # once the face has hit, any click / ESC ends it early
+    key "game_menu" action Function(eric_scare_end)
     add Solid("#000000")
     # the eyes in the dark
     fixed:
@@ -660,5 +689,10 @@ screen eric_jumpscare():
         add Solid("#000000"):
             xysize (config.screen_width, 40 + k * 9)
             at es_band(y, dx, k * 0.04)
-    timer (ES_DARK + ES_HOLD) action Return()
+    timer 0.1 repeat True action Function(eric_scare_tick)
+    if _ESCARE.can_skip:
+        button:
+            xysize (config.screen_width, config.screen_height)
+            background None
+            action Function(eric_scare_end)
 

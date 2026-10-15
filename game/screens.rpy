@@ -114,6 +114,7 @@ style pref_bar:
 style pref_vbar:
     xsize 14
     bar_vertical True
+    unscrollable "hide"         # no scrollbar when there's nothing to scroll
     top_bar rbox("#222233", 4)
     bottom_bar rbox("#222233", 4)
     thumb Solid("#e6a817", xsize=14, ysize=90)
@@ -708,6 +709,9 @@ screen loop_overlay():
 # ==============================================================================
 # GLOBAL TRANSITIONS
 # ==============================================================================
+
+# keep more pictures loaded so carriages and characters don't stutter in
+define config.image_cache_size_mb = 512
 
 define config.enter_transition = Dissolve(0.3)
 define config.exit_transition = Dissolve(0.3)
@@ -3721,8 +3725,11 @@ init python:
             ("JOURNEYS STARTED", str(persistent.runs or 0)),
             ("ENDINGS SEEN", "%d / %d" % (len(persistent.endings_seen), len(ENDINGS))),
             ("ACHIEVEMENTS", "%d / %d" % (done, total)),
-            ("MINIGAMES WON", "%d / 6" % len(persistent.mg_won)),
+            ("MINIGAMES WON", "%d / %d" % (len([k for k in persistent.mg_won if k in [g[0] for g in MINIGAME_LIST]]), len(MINIGAME_LIST))),
             ("PASSENGERS MET", "%d / %d" % (len([1 for r in cast_rows() if r["met"]]), len(CAST))),
+            ("GOLDEN TICKETS", "%d / %d" % (len(persistent.golden_found), len(GOLDEN_IDS))),
+            ("SECRETS FOUND", str(len([n for sid, n in SECRET_NOTES if sid and sid in persistent.secrets]))),
+            ("TICKETS / COINS", "%d / %d" % (persistent.tickets or 0, persistent.coins or 0)),
         ]
 
     # ------------------------------------------------------------------ objective / hint
