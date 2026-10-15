@@ -597,7 +597,8 @@ init python:
             if all(store.mj_gone):
                 store.mj_result = "win"
                 store.mj_end_msg = _("Table cleared!")
-                mg_record("mahjong", "high_roller_win")
+                if not mj_casino:
+                    mg_record("mahjong", "high_roller_win")
             elif not mj_moves_left():
                 store.mj_result = "lose"
                 store.mj_end_msg = _("No more matches.")
@@ -621,6 +622,8 @@ screen mahjong_minigame():
             timer 1.0 repeat True action Function(mahjong_tick)
 
         $ stats = [_("Pairs left: %d") % (mj_gone.count(False) // 2)]
+        if mj_casino:
+            $ stats.append(_("Coins: +%d") % ((mj_gone.count(True) // 2) * CASINO_MJ_PAIR))
         if mg_timed():
             $ stats.append(_("Time: %d") % mj_time_left)
         use mg_stats(stats)
