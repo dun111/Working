@@ -932,10 +932,20 @@ init python:
     KEY_LOOP_FRONT = Transform("gui/key_loop_front.png", zoom=KEY_LOOP_ZOOM)
 
     def latest_save():
+        """The newest save that can actually be loaded (not Ren'Py's own _reload slots)."""
         try:
-            return renpy.newest_slot()
+            slot = renpy.newest_slot(r"^(?!_)")
+            return slot if (slot and renpy.can_load(slot)) else None
         except Exception:
             return None
+
+    def continue_game():
+        """CONTINUE: load the newest save, or start a new game if there's nothing to continue."""
+        slot = latest_save()
+        if slot:
+            renpy.load(slot)
+        else:
+            renpy.run(Start())
 
     MENU_STREAKS = [
         (140, 2.4, 0.0, 520),
@@ -1624,7 +1634,7 @@ label splashscreen:
 define MENU_HELP = {
     "NEW GAME": _("Start the story from the beginning."),
     "PLAY": _("Start the story from the beginning."),
-    "CONTINUE": _("Pick up from your latest save."),
+    "CONTINUE": _("Pick up from your latest save, or start a new game if there isn't one."),
     "LOAD GAME": _("Choose a save to load."),
     "SETTINGS": _("Display, text, sound, gameplay and accessibility."),
     "ACHIEVEMENTS": _("See what you've unlocked."),
@@ -1917,7 +1927,6 @@ screen menu_train():
 screen main_menu():
     tag menu
 
-    $ newest_save = latest_save()
     $ fx = persistent.menu_fx and not persistent.reduce_motion
     use secret_listener
     use cheat_hotkey
@@ -2005,11 +2014,8 @@ screen main_menu():
         alpha 0.8
 
     # ---- The menu --------------------------------------------------------------
-    # with a save, CONTINUE comes first and is the highlighted one
-    if newest_save:
-        $ rows = [(_("CONTINUE"), Function(renpy.load, newest_save), True), (_("NEW GAME"), Start(), False)]
-    else:
-        $ rows = [(_("PLAY"), Start(), True)]
+    # CONTINUE comes first; with nothing to continue it starts a new game
+    $ rows = [(_("CONTINUE"), Function(continue_game), True), (_("NEW GAME"), Start(), False)]
     $ rows += [(_("LOAD GAME"), ShowMenu("load"), False),
                (_("SETTINGS"), ShowMenu("preferences"), False),
                (_("ACHIEVEMENTS"), ShowMenu("achievements"), False),
@@ -2157,7 +2163,7 @@ screen main_menu():
                                     yalign 0.5
                                     at shine_sweep
 
-                                text (_("NEW GAME") if newest_save else _("PLAY")):
+                                text _("NEW GAME"):
                                     align (0.5, 0.5)
                                     size 32
                                     color "#0a0a0e"
@@ -2168,8 +2174,7 @@ screen main_menu():
                             xsize gui.sidebar_content_width
                             spacing 8
 
-                            if newest_save:
-                                use menu_entry(_("CONTINUE"), Function(renpy.load, newest_save), 0.34, True)
+                            use menu_entry(_("CONTINUE"), Function(continue_game), 0.34, True)
                             use menu_entry(_("LOAD GAME"), ShowMenu("load"), 0.40)
                             use menu_entry(_("SETTINGS"), ShowMenu("preferences"), 0.48)
                             use menu_entry(_("ACHIEVEMENTS"), ShowMenu("achievements"), 0.56)
