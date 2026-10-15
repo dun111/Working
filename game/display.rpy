@@ -8,6 +8,8 @@
 #
 #   GAME_W, GAME_H     the real game size, picked once at startup
 #   MAP_X0, MAP_Y0     where the 1920x1080 design area sits inside it
+#   map_xy(x, y)       where a point on a carriage map's art is on screen
+#                      (the maps are scaled up to fill wide screens: MAP_K)
 #   wide_bg(path)      a 1920x1080 background that fills any screen shape
 #
 # Settings > Display > FILL WIDE SCREENS turns it off (needs a restart).
@@ -40,6 +42,21 @@ init -100 python:
     MAP_X0 = (GAME_W - DESIGN_W) // 2
     MAP_Y0 = (GAME_H - DESIGN_H) // 2
 
+    # Carriage maps on a wider screen: the art is scaled up to fill the width
+    # (only the dark band above and below the carriage gets cropped). Capped at
+    # 1.5x so very wide (32:9) screens don't lose the top/bottom of the carriage.
+    # Taller screens keep the art at 1x so the edge doors stay on screen.
+    MAP_K = min(1.5, max(1.0, GAME_W / float(DESIGN_W)))
+    MAP_OX = int((GAME_W - DESIGN_W * MAP_K) / 2)
+    MAP_OY = int((GAME_H - DESIGN_H * MAP_K) / 2)
+
+    def map_xy(x, y):
+        """A point in the 1920x1080 map art -> where it is on screen."""
+        return (int(MAP_OX + x * MAP_K), int(MAP_OY + y * MAP_K))
+
+    def map_wh(w, h):
+        return (int(w * MAP_K), int(h * MAP_K))
+
 default persistent.fill_screen = True
 
 init -2 python:
@@ -54,7 +71,7 @@ init -2 python:
         tiny = Flatten(Transform(path, xysize=(64, 36)))
         back = Transform(tiny, fit="cover", xysize=(GAME_W, GAME_H),
                          matrixcolor=BrightnessMatrix(-0.22))
-        front = Transform(path, xysize=(DESIGN_W, DESIGN_H), xpos=MAP_X0, ypos=MAP_Y0)
+        front = Transform(path, xysize=map_wh(DESIGN_W, DESIGN_H), pos=map_xy(0, 0))
         return Fixed(back, front, xysize=(GAME_W, GAME_H))
 
     def full_cover(path, **kwargs):

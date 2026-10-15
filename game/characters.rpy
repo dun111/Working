@@ -346,8 +346,8 @@ screen hs(rect, act, label="", kind="look", delay=0.0):
     $ hcol, hkind = HS_STYLE.get(kind, HS_STYLE["look"])
     button:
         # map coordinates are in the 1920x1080 design area, centred on screen
-        pos (hx + MAP_X0, hy + MAP_Y0)
-        xysize (hw, hh)
+        pos map_xy(hx, hy)
+        xysize map_wh(hw, hh)
         action act
         # cheat menu > UNLOCKS > Show hotspot outlines
         background (rbox("#ff00ff40", 6) if persistent.cheat_hotspots else None)
@@ -358,11 +358,12 @@ screen hs(rect, act, label="", kind="look", delay=0.0):
         # characters: the marker and tag float just above their head, so they
         # don't cover the art. Doors: a big arrow pointing off the edge.
         # Everything else: marker in the middle, tag below.
-        $ on_head = (kind == "talk")
+        # (only if there's room above it on screen; otherwise it sits inside)
+        $ on_head = (kind == "talk") and map_xy(hx, hy)[1] > 110
         $ edge = kind in ("door", "back")
         fixed:
             fit_first False
-            xysize (hw, hh)
+            xysize map_wh(hw, hh)
 
             if edge:
                 text ("›" if kind == "door" else "‹"):
