@@ -284,11 +284,11 @@ screen et_c1():
                 hovered SetVariable("et_c1_gone", True)
                 at et_vanish
                 add et_vision(420, 0.7) at et_jitter
-    use hs((1720, 220, 150, 420), Return("door"), "Carriage 2", "door")
+    use hs(DOOR_RIGHT, Return("door"), "Carriage 2", "door")
 
 screen et_c2():
     add "et c2"
-    use hs((1720, 220, 150, 420), Return("door"), "Carriage 3", "door")
+    use hs(DOOR_RIGHT, Return("door"), "Carriage 3", "door")
 
 screen et_c3():
     add "et c3"
@@ -362,7 +362,7 @@ screen et_c5():
                 yalign 1.0
                 at et_jitter
     # the door won't open first time
-    use hs((1700, 220, 150, 420), Function(et_c5_push), "Carriage 6", "door")
+    use hs(DOOR_RIGHT, Function(et_c5_push), "Carriage 6", "door")
 
 screen et_c6_crowd():
     zorder 5
