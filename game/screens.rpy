@@ -2012,7 +2012,8 @@ screen main_menu():
         $ rows.append((_("QUIT"), Quit(confirm=True), False))
     timer 2.6 repeat True action Function(board_tick, len(rows))
 
-    if persistent.menu_style != "classic":
+    $ mstyle = menu_style_now()
+    if mstyle == "new":
         # ---- Darker on the left, fading out across the screen ----------------------
         add left_shade()
 
@@ -2022,13 +2023,16 @@ screen main_menu():
                 at idle_walker
 
 
-    # ---- Tickets (EXTRAS > GAMEPASS) ---------------------------------------------
-    frame:
+    # ---- Tickets (EXTRAS > GAMEPASS) and coins (click: the casino) ---------------
+    button:
         xalign 1.0
         xoffset -40
         ypos 34
         padding (20, 10)
         background rbox("#0c0c10d8", 16)
+        hover_background rbox("#2a2210e8", 16)
+        action Function(casino_open)
+        tooltip _("Open the 4:00 Casino: slots, roulette, horse racing and mahjong for coins.")
         at fade_slide_in(1.0, xoff=40)
         hbox:
             spacing 12
@@ -2055,8 +2059,13 @@ screen main_menu():
                 color "#ffd76a"
                 font GFONT
 
-    # Settings > Display > MAIN MENU STYLE: the classic sidebar, or the new layout
-    if persistent.menu_style == "classic":
+    if mstyle == "centered":
+        # darker in the middle, behind the menu
+        add Solid("#00000070")
+
+    # Settings > Display > MAIN MENU STYLE: the classic sidebar, the new layout,
+    # or (THEME PACK) everything centered
+    if mstyle == "classic":
         # ---- Sidebar card ---------------------------------------------------------
         fixed:
             xpos gui.sidebar_margin
@@ -2177,6 +2186,57 @@ screen main_menu():
                         font GFONT
 
 
+    elif mstyle == "centered":
+        # ---- THEME PACK: the logo and the menu down the middle --------------------
+        vbox:
+            xalign 0.5
+            yalign 0.5
+            spacing 0
+            button:
+                xalign 0.5
+                xysize (560, int(560 * 808 / 1239.0))
+                padding (0, 0)
+                background None
+                action Function(logo_poke)
+                at fade_slide_in(0.1)
+                add "game_logo_rumble":
+                    xysize (560, int(560 * 808 / 1239.0))
+                    fit "contain"
+            fixed:
+                xsize 900
+                ysize 34
+                at fade_slide_in(0.2)
+                use menu_tagline(0.5, 22)
+            null height 30
+            for i, (lab, act, primary) in enumerate(rows):
+                textbutton lab:
+                    xalign 0.5
+                    padding (30, 6)
+                    background None
+                    action act
+                    tooltip MENU_HELP.get(lab, "")
+                    text_size (52 if primary else 34)
+                    text_color ("#e0521f" if primary else "#cfcac0")
+                    text_hover_color ("#ff7a3d" if primary else "#ffd76a")
+                    text_font GFONT
+                    at fade_slide_in(0.35 + i * 0.05, xoff=0), cine_hover
+            null height 20
+            text (GetTooltip() or _("Point at an option to see what it does.")):
+                xalign 0.5
+                size 17
+                color ("#e6a817" if GetTooltip() else "#55556a")
+                font GFONT
+            null height 10
+            textbutton _("DEPARTURES"):
+                xalign 0.5
+                padding (10, 4)
+                background None
+                text_size 18
+                text_color "#55556a"
+                text_hover_color "#e6a817"
+                text_font CREDIT_FONT
+                action Function(casino_open)
+
     else:
         # ---- The left column ---------------------------------------------------------
         # Everything is the same width (CINE_COL_W) and centered on the same line:
@@ -2234,7 +2294,7 @@ screen main_menu():
                         ysize 42
                         padding (0, 0)
                         background None
-                        action Show("slot_machine")
+                        action Function(casino_open)
                         text _("DEPARTURES"):
                             yalign 0.5
                             size 24
@@ -2358,8 +2418,12 @@ init python:
         return _SAY_FADE[0]
 
 screen say(who, what, plate="#8a4a22", creepy=False):
-    $ ds = persistent.dialogue_style
+    $ ds = dialogue_style_now()
     $ op = persistent.dialogue_opacity
+    # PAPER and TICKET are light boxes with dark ink
+    $ inked = ds in ("paper", "ticket")
+    $ boxed = ds not in ("film", "minimal")
+    $ box_w = config.screen_width - 56
 
     if ds == "minimal":
         add say_fade():
@@ -2369,29 +2433,65 @@ screen say(who, what, plate="#8a4a22", creepy=False):
         id "window"
         xalign 0.5
         yalign 1.0
-        yoffset (0 if ds in ("film", "minimal") else -18)
-        xsize (config.screen_width if ds in ("film", "minimal") else config.screen_width - 56)
-        ysize (230 if ds in ("film", "minimal") else 290)
-        background (None if ds == "minimal" else
-                    (Solid(Color("#000000").replace_opacity(op)) if ds == "film" else
-                     (Frame(rbox(Color("#e9dfc8").replace_opacity(op), 26), 26, 26) if ds == "paper" else
-                      rbox(Color("#0a0a0e").replace_opacity(op), 26))))
+        yoffset (-18 if boxed else 0)
+        xsize (box_w if boxed else config.screen_width)
+        ysize (290 if boxed else 230)
+        background say_background(ds, op)
         at say_rise
 
         if ds == "classic":
             # accent line along the top edge, inset so it clears the rounded corners
             add rbox("#e0521f", 2):
                 xalign 0.5
-                xsize (config.screen_width - 56 - 64)
+                xsize (box_w - 64)
                 ysize 3
                 yalign 0.0
         elif ds == "paper":
             add rbox("#7a1f12", 2):
                 xalign 0.5
-                xsize (config.screen_width - 56 - 64)
+                xsize (box_w - 64)
                 ysize 3
                 yalign 0.0
                 yoffset 10
+        elif ds == "terminal":
+            # THEME PACK: an old green screen
+            add rbox("#3dff7a", 2):
+                xalign 0.5
+                xsize (box_w - 40)
+                ysize 2
+                yalign 0.0
+                yoffset 8
+            add Transform("gui/grain.png", xysize=(box_w, 290), alpha=0.06)
+            text "GREKHOV-OS  v4.00":
+                xalign 0.98
+                ypos 18
+                size 14
+                color "#2a8a48"
+                font "DejaVuSans.ttf"
+        elif ds == "ticket":
+            # THEME PACK: a train ticket - a stub on the left, torn along the dots
+            for k in range(13):
+                add Solid("#9a8a66"):
+                    xpos 268
+                    ypos 22 + k * 20
+                    xysize (3, 10)
+            fixed:
+                xpos 30
+                ypos 30
+                xysize (220, 230)
+                text "4:00":
+                    xalign 0.5
+                    yalign 0.62
+                    size 74
+                    color "#b0201a"
+                    font CREDIT_FONT
+                    at Transform(rotate=-8, alpha=0.85)
+                text "GREKHOV EXPRESS":
+                    xalign 0.5
+                    yalign 0.96
+                    size 14
+                    color "#7a6a4a"
+                    font GFONT
 
         if who:
             if ds == "classic" or ds == "paper":
@@ -2409,6 +2509,27 @@ screen say(who, what, plate="#8a4a22", creepy=False):
                         bold True
                         color "#f2e6d8"
                         font GFONT
+            elif ds == "terminal":
+                text ("> " + who.upper()):
+                    id "who"
+                    xpos 40
+                    ypos 30
+                    size (persistent.dialogue_font_size - 4)
+                    color "#3dff7a"
+                    font "DejaVuSans.ttf"
+                    at (plate_pop if TALK.changed else plate_still)
+            elif ds == "ticket":
+                # the name is stamped on the stub
+                text who:
+                    id "who"
+                    xpos 140
+                    xanchor 0.5
+                    ypos 52
+                    size (persistent.dialogue_font_size - 2)
+                    bold True
+                    color "#7a1f12"
+                    font GFONT
+                    at (plate_pop if TALK.changed else plate_still)
             else:
                 # minimal / film: just the name, in the speaker's colour
                 text who:
@@ -2424,28 +2545,37 @@ screen say(who, what, plate="#8a4a22", creepy=False):
 
         text what:
             id "what"
-            xpos (0.5 if ds == "film" else (60 if ds == "minimal" else 40))
+            xpos (0.5 if ds == "film" else (60 if ds == "minimal" else (310 if ds == "ticket" else 40)))
             xanchor (0.5 if ds == "film" else 0.0)
-            xsize (0.8 if ds == "film" else 0.85)
+            xsize (0.8 if ds == "film" else (box_w - 380 if ds == "ticket" else 0.85))
             text_align (0.5 if ds == "film" else 0.0)
-            ypos (72 if ds in ("film", "minimal") else 104)
+            ypos (72 if not boxed else (40 if ds == "ticket" else (84 if ds == "terminal" else 104)))
             size persistent.dialogue_font_size
-            color ("#2a1f10" if ds == "paper" else TEXT_COLORS.get(persistent.text_color, "#e8e4dc"))
-            font say_font()
+            color say_ink(ds)
+            font ("DejaVuSans.ttf" if ds == "terminal" else say_font())
             line_spacing persistent.line_spacing
-            outlines ([(2, "#000000", 0, 0)] if (persistent.text_outline or ds == "minimal") and ds != "paper" else [])
+            outlines ([(2, "#000000", 0, 0)] if (persistent.text_outline or ds == "minimal") and not inked else [])
             if creepy:
-                color ("#8a1f12" if ds == "paper" else "#e8b4ac")
+                color ("#8a1f12" if inked else "#e8b4ac")
                 textshader (None if persistent.reduce_motion else "jitter:u__jitter=(2.5, 2.5)")
 
-        # little "next" diamond bottom-right
-        add rbox(("#7a1f12" if ds == "paper" else "#e0521f"), 2):
-            xalign 0.97
-            yalign 0.9
-            xsize 16
-            ysize 16
-            rotate 45
-            at (soft_pulse, next_arrow_bob)
+        # little "next" marker bottom-right (a blinking cursor on the terminal)
+        if ds == "terminal":
+            text "_":
+                xalign 0.97
+                yalign 0.88
+                size 34
+                color "#3dff7a"
+                font "DejaVuSans.ttf"
+                at soft_pulse
+        else:
+            add rbox(("#7a1f12" if inked else "#e0521f"), 2):
+                xalign 0.97
+                yalign 0.9
+                xsize 16
+                ysize 16
+                rotate 45
+                at (soft_pulse, next_arrow_bob)
 
 
 # ==============================================================================
@@ -2467,6 +2597,9 @@ screen input(prompt):
                 id "input"
 
 screen choice(items):
+    # REWIND pass: remember where this choice was
+    on "show" action Function(rewind_mark)
+
     vbox:
         xalign 0.5
         yalign 1.0
@@ -2500,6 +2633,31 @@ screen choice(items):
                         selected_color "#ffd700"
                         font say_font()
 
+                # CHOICE REVEALER pass: where it leads, and what you picked before
+                if has_pass("revealer"):
+                    $ hint = choice_hint(i.caption)
+                    hbox:
+                        xalign 0.97
+                        yalign 0.0
+                        yoffset -18
+                        spacing 8
+                        if getattr(i, "chosen", False):
+                            frame:
+                                padding (12, 3)
+                                background rbox("#2a2a35", 12)
+                                text _("PICKED BEFORE"):
+                                    size 14
+                                    color "#a8a4b4"
+                                    font GFONT
+                        if hint:
+                            frame:
+                                padding (12, 3)
+                                background rbox(hint[1], 12)
+                                text hint[0]:
+                                    size 14
+                                    color "#0a0a0e"
+                                    font GFONT
+
 
 # ==============================================================================
 # QUICK MENU
@@ -2526,7 +2684,7 @@ screen quick_menu():
             at (qm_shown if quick_menu_hover else qm_hidden)
             hbox:
                 spacing 2
-                for qm_label, qm_act in [
+                for qm_label, qm_act in ([(_("REWIND"), Function(rewind_go))] if rewind_ready() else []) + [
                     (_("Home"), MainMenu(confirm=True)),
                     (_("Back"), Rollback()),
                     (_("History"), ShowMenu("history")),
@@ -3033,14 +3191,38 @@ screen preferences():
                             use pref_toggle(dlabel, SetField(persistent, "dialogue_font_size", dsz), selected=(persistent.dialogue_font_size == dsz), w=90)
 
                     use pref_row(_("DIALOGUE BOX STYLE"), _("How the dialogue box looks."), 0.0):
-                        use pref_toggle(_("CLASSIC"), SetField(persistent, "dialogue_style", "classic"), selected=(persistent.dialogue_style == "classic"), w=130)
+                        use pref_toggle(_("CLASSIC"), SetField(persistent, "dialogue_style", "classic"), selected=(dialogue_style_now() == "classic"), w=130)
                         use pref_toggle(_("MINIMAL"), SetField(persistent, "dialogue_style", "minimal"), selected=(persistent.dialogue_style == "minimal"), w=130)
                         use pref_toggle(_("PAPER"), SetField(persistent, "dialogue_style", "paper"), selected=(persistent.dialogue_style == "paper"), w=130)
                         use pref_toggle(_("FILM"), SetField(persistent, "dialogue_style", "film"), selected=(persistent.dialogue_style == "film"), w=130)
 
-                    use pref_row(_("MAIN MENU STYLE"), _("Classic: the rounded sidebar. New: the cinematic menu with the departure board."), 0.0):
-                        use pref_toggle(_("CLASSIC"), SetField(persistent, "menu_style", "classic"), selected=(persistent.menu_style == "classic"), w=130)
-                        use pref_toggle(_("NEW"), SetField(persistent, "menu_style", "new"), selected=(persistent.menu_style != "classic"), w=130)
+                    use pref_row(_("THEME PACK DIALOGUE BOXES"), (_("Exclusive: an old green terminal, or a train ticket.") if has_pass("themes") else _("Unlock TERMINAL and TICKET with the THEME PACK gamepass (EXTRAS > GAMEPASS).")), 0.0):
+                        if has_pass("themes"):
+                            use pref_toggle(_("TERMINAL"), SetField(persistent, "dialogue_style", "terminal"), selected=(persistent.dialogue_style == "terminal"), w=150)
+                            use pref_toggle(_("TICKET"), SetField(persistent, "dialogue_style", "ticket"), selected=(persistent.dialogue_style == "ticket"), w=150)
+                        else:
+                            text _("LOCKED"):
+                                yalign 0.5
+                                size 18
+                                color "#55556a"
+                                font GFONT
+
+                    use pref_row(_("MAIN MENU STYLE"), (_("Classic: the rounded sidebar. New: the cinematic menu with the departure board. Centered (THEME PACK): the logo and menu down the middle.")), 0.0):
+                        use pref_toggle(_("CLASSIC"), SetField(persistent, "menu_style", "classic"), selected=(menu_style_now() == "classic"), w=130)
+                        use pref_toggle(_("NEW"), SetField(persistent, "menu_style", "new"), selected=(menu_style_now() == "new"), w=130)
+                        if has_pass("themes"):
+                            use pref_toggle(_("CENTERED"), SetField(persistent, "menu_style", "centered"), selected=(menu_style_now() == "centered"), w=150)
+
+                    use pref_row(_("COLOUR THEME"), (_("THEME PACK: recolours every menu and box, and grades the scenes to match.") if has_pass("themes") else _("Unlock MIDNIGHT, BLOOD MOON, ROYAL and NOIR with the THEME PACK gamepass (EXTRAS > GAMEPASS).")), 0.0):
+                        if has_pass("themes"):
+                            for tid, tname in UI_THEMES:
+                                use pref_toggle(tname, Function(set_theme, tid), selected=(theme_now() == tid), w=(150 if tid == "blood" else 120))
+                        else:
+                            text _("LOCKED"):
+                                yalign 0.5
+                                size 18
+                                color "#55556a"
+                                font GFONT
 
                     use pref_row(_("FILL WIDE SCREENS"), _("Use the whole screen on ultrawide and 16:10 monitors. Restart the game to apply."), 0.0):
                         use pref_toggle(_("ON"), SetField(persistent, "fill_screen", True), selected=(persistent.fill_screen is not False))

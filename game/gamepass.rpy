@@ -25,6 +25,10 @@ define GAMEPASSES = [
     ("empty_train",  _("4:01"),           _("Board the empty train from this page whenever you like."), 12),
     ("eric",         _("ERIC PASS"),      _("Developer mode: a DEV badge on the main menu, a developer HUD in game, and Eric's DEBUG game in the Arcade."), 20),
     ("dlc",          _("DLC"),            _("Three new EXTRAS tabs: GALLERY (every character), JUKEBOX (the soundtrack) and THEATRE (the videos)."), 25),
+    ("revealer",     _("CHOICE REVEALER"), _("Every choice shows where it leads: the right answers, the deadly ones, achievements, minigames, and what you picked last time."), 18),
+    ("rewind",       _("REWIND"),         _("A REWIND button in the quick menu takes you straight back to your last choice so you can pick again."), 14),
+    ("themes",       _("THEME PACK"),     _("Exclusive colour themes for the whole game (MIDNIGHT, BLOOD MOON, ROYAL, NOIR), the CENTERED main menu, and the TERMINAL and TICKET dialogue boxes. Switch in SETTINGS > DISPLAY."), 16),
+    ("high_roller",  _("HIGH ROLLER"),    _("4:00 Casino: 100 and 250 coin bets, and double the free daily coins."), 10),
 ]
 
 # passes that don't do anything yet: they show this instead of OWNED
@@ -394,3 +398,159 @@ screen theatre_list(w):
                     yalign 0.5
                     use rbtn(_("WATCH"), Function(theatre_play, f), w=150, h=50, r=16, size=22, bg="#8a4a22", hov="#b8631f", col="#f2e6d8", hcol="#ffffff")
 
+
+
+# ==============================================================================
+# THEME PACK  -  colour themes, the CENTERED main menu, TERMINAL / TICKET boxes
+# ==============================================================================
+
+default persistent.ui_theme = "default"
+
+# (id, name)
+define UI_THEMES = [
+    ("default",  _("DEFAULT")),
+    ("midnight", _("MIDNIGHT")),
+    ("blood",    _("BLOOD MOON")),
+    ("royal",    _("ROYAL")),
+    ("noir",     _("NOIR")),
+]
+
+# the dialogue boxes and main menus only the THEME PACK unlocks
+define THEME_DIALOGUE = ("terminal", "ticket")
+define THEME_MENUS = ("centered",)
+
+init python:
+    # menus, buttons and boxes get their colours turned...
+    THEME_UI = {
+        "midnight": HueMatrix(200) * SaturationMatrix(0.85),
+        "blood":    HueMatrix(-28) * SaturationMatrix(1.6) * BrightnessMatrix(-0.04),
+        "royal":    HueMatrix(255),
+        "noir":     SaturationMatrix(0.0) * ContrastMatrix(1.1),
+    }
+    # ...and the scenes get a gentle colour grade, so the people still look right
+    THEME_SCENE = {
+        "midnight": SaturationMatrix(0.75) * TintMatrix("#c4d0ff"),
+        "blood":    TintMatrix("#ffb0a0"),
+        "royal":    TintMatrix("#e6d4ff"),
+        "noir":     SaturationMatrix(0.0) * ContrastMatrix(1.15),
+    }
+
+    def theme_now():
+        t = persistent.ui_theme
+        return t if (t in THEME_UI and has_pass("themes")) else "default"
+
+    def _theme_layer(table):
+        def apply(d):
+            m = table.get(theme_now())
+            return Transform(d, matrixcolor=m) if m is not None else d
+        return apply
+
+    config.layer_transforms["screens"] = [_theme_layer(THEME_UI)]
+    config.layer_transforms["master"] = [_theme_layer(THEME_SCENE)]
+
+    def set_theme(t):
+        persistent.ui_theme = t
+        renpy.restart_interaction()
+
+    def dialogue_style_now():
+        ds = persistent.dialogue_style
+        if ds in THEME_DIALOGUE and not has_pass("themes"):
+            return "classic"
+        return ds
+
+    def menu_style_now():
+        ms = persistent.menu_style
+        if ms in THEME_MENUS and not has_pass("themes"):
+            return "new"
+        return ms
+
+    def say_background(ds, op):
+        if ds == "minimal":
+            return None
+        if ds == "film":
+            return Solid(Color("#000000").replace_opacity(op))
+        if ds == "paper":
+            return rbox(Color("#e9dfc8").replace_opacity(op), 26)
+        if ds == "terminal":
+            return rbox(Color("#020a05").replace_opacity(op), 10)
+        if ds == "ticket":
+            return rbox(Color("#efe3c4").replace_opacity(op), 18)
+        return rbox(Color("#0a0a0e").replace_opacity(op), 26)
+
+    def say_ink(ds):
+        if ds in ("paper", "ticket"):
+            return "#2a1f10"
+        if ds == "terminal":
+            return "#7dff9a"
+        return TEXT_COLORS.get(persistent.text_color, "#e8e4dc")
+
+
+# ==============================================================================
+# CHOICE REVEALER  -  tags on choices (screen choice in screens.rpy)
+# ==============================================================================
+# Keyed by the choice's exact text. A ("label", "text") key is used when the
+# same text appears in more than one menu ("Yes", "No"...).
+# (tag, colour)
+
+define CHOICE_GOOD = "#6dffa5"
+define CHOICE_BAD = "#ff6b5a"
+define CHOICE_INFO = "#e6a817"
+
+define CHOICE_HINTS = {
+    # the accusation
+    "Accuse Misha": (_("THE TRUTH"), CHOICE_GOOD),
+    "Accuse Eduard": (_("WRONG · DEATH"), CHOICE_BAD),
+    "Accuse Alexander": (_("WRONG · DEATH"), CHOICE_BAD),
+    "Accuse Agatha": (_("WRONG · DEATH"), CHOICE_BAD),
+    # carriage 6: all three right for the true ending
+    "“Your life.”": (_("WRONG ANSWER"), CHOICE_BAD),
+    "“Your winning streak.”": (_("WRONG ANSWER"), CHOICE_BAD),
+    "“Nothing. You never really understood what you were risking.”": (_("RIGHT ANSWER"), CHOICE_GOOD),
+    "“Peace.”": (_("WRONG ANSWER"), CHOICE_BAD),
+    "“Kimmy's approval.”": (_("WRONG ANSWER"), CHOICE_BAD),
+    "“Nothing real. Just a feeling that let you stop feeling everything else.”": (_("RIGHT ANSWER"), CHOICE_GOOD),
+    "“To keep the train running forever.”": (_("WRONG ANSWER"), CHOICE_BAD),
+    "“To punish the ones who did wrong.”": (_("WRONG ANSWER"), CHOICE_BAD),
+    "“To help everyone finally understand it's over, so they can stop waiting for a stop that isn't coming.”": (_("RIGHT ANSWER"), CHOICE_GOOD),
+    # minigames and achievements
+    ("c2_shunyu_dialogue", "Yes"): (_("MINIGAME · ACHIEVEMENT"), CHOICE_INFO),
+    ("c5_alexander_dialogue", "Yes"): (_("ACHIEVEMENT"), CHOICE_INFO),
+    "Pick it": (_("MINIGAME"), CHOICE_INFO),
+    "Sweep it up": (_("MINIGAME"), CHOICE_INFO),
+    "Play": (_("MINIGAME"), CHOICE_INFO),
+    "Take the controls": (_("MINIGAME"), CHOICE_INFO),
+    "Sort mail": (_("MINIGAME"), CHOICE_INFO),
+}
+
+init python:
+    def choice_hint(caption):
+        """(tag, colour) for a choice, or None. Only with the CHOICE REVEALER pass."""
+        if not has_pass("revealer"):
+            return None
+        return CHOICE_HINTS.get((DEV.label, caption)) or CHOICE_HINTS.get(caption)
+
+
+# ==============================================================================
+# REWIND  -  back to the last choice (quick menu)
+# ==============================================================================
+
+default rewind_point = None
+
+init python:
+    def rewind_mark():
+        """Called when a choice appears: remember the line just before it."""
+        try:
+            if _history_list:
+                store.rewind_point = _history_list[-1].rollback_identifier
+        except Exception:
+            pass
+
+    def rewind_ready():
+        return has_pass("rewind") and store.rewind_point is not None
+
+    def rewind_go():
+        n = renpy.get_identifier_checkpoints(store.rewind_point) if store.rewind_point else None
+        if n is None:
+            renpy.notify(_("Can't rewind past a minigame or a loaded save."))
+            return
+        renpy.rollback(checkpoints=n, force=True)
