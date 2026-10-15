@@ -273,7 +273,6 @@ define JUKEBOX = [
 # (title, file)
 define THEATRE = [
     (_("ENDING"), "movies/ending_video.webm"),
-    (_("MAIN MENU (CARRIAGE)"), "movies/main_menu_bg.webm"),
 ]
 
 init python:
@@ -375,7 +374,8 @@ screen jukebox_list(w):
                         use rbtn(_("PLAY"), Function(jukebox_play, f), w=150, h=50, r=16, size=22, bg="#8a4a22", hov="#b8631f", col="#f2e6d8", hcol="#ffffff")
 
 screen theatre_list(w):
-    for idx, (title, f) in enumerate(THEATRE):
+    # only videos that are actually on this device
+    for idx, (title, f) in enumerate([(t, f) for t, f in THEATRE if renpy.loadable(f)]):
         frame:
             xfill True
             background rbox("#101014", 22)
