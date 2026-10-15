@@ -192,6 +192,16 @@ transform et_vanish:
     on hide:
         linear 0.12 alpha 0.0
 
+# FLASHING LIGHTS: SOFTER - the lights just dim and come back, slowly
+transform et_lights_soft:
+    alpha 0.0
+    block:
+        pause 4.0
+        linear 2.0 alpha 0.4
+        linear 2.5 alpha 0.0
+        pause 3.0
+        repeat
+
 # the lights can't decide whether to stay on
 transform et_lights:
     alpha 0.0
@@ -263,7 +273,7 @@ screen et_atmos():
         add Transform("gui/grain.png", xysize=(config.screen_width + 60, config.screen_height + 40), alpha=0.11):
             pos (-30, -20)
             at grain_jitter
-    add Solid("#000000") at et_lights
+    add Solid("#000000") at (et_lights_soft if persistent.reduce_flashes else et_lights)
     timer max(2.5, 8.0 - et_level) repeat True action Function(et_flash)
 
 # a hard cut: static, and for a moment it's right in front of you

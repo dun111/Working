@@ -158,6 +158,12 @@ transform flicker_face:
     alpha 1.0
     linear 0.3 zoom 3.2
 
+# FLASHING LIGHTS: SOFTER - the face just fades in, no strobing
+transform flicker_face_soft:
+    alpha 0.0
+    ease 0.5 alpha 1.0
+    linear 0.3 zoom 3.2
+
 screen scare_flicker(hold=1.0):
     zorder 300
     modal True
@@ -169,7 +175,7 @@ screen scare_flicker(hold=1.0):
         xpos 0.5
         ypos 0.5
         zoom 2.4
-        at flicker_face
+        at (flicker_face_soft if persistent.reduce_flashes else flicker_face)
 
 # CRAWLER - something low and fast drags itself across the floor
 transform crawl_across:

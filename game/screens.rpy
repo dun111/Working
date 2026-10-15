@@ -169,6 +169,7 @@ define gui.sidebar_content_width = gui.sidebar_width - (gui.sidebar_padding * 2)
 
 # settings panel width: 1380 at 1920 wide, grows on wider screens
 define PREF_PANEL_W = GAME_W - 540
+define PREF_PANEL_H = GAME_H - 280      # settings tabs scroll past this
 
 # Key on the main menu.  KEY_SCALE 1.0 = the original size; everything about
 # the key (string, loop, swing) scales with it.
@@ -969,6 +970,14 @@ default persistent.old_map = True
 default persistent.menu_style = "new"         # "new" or "classic" (the rounded sidebar)
 default persistent.dialogue_style = "classic" # dialogue box look: classic / minimal / paper / film
 default persistent.ach_toasts = True
+# COMFORT / readability (Settings)
+default persistent.reduce_flashes = False     # FLASHING LIGHTS: SOFTER
+default persistent.brightness = 0             # SCREEN BRIGHTNESS: -2 .. +2
+default persistent.hotspot_labels = "always"  # HOTSPOT LABELS: always / hover
+default persistent.text_color = "light"       # DIALOGUE TEXT COLOUR (see TEXT_COLORS)
+default persistent.line_spacing = 10          # LINE SPACING
+default persistent.text_fx = "full"           # TEXT EFFECTS: full / still / off (text_fx.rpy)
+default persistent.quick_menu_shown = True    # QUICK MENU BAR
 default persistent.mg_won = set()
 
 define DIALOGUE_SIZES = [(22, "S"), (26, "M"), (30, "L"), (34, "XL")]
@@ -1015,6 +1024,13 @@ init python:
                 pass
         persistent.screen_shake_enabled = True
         persistent.rumble_extreme = False
+        persistent.reduce_flashes = False
+        persistent.brightness = 0
+        persistent.hotspot_labels = "always"
+        persistent.text_color = "light"
+        persistent.line_spacing = 10
+        persistent.text_fx = "full"
+        persistent.quick_menu_shown = True
         persistent.dialogue_font_size = 30
         persistent.dialogue_opacity = 0.93
         persistent.menu_fx = True
@@ -2414,9 +2430,9 @@ screen say(who, what, plate="#8a4a22", creepy=False):
             text_align (0.5 if ds == "film" else 0.0)
             ypos (72 if ds in ("film", "minimal") else 104)
             size persistent.dialogue_font_size
-            color ("#2a1f10" if ds == "paper" else "#e8e4dc")
+            color ("#2a1f10" if ds == "paper" else TEXT_COLORS.get(persistent.text_color, "#e8e4dc"))
             font say_font()
-            line_spacing 10
+            line_spacing persistent.line_spacing
             outlines ([(2, "#000000", 0, 0)] if (persistent.text_outline or ds == "minimal") and ds != "paper" else [])
             if creepy:
                 color ("#8a1f12" if ds == "paper" else "#e8b4ac")
@@ -2493,7 +2509,7 @@ default quick_menu = True
 
 screen quick_menu():
     zorder 100
-    if quick_menu:
+    if quick_menu and persistent.quick_menu_shown:
 
         mousearea:
             area (0, config.screen_height - 50, config.screen_width, 50)
@@ -2856,8 +2872,43 @@ define PREF_TABS = [
     ("text", _("TEXT & SKIP"), 0.10),
     ("audio", _("AUDIO"), 0.15),
     ("gameplay", _("GAMEPLAY"), 0.20),
-    ("access", _("ACCESSIBILITY"), 0.25),
+    ("comfort", _("COMFORT"), 0.25),
+    ("access", _("ACCESSIBILITY"), 0.30),
 ]
+
+# DIALOGUE TEXT COLOUR choices (the PAPER box always uses dark ink)
+define TEXT_COLORS = {"light": "#e8e4dc", "white": "#ffffff", "yellow": "#ffe39a"}
+
+# SCREEN BRIGHTNESS: -2 .. +2 ; drawn over everything by brightness_fx
+init python:
+    config.always_shown_screens.append("brightness_fx")
+
+    class FlashTr(object):
+        """A colour flash that turns into a gentle fade with FLASHING LIGHTS: SOFTER."""
+        def __init__(self, color, out_t, in_t):
+            self.color = color
+            self.out_t = out_t
+            self.in_t = in_t
+
+        def __call__(self, old_widget=None, new_widget=None):
+            if persistent.reduce_flashes:
+                tr = Dissolve(self.in_t)
+            else:
+                tr = Fade(self.out_t, 0.0, self.in_t, color=self.color)
+            return tr(old_widget=old_widget, new_widget=new_widget)
+
+    def brightness_label():
+        return {-2: _("DARKEST"), -1: _("DARKER"), 0: _("NORMAL"), 1: _("BRIGHTER"), 2: _("BRIGHTEST")}.get(persistent.brightness, _("NORMAL"))
+
+screen brightness_fx():
+    zorder 2000
+    $ b = persistent.brightness or 0
+    if b < 0:
+        add Solid("#000000", xysize=(config.screen_width, config.screen_height)):
+            alpha (-b * 0.16)
+    elif b > 0:
+        add Transform(Solid("#ffffff", xysize=(config.screen_width, config.screen_height)), alpha=b * 0.07, blend="add")
+
 
 screen preferences():
     tag menu
@@ -2961,114 +3012,200 @@ screen preferences():
         xpos 420
         ypos 150
         xsize PREF_PANEL_W
-        ysize 800
+        ysize PREF_PANEL_H
 
         showif pref_tab == "display":
-            vbox:
-                spacing 14
+            viewport:
+                id "pref_vp_display"
                 at tab_page
+                xsize PREF_PANEL_W
+                ysize PREF_PANEL_H
+                mousewheel True
+                vbox:
+                    spacing 14
 
-                use pref_row(_("WINDOW MODE"), _("Play in a window or take over the screen."), 0.0):
-                    use pref_toggle(_("WINDOW"), Preference("display", "window"))
-                    use pref_toggle(_("FULLSCREEN"), Preference("display", "fullscreen"))
+                    use pref_row(_("WINDOW MODE"), _("Play in a window or take over the screen."), 0.0):
+                        use pref_toggle(_("WINDOW"), Preference("display", "window"))
+                        use pref_toggle(_("FULLSCREEN"), Preference("display", "fullscreen"))
 
-                use pref_row(_("RUMBLE STRENGTH"), _("How hard the train shakes, on the main menu and in the carriages. EXTREME is violent."), 0.06):
-                    use pref_toggle(_("OFF"), Function(set_rumble, "off"), selected=(not persistent.screen_shake_enabled), w=120)
-                    use pref_toggle(_("NORMAL"), Function(set_rumble, "normal"), selected=(persistent.screen_shake_enabled and not persistent.rumble_extreme), w=120)
-                    use pref_toggle(_("EXTREME"), Function(set_rumble, "extreme"), selected=(persistent.screen_shake_enabled and persistent.rumble_extreme), w=120)
+                    use pref_row(_("DIALOGUE FONT SIZE"), _("Size of the text in the dialogue box."), 0.12):
+                        for dsz, dlabel in DIALOGUE_SIZES:
+                            use pref_toggle(dlabel, SetField(persistent, "dialogue_font_size", dsz), selected=(persistent.dialogue_font_size == dsz), w=90)
 
-                use pref_row(_("DIALOGUE FONT SIZE"), _("Size of the text in the dialogue box."), 0.12):
-                    for dsz, dlabel in DIALOGUE_SIZES:
-                        use pref_toggle(dlabel, SetField(persistent, "dialogue_font_size", dsz), selected=(persistent.dialogue_font_size == dsz), w=90)
+                    use pref_row(_("DIALOGUE BOX STYLE"), _("How the dialogue box looks."), 0.0):
+                        use pref_toggle(_("CLASSIC"), SetField(persistent, "dialogue_style", "classic"), selected=(persistent.dialogue_style == "classic"), w=130)
+                        use pref_toggle(_("MINIMAL"), SetField(persistent, "dialogue_style", "minimal"), selected=(persistent.dialogue_style == "minimal"), w=130)
+                        use pref_toggle(_("PAPER"), SetField(persistent, "dialogue_style", "paper"), selected=(persistent.dialogue_style == "paper"), w=130)
+                        use pref_toggle(_("FILM"), SetField(persistent, "dialogue_style", "film"), selected=(persistent.dialogue_style == "film"), w=130)
 
-                use pref_row(_("DIALOGUE BOX STYLE"), _("How the dialogue box looks."), 0.0):
-                    use pref_toggle(_("CLASSIC"), SetField(persistent, "dialogue_style", "classic"), selected=(persistent.dialogue_style == "classic"), w=130)
-                    use pref_toggle(_("MINIMAL"), SetField(persistent, "dialogue_style", "minimal"), selected=(persistent.dialogue_style == "minimal"), w=130)
-                    use pref_toggle(_("PAPER"), SetField(persistent, "dialogue_style", "paper"), selected=(persistent.dialogue_style == "paper"), w=130)
-                    use pref_toggle(_("FILM"), SetField(persistent, "dialogue_style", "film"), selected=(persistent.dialogue_style == "film"), w=130)
+                    use pref_row(_("MAIN MENU STYLE"), _("Classic: the rounded sidebar. New: the cinematic menu with the departure board."), 0.0):
+                        use pref_toggle(_("CLASSIC"), SetField(persistent, "menu_style", "classic"), selected=(persistent.menu_style == "classic"), w=130)
+                        use pref_toggle(_("NEW"), SetField(persistent, "menu_style", "new"), selected=(persistent.menu_style != "classic"), w=130)
 
-                use pref_row(_("MAIN MENU STYLE"), _("Classic: the rounded sidebar. New: the cinematic menu with the departure board."), 0.0):
-                    use pref_toggle(_("CLASSIC"), SetField(persistent, "menu_style", "classic"), selected=(persistent.menu_style == "classic"), w=130)
-                    use pref_toggle(_("NEW"), SetField(persistent, "menu_style", "new"), selected=(persistent.menu_style != "classic"), w=130)
-
-                use pref_row(_("FILL WIDE SCREENS"), _("Use the whole screen on ultrawide and 16:10 monitors. Restart the game to apply."), 0.0):
-                    use pref_toggle(_("ON"), SetField(persistent, "fill_screen", True), selected=(persistent.fill_screen is not False))
-                    use pref_toggle(_("OFF"), SetField(persistent, "fill_screen", False), selected=(persistent.fill_screen is False))
-                use pref_onoff(_("MENU EFFECTS"), _("Light streaks and embers on the main menu."), "menu_fx", 0.18)
-                use pref_onoff(_("ACHIEVEMENT POPUPS"), _("Show a banner when you unlock an achievement."), "ach_toasts", 0.24)
+                    use pref_row(_("FILL WIDE SCREENS"), _("Use the whole screen on ultrawide and 16:10 monitors. Restart the game to apply."), 0.0):
+                        use pref_toggle(_("ON"), SetField(persistent, "fill_screen", True), selected=(persistent.fill_screen is not False))
+                        use pref_toggle(_("OFF"), SetField(persistent, "fill_screen", False), selected=(persistent.fill_screen is False))
+                    use pref_onoff(_("MENU EFFECTS"), _("Light streaks and embers on the main menu."), "menu_fx", 0.18)
+                    use pref_onoff(_("ACHIEVEMENT POPUPS"), _("Show a banner when you unlock an achievement."), "ach_toasts", 0.24)
 
         showif pref_tab == "text":
-            vbox:
-                spacing 14
+            viewport:
+                id "pref_vp_text"
                 at tab_page
+                xsize PREF_PANEL_W
+                ysize PREF_PANEL_H
+                mousewheel True
+                vbox:
+                    spacing 14
 
-                use pref_row(_("TEXT SPEED"), _("How fast dialogue appears."), 0.0):
-                    use pref_slider(Preference("text speed"), text_speed_label())
+                    use pref_row(_("TEXT SPEED"), _("How fast dialogue appears."), 0.0):
+                        use pref_slider(Preference("text speed"), text_speed_label())
 
-                use pref_row(_("AUTO-FORWARD SPEED"), _("How long auto mode waits on each line. Slide left for faster, right for slower. (Also in the quick menu while Auto is on.)"), 0.06):
-                    use pref_slider(Preference("auto-forward time"), auto_speed_label())
+                    use pref_row(_("AUTO-FORWARD SPEED"), _("How long auto mode waits on each line. Slide left for faster, right for slower. (Also in the quick menu while Auto is on.)"), 0.06):
+                        use pref_slider(Preference("auto-forward time"), auto_speed_label())
 
-                use pref_row(_("DIALOGUE BOX OPACITY"), _("How see-through the dialogue box is."), 0.12):
-                    use pref_slider(FieldValue(persistent, "dialogue_opacity", range=0.7, offset=0.3), opacity_label())
+                    use pref_row(_("DIALOGUE TEXT COLOUR"), _("Colour of the dialogue text. White and yellow stand out more. (The paper box keeps its dark ink.)"), 0.09):
+                        use pref_toggle(_("LIGHT"), SetField(persistent, "text_color", "light"), selected=(persistent.text_color == "light"), w=130)
+                        use pref_toggle(_("WHITE"), SetField(persistent, "text_color", "white"), selected=(persistent.text_color == "white"), w=130)
+                        use pref_toggle(_("YELLOW"), SetField(persistent, "text_color", "yellow"), selected=(persistent.text_color == "yellow"), w=130)
 
-                use pref_row(_("SKIP"), _("Which text the skip button is allowed to fast-forward."), 0.18):
-                    use pref_toggle(_("SEEN TEXT"), Preference("skip", "seen"))
-                    use pref_toggle(_("ALL TEXT"), Preference("skip", "all"))
+                    use pref_row(_("LINE SPACING"), _("Space between lines of dialogue. Wider can be easier to read."), 0.10):
+                        use pref_toggle(_("NORMAL"), SetField(persistent, "line_spacing", 10), selected=(persistent.line_spacing == 10), w=130)
+                        use pref_toggle(_("WIDE"), SetField(persistent, "line_spacing", 20), selected=(persistent.line_spacing == 20), w=130)
+                        use pref_toggle(_("WIDEST"), SetField(persistent, "line_spacing", 30), selected=(persistent.line_spacing == 30), w=130)
 
-                use pref_row(_("AFTER CHOICES"), _("What skipping does when a choice appears."), 0.24):
-                    use pref_toggle(_("STOP SKIPPING"), Preference("after choices", "stop"))
-                    use pref_toggle(_("KEEP SKIPPING"), Preference("after choices", "skip"))
+                    use pref_row(_("TEXT EFFECTS"), _("Shaking, waving and screaming words in dialogue. STILL keeps the colours and sizes but nothing moves."), 0.11):
+                        use pref_toggle(_("FULL"), SetField(persistent, "text_fx", "full"), selected=(persistent.text_fx == "full"), w=130)
+                        use pref_toggle(_("STILL"), SetField(persistent, "text_fx", "still"), selected=(persistent.text_fx == "still"), w=130)
+                        use pref_toggle(_("OFF"), SetField(persistent, "text_fx", "off"), selected=(persistent.text_fx == "off"), w=130)
+
+                    use pref_onoff(_("QUICK MENU BAR"), _("The row of buttons under the dialogue box. Esc still opens the menu when it's hidden."), "quick_menu_shown", 0.12)
+
+                    use pref_row(_("DIALOGUE BOX OPACITY"), _("How see-through the dialogue box is."), 0.12):
+                        use pref_slider(FieldValue(persistent, "dialogue_opacity", range=0.7, offset=0.3), opacity_label())
+
+                    use pref_row(_("SKIP"), _("Which text the skip button is allowed to fast-forward."), 0.18):
+                        use pref_toggle(_("SEEN TEXT"), Preference("skip", "seen"))
+                        use pref_toggle(_("ALL TEXT"), Preference("skip", "all"))
+
+                    use pref_row(_("AFTER CHOICES"), _("What skipping does when a choice appears."), 0.24):
+                        use pref_toggle(_("STOP SKIPPING"), Preference("after choices", "stop"))
+                        use pref_toggle(_("KEEP SKIPPING"), Preference("after choices", "skip"))
 
         showif pref_tab == "audio":
-            vbox:
-                spacing 14
+            viewport:
+                id "pref_vp_audio"
                 at tab_page
+                xsize PREF_PANEL_W
+                ysize PREF_PANEL_H
+                mousewheel True
+                vbox:
+                    spacing 14
 
-                use pref_row(_("MUSIC VOLUME"), _("Background music level."), 0.0):
-                    use pref_slider(Preference("music volume"), vol_pct("music"))
+                    use pref_row(_("MUSIC VOLUME"), _("Background music level."), 0.0):
+                        use pref_slider(Preference("music volume"), vol_pct("music"))
 
-                use pref_row(_("SOUND VOLUME"), _("Sound effects level."), 0.06):
-                    use pref_slider(Preference("sound volume"), vol_pct("sfx"))
+                    use pref_row(_("SOUND VOLUME"), _("Sound effects level."), 0.06):
+                        use pref_slider(Preference("sound volume"), vol_pct("sfx"))
 
-                use pref_row(_("VOICE VOLUME"), _("Voiced lines level (this game has no voiced lines yet)."), 0.12):
-                    use pref_slider(Preference("voice volume"), vol_pct("voice"))
+                    use pref_row(_("VOICE VOLUME"), _("Voiced lines level (this game has no voiced lines yet)."), 0.12):
+                        use pref_slider(Preference("voice volume"), vol_pct("voice"))
 
-                use pref_row(_("MUTE ALL AUDIO"), _("Silence everything at once."), 0.18):
-                    use pref_toggle(_("MUTED"), Preference("all mute", "enable"))
-                    use pref_toggle(_("SOUND ON"), Preference("all mute", "disable"))
+                    use pref_row(_("MUTE ALL AUDIO"), _("Silence everything at once."), 0.18):
+                        use pref_toggle(_("MUTED"), Preference("all mute", "enable"))
+                        use pref_toggle(_("SOUND ON"), Preference("all mute", "disable"))
 
-                use pref_onoff(_("MENU MUSIC ECHO"), _("Muffled, echoey music on the main menu. Applies instantly."), "menu_echo", 0.24)
+                    use pref_onoff(_("MENU MUSIC ECHO"), _("Muffled, echoey music on the main menu. Applies instantly."), "menu_echo", 0.24)
 
         showif pref_tab == "gameplay":
-            vbox:
-                spacing 14
+            viewport:
+                id "pref_vp_gameplay"
                 at tab_page
+                xsize PREF_PANEL_W
+                ysize PREF_PANEL_H
+                mousewheel True
+                vbox:
+                    spacing 14
 
-                use pref_row(_("MINIGAME DIFFICULTY"), _("Changes speed, time limits and mistakes allowed."), 0.0):
-                    use pref_toggle(_("EASY"), SetField(persistent, "mg_difficulty", 0), selected=(persistent.mg_difficulty == 0), w=130)
-                    use pref_toggle(_("NORMAL"), SetField(persistent, "mg_difficulty", 1), selected=(persistent.mg_difficulty == 1), w=130)
-                    use pref_toggle(_("HARD"), SetField(persistent, "mg_difficulty", 2), selected=(persistent.mg_difficulty == 2), w=130)
+                    use pref_row(_("MINIGAME DIFFICULTY"), _("Changes speed, time limits and mistakes allowed."), 0.0):
+                        use pref_toggle(_("EASY"), SetField(persistent, "mg_difficulty", 0), selected=(persistent.mg_difficulty == 0), w=130)
+                        use pref_toggle(_("NORMAL"), SetField(persistent, "mg_difficulty", 1), selected=(persistent.mg_difficulty == 1), w=130)
+                        use pref_toggle(_("HARD"), SetField(persistent, "mg_difficulty", 2), selected=(persistent.mg_difficulty == 2), w=130)
 
-                use pref_onoff(_("MINIGAME TIMERS"), _("Turn off to play every minigame with no time limit."), "mg_timers", 0.06)
-                use pref_onoff(_("ALLOW SKIPPING MINIGAMES"), _("Shows a SKIP button on every minigame (counts as a win)."), "mg_skip_allowed", 0.12)
-                use pref_onoff(_("AUTO-SAVE ON NEW CARRIAGE"), _("Saves automatically when you enter a carriage."), "autosave_on", 0.18)
-                use pref_onoff(_("BURN-REVEAL TRANSITION"), _("The ticket scene burns away to reveal the map."), "film_transition", 0.24)
-                use pref_onoff(_("AGED MAP LOOK"), _("Old parchment, stains and lamp flicker over the carriage maps."), "old_map", 0.30)
-                use pref_onoff(_("MAP OBJECTIVE LINE"), _("Show what to do next at the top of each carriage map."), "show_objective", 0.36)
+                    use pref_onoff(_("MINIGAME TIMERS"), _("Turn off to play every minigame with no time limit."), "mg_timers", 0.06)
+                    use pref_onoff(_("ALLOW SKIPPING MINIGAMES"), _("Shows a SKIP button on every minigame (counts as a win)."), "mg_skip_allowed", 0.12)
+                    use pref_onoff(_("AUTO-SAVE ON NEW CARRIAGE"), _("Saves automatically when you enter a carriage."), "autosave_on", 0.18)
+                    use pref_onoff(_("BURN-REVEAL TRANSITION"), _("The ticket scene burns away to reveal the map."), "film_transition", 0.24)
+                    use pref_onoff(_("AGED MAP LOOK"), _("Old parchment, stains and lamp flicker over the carriage maps."), "old_map", 0.30)
+                    use pref_onoff(_("MAP OBJECTIVE LINE"), _("Show what to do next at the top of each carriage map."), "show_objective", 0.36)
+
+        showif pref_tab == "comfort":
+            viewport:
+                id "pref_vp_comfort"
+                at tab_page
+                xsize PREF_PANEL_W
+                ysize PREF_PANEL_H
+                mousewheel True
+                vbox:
+                    spacing 14
+
+                    use pref_row(_("FLASHING LIGHTS"), _("SOFTER swaps flashes and flickering lights for slow fades. Recommended if you are sensitive to flashing."), 0.0):
+                        use pref_toggle(_("NORMAL"), SetField(persistent, "reduce_flashes", False), selected=(not persistent.reduce_flashes), w=130)
+                        use pref_toggle(_("SOFTER"), SetField(persistent, "reduce_flashes", True), selected=bool(persistent.reduce_flashes), w=130)
+
+                    use pref_row(_("SCREEN BRIGHTNESS"), _("Lighten the game if it's too dark to see, or darken it for a dark room."), 0.06):
+                        use pref_toggle("-", SetField(persistent, "brightness", max(-2, (persistent.brightness or 0) - 1)), selected=False, w=60)
+                        text brightness_label():
+                            yalign 0.5
+                            xminimum 160
+                            text_align 0.5
+                            size 18
+                            color "#e6a817"
+                            font GFONT
+                        use pref_toggle("+", SetField(persistent, "brightness", min(2, (persistent.brightness or 0) + 1)), selected=False, w=60)
+
+                    use pref_row(_("HOTSPOT LABELS"), _("The little tags on things you can click. ON HOVER keeps the scene clear until you point at something."), 0.12):
+                        use pref_toggle(_("ALWAYS"), SetField(persistent, "hotspot_labels", "always"), selected=(persistent.hotspot_labels != "hover"), w=150)
+                        use pref_toggle(_("ON HOVER"), SetField(persistent, "hotspot_labels", "hover"), selected=(persistent.hotspot_labels == "hover"), w=150)
+
+                    use pref_row(_("RUMBLE STRENGTH"), _("How hard the train shakes, on the main menu and in the carriages. EXTREME is violent. Turn it OFF if the movement makes you feel sick."), 0.18):
+                        use pref_toggle(_("OFF"), Function(set_rumble, "off"), selected=(not persistent.screen_shake_enabled), w=120)
+                        use pref_toggle(_("NORMAL"), Function(set_rumble, "normal"), selected=(persistent.screen_shake_enabled and not persistent.rumble_extreme), w=120)
+                        use pref_toggle(_("EXTREME"), Function(set_rumble, "extreme"), selected=(persistent.screen_shake_enabled and persistent.rumble_extreme), w=120)
+
+                    use pref_onoff(_("JUMPSCARES"), _("Jumpscares, the scary sounds and the shadows on the maps."), "jumpscares", 0.24)
+                    use pref_onoff(_("REDUCE MOTION"), _("Stops shaking, swaying, embers, zooms and dialogue animations."), "reduce_motion", 0.30)
 
         showif pref_tab == "access":
-            vbox:
-                spacing 14
+            viewport:
+                id "pref_vp_access"
                 at tab_page
+                xsize PREF_PANEL_W
+                ysize PREF_PANEL_H
+                mousewheel True
+                vbox:
+                    spacing 14
 
-                use pref_onoff(_("JUMPSCARES"), _("Jumpscares, the scary sounds and the shadows on the maps."), "jumpscares", 0.0)
-                use pref_onoff(_("REDUCE MOTION"), _("Stops shaking, swaying, embers, zooms and dialogue animations."), "reduce_motion", 0.03)
-                use pref_onoff(_("TEXT OUTLINE"), _("Black outline around dialogue for easier reading."), "text_outline", 0.06)
-                use pref_onoff(_("READABLE FONT"), _("Swap the dialogue font for a plain, clear one."), "readable_font", 0.12)
+                    use pref_onoff(_("TEXT OUTLINE"), _("Black outline around dialogue for easier reading."), "text_outline", 0.06)
+                    use pref_onoff(_("READABLE FONT"), _("Swap the dialogue font for a plain, clear one."), "readable_font", 0.12)
 
-                use pref_row(_("SELF-VOICING"), _("Read the screen aloud (text-to-speech)."), 0.18):
-                    use pref_toggle(_("ON"), Preference("self voicing", "enable"))
-                    use pref_toggle(_("OFF"), Preference("self voicing", "disable"))
+                    use pref_row(_("SELF-VOICING"), _("Read the screen aloud (text-to-speech)."), 0.18):
+                        use pref_toggle(_("ON"), Preference("self voicing", "enable"))
+                        use pref_toggle(_("OFF"), Preference("self voicing", "disable"))
+
+                    text _("Flashing lights, brightness, rumble, jumpscares and reduce motion are in COMFORT. Text colour, line spacing and text effects are in TEXT & SKIP."):
+                        xsize PREF_PANEL_W
+                        size 16
+                        color "#666677"
+                        font GFONT
+
+    # scrollbar for the open tab (hidden when it all fits)
+    vbar:
+        style "pref_vbar"
+        value YScrollValue("pref_vp_" + pref_tab)
+        xpos (420 + PREF_PANEL_W + 14)
+        ypos 150
+        ysize PREF_PANEL_H
 
     use game_menu_back(back_action)
 
@@ -3879,7 +4016,7 @@ screen skip_indicator():
 # 1. BURN-REVEAL TRANSITION + AGED MAP LOOK
 # ==============================================================================
 
-define flash = Fade(0.08, 0.0, 0.35, color="#ffffff")
+define flash = FlashTr("#ffffff", 0.08, 0.35)
 
 # Paper burns away from the middle outwards, ragged edge 120px wide
 define burn_reveal = ImageDissolve(Transform("images/burn_mask.png", xysize=(GAME_W, GAME_H)), 2.4, ramplen=120)

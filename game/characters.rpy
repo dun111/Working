@@ -205,7 +205,7 @@ image door_light:
     ease 1.2 alpha 0.35
     ease 1.6 alpha 0.12
 
-define red_flash = Fade(0.06, 0.0, 0.5, color="#7a0a0a")
+define red_flash = FlashTr("#7a0a0a", 0.06, 0.5)
 
 
 # ------------------------------------------------------------------------------
@@ -341,6 +341,15 @@ transform door_nudge(dx):
         ease anim_t(0.7) xoffset 0
         repeat
 
+transform hs_tag_always:
+    alpha 1.0
+
+transform hs_tag_hover:
+    on idle:
+        easeout anim_t(0.15) alpha 0.0
+    on hover, selected_hover:
+        easein anim_t(0.12) alpha 1.0
+
 screen hs(rect, act, label="", kind="look", delay=0.0):
     $ hx, hy, hw, hh = rect
     $ hcol, hkind = HS_STYLE.get(kind, HS_STYLE["look"])
@@ -390,8 +399,9 @@ screen hs(rect, act, label="", kind="look", delay=0.0):
                     yoffset (-15 if on_head else 0)
                     at hs_pulse
 
-            # one small tag:  TALK  Fedora
+            # one small tag:  TALK  Fedora  (Settings > HOTSPOT LABELS can hide it till hover)
             frame:
+                at (hs_tag_hover if persistent.hotspot_labels == "hover" else hs_tag_always)
                 # door tags hug the edge so they stay on screen
                 xalign ((1.0 if kind == "door" else 0.0) if edge else 0.5)
                 xoffset ((-8 if kind == "door" else 8) if edge else 0)
