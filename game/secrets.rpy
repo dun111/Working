@@ -419,6 +419,7 @@ screen cast_peek(img):
 
 default logo_glitched = False
 default train_gone = False
+default train_trips = 0
 default idle_walk = False
 default version_pokes = 0
 
@@ -440,6 +441,7 @@ init python:
         if store.train_gone:
             return
         store.train_gone = True
+        store.train_trips += 1
         sfx("win")
         renpy.notify(_("\"Wow damn… So… Expensive cabin, huh?\""))
         secret_found("train")
@@ -474,12 +476,22 @@ transform logo_glitch:
         repeat
 
 # the train fades away into the dark (and comes back a few seconds later)
-transform train_leave:
+# clicked: the train fades away, then pulls back in from the left
+transform train_leave(trip):
     alpha 1.0
+    xoffset 0
+    blur 0
     parallel:
-        ease 1.6 alpha 0.0
+        ease 1.4 alpha 0.0
     parallel:
-        ease 1.6 xoffset 40 blur 8
+        ease 1.4 xoffset 40 blur 8
+    pause 0.6
+    xoffset -320
+    blur 8
+    parallel:
+        easein 1.8 xoffset 0
+    parallel:
+        ease 1.4 alpha 1.0 blur 0
 
 # something walks slowly past, far away in the carriage
 transform idle_walker:

@@ -1797,7 +1797,7 @@ screen cine_entry(i, label, act, primary=False):
 
 # ---- the little train on its rail (left column) ---------------------------------
 # It rocks gently as if it's moving and puffs smoke. Click it and it fades away
-# into the dark; a few seconds later it fades back in.
+# into the dark, then pulls back in from the left.
 
 define TRAIN_CROP = (0, 230, 2048, 1075)    # just the train, out of Train_BP.webp
 
@@ -1850,7 +1850,7 @@ screen menu_train():
             padding (0, 0)
             background None
             action Function(train_poke)
-            at (train_leave if train_gone else train_arrive)
+            at (train_leave(train_trips) if train_trips else train_arrive)
             fixed:
                 xysize (CINE_TRAIN_W, th)
                 at train_rock
@@ -2248,7 +2248,7 @@ screen main_menu():
     if logo_glitched:
         timer 2.6 action SetVariable("logo_glitched", False)
     if train_gone:
-        timer 9.0 action SetVariable("train_gone", False)
+        timer 3.9 action SetVariable("train_gone", False)
     timer 60.0 action Function(idle_watch)
 
     # ---- Studio logo (easter egg) ----------------------------------------------
