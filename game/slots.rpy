@@ -191,14 +191,6 @@ transform slot_tease_pulse:
         ease 0.25 alpha 0.4
         repeat
 
-# the frame round the reels glows gold on a jackpot
-transform slot_glow:
-    alpha 0.0
-    block:
-        ease 0.3 alpha 1.0
-        ease 0.3 alpha 0.3
-        repeat
-
 screen slot_machine():
     modal True
     zorder 310

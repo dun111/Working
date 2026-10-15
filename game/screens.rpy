@@ -521,11 +521,16 @@ transform tilt(a=0):
 # Script lines like  show louis neutral at speaker_focus(xalign=0.1)  still work
 # exactly as before. On top of that, EVERY line of dialogue now re-focuses the
 # scene automatically: the speaker's sprite zooms up and brightens, every other
-# sprite shrinks and dims. Positions are remembered from your show statements.
+# sprite shrinks, darkens and goes see-through. Positions are remembered from your show statements.
 
 # First appearance slides in from the sprite's own side of the screen; after
 # that the speaker hops on every new line and everyone else eases back;
 # "hide" fades the sprite out.
+# whoever isn't talking is darkened and see-through (SP_DIM / SP_BG_ALPHA)
+define SP_LIT = BrightnessMatrix(0.0) * SaturationMatrix(1.0)
+define SP_DIM = BrightnessMatrix(-0.45) * SaturationMatrix(0.45)
+define SP_BG_ALPHA = 0.6
+
 transform _sp_focus(xalign=0.7):
     xanchor 0.5
     xalign xalign
@@ -534,11 +539,12 @@ transform _sp_focus(xalign=0.7):
     on show:
         alpha 0.0
         zoom 1.04
+        matrixcolor SP_LIT
         xoffset (hover_lift(-80) if xalign < 0.5 else hover_lift(80))
         easein anim_t(0.4) alpha 1.0 zoom 1.08 xoffset 0
     on replace:
         parallel:
-            linear anim_t(0.3) zoom 1.08 alpha 1.0 xoffset 0
+            linear anim_t(0.3) zoom 1.08 alpha 1.0 xoffset 0 matrixcolor SP_LIT
         parallel:
             # little hop every time this character starts a new line
             easeout anim_t(0.11) yoffset 40 - hover_lift(14)
@@ -554,10 +560,11 @@ transform _sp_bg(xalign=0.3):
     on show:
         alpha 0.0
         zoom 0.92
+        matrixcolor SP_DIM
         xoffset (hover_lift(-80) if xalign < 0.5 else hover_lift(80))
-        easein anim_t(0.4) alpha 0.55 zoom 0.94 xoffset 0
+        easein anim_t(0.4) alpha SP_BG_ALPHA zoom 0.94 xoffset 0
     on replace:
-        linear anim_t(0.3) zoom 0.94 alpha 0.55 xoffset 0
+        linear anim_t(0.3) zoom 0.94 alpha SP_BG_ALPHA xoffset 0 matrixcolor SP_DIM
     on hide:
         easeout anim_t(0.3) alpha 0.0
 
