@@ -540,7 +540,7 @@ transform golden_glint(d=0.0):
 screen golden_ticket(gid, x, y):
     if gid not in persistent.golden_found:
         button:
-            pos (x + MAP_X0, y + MAP_Y0)
+            pos map_xy(x, y)
             xysize (40, 28)
             padding (0, 0)
             background None

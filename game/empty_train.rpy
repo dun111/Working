@@ -128,7 +128,7 @@ init 1 python:
         keep = []
         caught = False
         for x, y, t in store.et_shades:
-            sx, sy = x + MAP_X0 + 90, y + MAP_Y0 + 120
+            sx, sy = map_xy(x + 90, y + 120)
             if (mx - sx) ** 2 + (my - sy) ** 2 <= 170 ** 2:
                 t += 0.1
             else:
@@ -271,8 +271,9 @@ transform et_step_to(z):
 screen et_c1():
     add "et c1"
     fixed:
-        pos (MAP_X0, MAP_Y0)
+        pos map_xy(0, 0)
         xysize (DESIGN_W, DESIGN_H)
+        at Transform(zoom=MAP_K)
         showif not et_c1_gone:
             # look straight at it and it isn't there any more
             button:
@@ -297,8 +298,9 @@ screen et_c3():
         if i in et_rooms_open:
             # an open room: the dark inside, and whoever's in it
             fixed:
-                pos (rx + MAP_X0, 240 + MAP_Y0)
+                pos map_xy(rx, 240)
                 xysize (300, 560)
+                at Transform(zoom=MAP_K)
                 add rbox("#020102", 14)
                 if i != et_room_door:
                     add et_shade(500):
@@ -308,8 +310,9 @@ screen et_c3():
         else:
             # a closed cabin door, slightly ajar
             fixed:
-                pos (rx + MAP_X0, 240 + MAP_Y0)
+                pos map_xy(rx, 240)
                 xysize (300, 560)
+                at Transform(zoom=MAP_K)
                 add rbox("#1b1920", 14)
                 add rbox("#232129", 10):
                     pos (20, 20)
@@ -329,8 +332,9 @@ screen et_c4():
     add "et c4"
     timer 0.1 repeat True action Function(et_c4_tick)
     fixed:
-        pos (MAP_X0, MAP_Y0)
+        pos map_xy(0, 0)
         xysize (DESIGN_W, DESIGN_H)
+        at Transform(zoom=MAP_K)
         for x, y, t in et_shades:
             add et_shade(480):
                 pos (x, y)
@@ -343,8 +347,9 @@ screen et_c5():
     add "et c5"
     timer 0.5 repeat True action Function(et_c5_tick)
     fixed:
-        pos (MAP_X0, MAP_Y0)
+        pos map_xy(0, 0)
         xysize (DESIGN_W, DESIGN_H)
+        at Transform(zoom=MAP_K)
         # it only moves while you're not looking at it
         $ z = 0.45 + et_step * 0.16
         button:
@@ -367,8 +372,9 @@ screen et_c5():
 screen et_c6_crowd():
     zorder 5
     fixed:
-        pos (MAP_X0, MAP_Y0)
+        pos map_xy(0, 0)
         xysize (DESIGN_W, DESIGN_H)
+        at Transform(zoom=MAP_K)
         for i, (x, h) in enumerate([(80, 620), (300, 520), (480, 440), (620, 380),
                                     (1180, 380), (1320, 440), (1500, 520), (1720, 620)]):
             add et_shade(h):

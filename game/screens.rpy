@@ -3526,36 +3526,47 @@ screen old_map_fx():
             add "images/map_deco.png":
                 xysize (config.screen_width, config.screen_height)
                 at map_deco_in
+        # the carriage name: a slim plate at the very top
         frame:
             xalign 0.5
-            ypos 70
-            padding (30, 8)
-            background rbox("#e9d9b4c0", 14)
+            ypos 18
+            padding (22, 5)
+            background rbox("#e9d9b4d0", 12)
             at map_title_in
             hbox:
-                spacing 18
+                spacing 14
                 text mt[0]:
-                    size 26
+                    yalign 0.5
+                    size 22
                     color "#5a2a12"
                     font "gui/Graduate-Regular.ttf"
                 text mt[1]:
-                    size 20
-                    color "#7a4a28"
                     yalign 0.5
+                    size 16
+                    color "#7a4a28"
                     font "gui/Graduate-Regular.ttf"
-        # objective line under the title plate (toggle in Settings > Gameplay)
+        # what to do next, out of the way at the bottom (Settings > Gameplay)
         if persistent.show_objective:
             $ obj_text = current_objective()
             frame:
                 xalign 0.5
-                ypos 130
-                padding (20, 6)
-                background rbox("#e9d9b488", 12)
+                yalign 1.0
+                yoffset -18
+                padding (18, 5)
+                background rbox("#0a0806b0", 10)
                 at map_title_in
-                text "OBJECTIVE: [obj_text]":
-                    size 18
-                    color "#5a2a12"
-                    font "gui/Graduate-Regular.ttf"
+                hbox:
+                    spacing 10
+                    text _("OBJECTIVE"):
+                        yalign 0.5
+                        size 13
+                        color "#e6a817"
+                        font "gui/Graduate-Regular.ttf"
+                    text obj_text:
+                        yalign 0.5
+                        size 16
+                        color "#e9d9b4"
+                        font "gui/Graduate-Regular.ttf"
 
 
 # ==============================================================================
