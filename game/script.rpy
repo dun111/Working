@@ -110,10 +110,12 @@ screen carriage_1_map():
     # Fedora is drawn into the carriage art (images/Carriage_1_With_CharacterS.webp)
     if in_loop or not c1_talked_fedora:
         use hs((1185, 625, 125, 180), Call("c1_fedora_dialogue"), "Fedora", "talk")
-    use hs((740, 620, 160, 160), Call("c1_interact_window"), "Window", delay=0.05)
-    use hs((940, 620, 160, 160), Call("c1_interact_cupboard"), "Cupboard", delay=0.1)
-    use hs((1390, 620, 160, 160), Call("c1_interact_admin_door"), "Admin door", delay=0.15)
-    use hs((1590, 620, 160, 160), Call("c1_interact_tea_stain"), "Tea stain", delay=0.2)
+    # on the things in the art: a window pane, the stand at the carriage's end,
+    # the end wall of the aisle, a spot on the aisle carpet
+    use hs((860, 240, 200, 150), Call("c1_interact_window"), "Window", delay=0.05)
+    use hs((30, 740, 110, 110), Call("c1_interact_cupboard"), "Cupboard", delay=0.1)
+    use hs((30, 560, 110, 130), Call("c1_interact_admin_door"), "Admin door", delay=0.15)
+    use hs((560, 600, 160, 90), Call("c1_interact_tea_stain"), "Tea stain", delay=0.2)
     if in_loop or c1_talked_fedora:
         use hs(DOOR_RIGHT, Jump("c1_door_to_carriage_2"), "Carriage 2", "door", 0.25)
 
@@ -170,8 +172,9 @@ screen carriage_5_map():
         use hs((250, 150, 220, 400), Call("c5_pattison_dialogue"), "Pattison", "talk")
     if not c5_talked_alexander:
         use hs((700, 150, 220, 400), Call("c5_alexander_dialogue"), "Alexander", "talk", 0.05)
-    use hs((950, 620, 160, 160), Call("c5_interact_mail_room"), "Mail", delay=0.1)
-    use hs((1150, 620, 160, 160), Call("c5_interact_luggage_room"), "Luggage room", delay=0.15)
+    # the mail stacks on the left, the wire luggage cage in the middle
+    use hs((60, 290, 380, 200), Call("c5_interact_mail_room"), "Mail", delay=0.1)
+    use hs((920, 470, 500, 250), Call("c5_interact_luggage_room"), "Luggage room", delay=0.15)
     if c5_talked_pattison and c5_talked_alexander:
         use hs(DOOR_RIGHT, Jump("c5_carriage6_door"), "Carriage 6", "door", 0.2)
 
