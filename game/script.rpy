@@ -106,7 +106,7 @@ default door_c4_open = False
 
 screen carriage_1_map():
     add "bg carriage_1"
-    use golden_ticket("c1", 1840, 700)    # hidden: secrets.rpy
+    use golden_ticket("c1", 420, 840)    # hidden: secrets.rpy
     # Fedora is drawn into the carriage art (images/Carriage_1_With_CharacterS.webp)
     if in_loop or not c1_talked_fedora:
         use hs((1185, 625, 125, 180), Call("c1_fedora_dialogue"), "Fedora", "talk")
@@ -115,12 +115,12 @@ screen carriage_1_map():
     use hs((1390, 620, 160, 160), Call("c1_interact_admin_door"), "Admin door", delay=0.15)
     use hs((1590, 620, 160, 160), Call("c1_interact_tea_stain"), "Tea stain", delay=0.2)
     if in_loop or c1_talked_fedora:
-        use hs((1100, 200, 150, 400), Jump("c1_door_to_carriage_2"), "Carriage 2", "door", 0.25)
+        use hs(DOOR_RIGHT, Jump("c1_door_to_carriage_2"), "Carriage 2", "door", 0.25)
 
 screen carriage_2_map():
     add "bg carriage_2"
     use golden_ticket("c2", 1760, 880)    # hidden: secrets.rpy
-    use hs((0, 600, 80, 300), Jump("carriage_1_hub"), "", "back")
+    use hs(DOOR_LEFT, Jump("carriage_1_hub"), "Carriage 1", "back")
     if not c2_talked_eduard:
         use hs((350, 150, 180, 400), Call("c2_eduard_dialogue"), "Eduard", "talk")
     if not c2_talked_shunyu:
@@ -128,12 +128,12 @@ screen carriage_2_map():
     use hs((950, 620, 160, 160), Call("c2_interact_window"), "Window", delay=0.1)
     use hs((1150, 620, 160, 160), Call("c2_interact_broken_glass"), "Broken glass", delay=0.15)
     if c2_talked_eduard and c2_talked_shunyu:
-        use hs((1100, 200, 150, 400), Jump("carriage_3_start"), "Carriage 3", "door", 0.2)
+        use hs(DOOR_RIGHT, Jump("carriage_3_start"), "Carriage 3", "door", 0.2)
 
 screen carriage_3_map():
     add "bg carriage_3"
     use golden_ticket("c3", 1820, 300)    # hidden: secrets.rpy
-    use hs((0, 600, 80, 300), Jump("carriage_2_hub"), "", "back")
+    use hs(DOOR_LEFT, Jump("carriage_2_hub"), "Carriage 2", "back")
     if not c3_talked_kimmy:
         use hs((100, 150, 180, 400), Call("c3_kimmy_dialogue"), "Kimmy", "talk")
     if not c3_talked_himmel:
@@ -147,12 +147,12 @@ screen carriage_3_map():
     use hs((1350, 620, 160, 160), Call("c3_interact_toys"), "Toys", delay=0.3)
     use hs((1550, 620, 160, 160), Call("c3_interact_luggage"), "Luggage", delay=0.35)
     if c3_talked_kimmy and c3_talked_himmel and c3_talked_sebastian and c3_talked_misha:
-        use hs((1100, 200, 150, 400), Jump("carriage_4_start"), "Carriage 4", "door", 0.4)
+        use hs(DOOR_RIGHT, Jump("carriage_4_start"), "Carriage 4", "door", 0.4)
 
 screen carriage_4_map():
     add "bg carriage_4"
     use golden_ticket("c4", 420, 860)    # hidden: secrets.rpy
-    use hs((0, 600, 80, 300), Jump("carriage_3_hub"), "", "back")
+    use hs(DOOR_LEFT, Jump("carriage_3_hub"), "Carriage 3", "back")
     if not c4_talked_agatha:
         use hs((250, 150, 220, 400), Call("c4_agatha_dialogue"), "Agatha", "talk")
     if not c4_talked_ichora:
@@ -160,12 +160,12 @@ screen carriage_4_map():
     use hs((950, 620, 160, 160), Call("c4_interact_syringe"), "Syringe", delay=0.1)
     use hs((1150, 620, 160, 160), Call("c4_interact_engine"), "Engine", delay=0.15)
     if c4_talked_agatha and c4_talked_ichora:
-        use hs((1100, 200, 150, 400), Jump("carriage_5_start"), "Carriage 5", "door", 0.2)
+        use hs(DOOR_RIGHT, Jump("carriage_5_start"), "Carriage 5", "door", 0.2)
 
 screen carriage_5_map():
     add "bg carriage_5"
     use golden_ticket("c5", 1700, 560)    # hidden: secrets.rpy
-    use hs((0, 600, 80, 300), Jump("carriage_4_hub"), "", "back")
+    use hs(DOOR_LEFT, Jump("carriage_4_hub"), "Carriage 4", "back")
     if not c5_talked_pattison:
         use hs((250, 150, 220, 400), Call("c5_pattison_dialogue"), "Pattison", "talk")
     if not c5_talked_alexander:
@@ -173,7 +173,7 @@ screen carriage_5_map():
     use hs((950, 620, 160, 160), Call("c5_interact_mail_room"), "Mail", delay=0.1)
     use hs((1150, 620, 160, 160), Call("c5_interact_luggage_room"), "Luggage room", delay=0.15)
     if c5_talked_pattison and c5_talked_alexander:
-        use hs((1400, 200, 150, 400), Jump("c5_carriage6_door"), "Carriage 6", "door", 0.2)
+        use hs(DOOR_RIGHT, Jump("c5_carriage6_door"), "Carriage 6", "door", 0.2)
 
 # ---- Part 2 -------------------------------------------------------------------
 
@@ -194,17 +194,17 @@ screen carriage_2_part2_investigation_map():
     if not c2_p2_reinterviewed_agatha:
         use hs((600, 150, 200, 400), Call("c2_p2_reinterview_agatha"), "Agatha", "talk", 0.05)
     if c2_p2_reinterviewed_eduard and c2_p2_reinterviewed_agatha:
-        use hs((1100, 150, 200, 400), Jump("part2_chapter_end"), "Carriage 3", "door", 0.1)
+        use hs(DOOR_RIGHT, Jump("part2_chapter_end"), "Carriage 3", "door", 0.1)
 
 # Carriage 2 once the investigation there is finished (door to carriage 3 only)
 screen carriage_2_part2_after_map():
     add "bg carriage_2"
-    use hs((1100, 150, 200, 400), Jump("carriage_3_part2_hub"), "Carriage 3", "door")
+    use hs(DOOR_RIGHT, Jump("carriage_3_part2_hub"), "Carriage 3", "door")
 
 screen carriage_3_part2_map():
     add "bg carriage_3"
     use golden_ticket("c3b", 1500, 120)    # hidden: secrets.rpy
-    use hs((0, 600, 80, 300), Jump("carriage_2_part2_return"), "", "back")
+    use hs(DOOR_LEFT, Jump("carriage_2_part2_return"), "Carriage 2", "back")
 
     # Kimmy / Himmel only have something new to say once the wrapper is found
     if clue_drug_wrapper and not kimmy_reinterviewed:
@@ -223,13 +223,13 @@ screen carriage_3_part2_map():
     use hs((1550, 620, 160, 160), Call("c3_p2_interact_luggage"), "Luggage", delay=0.3)
 
     if kimmy_reinterviewed and himmel_reinterviewed and sebastian_reinterviewed and misha_reinterviewed:
-        use hs((1100, 200, 150, 400), Jump("carriage_5_part2_start"), "Carriage 5", "door", 0.35)
+        use hs(DOOR_RIGHT, Jump("carriage_5_part2_start"), "Carriage 5", "door", 0.35)
 
 # Alexander and Pattison live in carriage 5 (the mail room), same as part 1.
 screen carriage_5_part2_map():
     add "bg carriage_5"
     use golden_ticket("c5b", 90, 200)    # hidden: secrets.rpy
-    use hs((0, 600, 80, 300), Jump("carriage_3_part2_hub"), "", "back")
+    use hs(DOOR_LEFT, Jump("carriage_3_part2_hub"), "Carriage 3", "back")
     if not alexander_reinterviewed:
         use hs((700, 150, 220, 400), Call("c5_p2_alexander_dialogue"), "Alexander", "talk")
     if alexander_reinterviewed and not pattison_reinterviewed:

@@ -329,6 +329,18 @@ transform hs_in(delay=0.0):
     pause anim_t(delay)
     ease anim_t(0.3) alpha 1.0
 
+# the doors sit on the screen edges: next carriage on the right, back on the left
+define DOOR_RIGHT = (1820, 340, 100, 400)
+define DOOR_LEFT = (0, 340, 100, 400)
+
+# the arrow on a door nudges toward the edge it leads to
+transform door_nudge(dx):
+    xoffset 0
+    block:
+        ease anim_t(0.7) xoffset dx
+        ease anim_t(0.7) xoffset 0
+        repeat
+
 screen hs(rect, act, label="", kind="look", delay=0.0):
     $ hx, hy, hw, hh = rect
     $ hcol, hkind = HS_STYLE.get(kind, HS_STYLE["look"])
@@ -344,30 +356,46 @@ screen hs(rect, act, label="", kind="look", delay=0.0):
         at hs_in(delay)
 
         # characters: the marker and tag float just above their head, so they
-        # don't cover the art. Everything else: marker in the middle, tag below.
+        # don't cover the art. Doors: a big arrow pointing off the edge.
+        # Everything else: marker in the middle, tag below.
         $ on_head = (kind == "talk")
+        $ edge = kind in ("door", "back")
         fixed:
             fit_first False
             xysize (hw, hh)
 
-            add Solid(hcol):
-                xysize (20, 20)
-                xalign 0.5
-                yalign (0.0 if on_head else 0.5)
-                yoffset (-18 if on_head else 0)
-                at hs_ring
-            add Solid(hcol):
-                xysize (14, 14)
-                xalign 0.5
-                yalign (0.0 if on_head else 0.5)
-                yoffset (-15 if on_head else 0)
-                at hs_pulse
+            if edge:
+                text ("›" if kind == "door" else "‹"):
+                    xalign 0.5
+                    yalign 0.5
+                    yoffset -10
+                    size 84
+                    font "DejaVuSans.ttf"
+                    idle_color hcol
+                    hover_color "#ffffff"
+                    at door_nudge(10 if kind == "door" else -10)
+
+            if not edge:
+                add Solid(hcol):
+                    xysize (20, 20)
+                    xalign 0.5
+                    yalign (0.0 if on_head else 0.5)
+                    yoffset (-18 if on_head else 0)
+                    at hs_ring
+                add Solid(hcol):
+                    xysize (14, 14)
+                    xalign 0.5
+                    yalign (0.0 if on_head else 0.5)
+                    yoffset (-15 if on_head else 0)
+                    at hs_pulse
 
             # one small tag:  TALK  Fedora
             frame:
-                xalign 0.5
+                # door tags hug the edge so they stay on screen
+                xalign ((1.0 if kind == "door" else 0.0) if edge else 0.5)
+                xoffset ((-8 if kind == "door" else 8) if edge else 0)
                 yalign (0.0 if on_head else 0.5)
-                yoffset (-58 if on_head else 34)
+                yoffset (-58 if on_head else (58 if edge else 34))
                 padding (10, 3)
                 idle_background rbox("#0a0a0ed8", 10)
                 hover_background rbox(hcol, 10)
@@ -375,6 +403,7 @@ screen hs(rect, act, label="", kind="look", delay=0.0):
                     spacing 7
                     text hkind:
                         yalign 0.5
+                        layout "nobreak"
                         size 11
                         font GFONT
                         idle_color hcol
