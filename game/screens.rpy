@@ -292,28 +292,71 @@ transform train_shake:
 transform no_shake:
     pass
 
-# the main menu: the carriage never stops rumbling, and every couple of
-# seconds the wheels go over a joint in the track
-# RUMBLE STRENGTH: EXTREME - violent shaking, a slight tilt, and a hard
-# lurch every second or so like the train is jumping the tracks
+# the main menu: quiet for a while, then every 10 seconds the carriage
+# rumbles over a joint in the track and the logo goes red. Both read the same
+# clock (menu_phase) so they stay in step - and a screen refresh can't restart
+# them. No rotate here - tilting the menu threw the key off.
+define MENU_RUMBLE_EVERY = 10.0     # seconds from one rumble to the next
+define MENU_RUMBLE_LONG = 1.4       # how long each rumble lasts
+
+init python:
+    import math as _math
+    import time as _time
+
+    class _MENU_CLOCK(object):
+        t0 = None
+
+    def menu_phase():
+        """Seconds into the current rumble loop. The rumble is at the end."""
+        now = _time.time()
+        if _MENU_CLOCK.t0 is None:
+            _MENU_CLOCK.t0 = now
+        return (now - _MENU_CLOCK.t0) % MENU_RUMBLE_EVERY
+
+    def menu_rumbling():
+        """How far through the rumble we are (0 to 1), or None when calm."""
+        k = menu_phase() - (MENU_RUMBLE_EVERY - MENU_RUMBLE_LONG)
+        return (k / MENU_RUMBLE_LONG) if k >= 0 else None
+
+    def _menu_shake(trans, extreme):
+        k = menu_rumbling()
+        if k is None:
+            trans.xoffset = 0
+            trans.yoffset = 0
+            return 0
+        t = k * MENU_RUMBLE_LONG
+        a = 12 if extreme else 3
+        x = a * _math.sin(t * 157.0)
+        y = a * 0.8 * _math.sin(t * 113.0 + 1.0)
+        # the last part: one big jolt over the joint
+        if k > 0.7:
+            j = _math.sin((k - 0.7) / 0.3 * _math.pi)
+            x += (-30 if extreme else -4) * j
+            y += (26 if extreme else 9) * j
+        trans.xoffset = int(x)
+        trans.yoffset = int(y)
+        return 0
+
+    def menu_shake_normal(trans, st, at):
+        return _menu_shake(trans, False)
+
+    def menu_shake_extreme(trans, st, at):
+        return _menu_shake(trans, True)
+
+    def _menu_logo(st, at):
+        # yellow, flashing up red while the carriage rumbles, then easing back
+        k = menu_rumbling()
+        if k is not None:
+            red = min(1.0, k * MENU_RUMBLE_LONG / 0.08)
+        else:
+            red = max(0.0, 1.0 - menu_phase() / 0.6)
+        return Fixed("images/Game_Logo_Yellow.webp",
+                     Transform("images/Game_Logo_Red.webp", alpha=red),
+                     fit_first=True), 0.03
+
+# RUMBLE STRENGTH: EXTREME - violent shaking and a hard lurch
 transform menu_rumble_extreme:
-    xoffset 0
-    yoffset 0
-    rotate 0
-    block:
-        linear 0.04 xoffset -12 yoffset 9 rotate -0.5
-        linear 0.04 xoffset 13 yoffset -8 rotate 0.4
-        linear 0.04 xoffset -10 yoffset 12 rotate -0.3
-        linear 0.04 xoffset 11 yoffset -10 rotate 0.5
-        linear 0.04 xoffset -13 yoffset -7 rotate -0.4
-        linear 0.04 xoffset 9 yoffset 11 rotate 0.3
-        repeat 4
-        # the lurch
-        easeout 0.07 xoffset -34 yoffset 28 rotate -1.4
-        easein 0.12 xoffset 26 yoffset -18 rotate 1.0
-        easeout 0.07 xoffset -20 yoffset 22 rotate -0.8
-        easein 0.14 xoffset 0 yoffset 0 rotate 0
-        repeat
+    function menu_shake_extreme
 
 # in game the whole carriage shakes, zoomed in a little so the edges never show
 transform train_rumble_extreme:
@@ -346,24 +389,7 @@ init python:
         renpy.restart_interaction()
 
 transform menu_rumble:
-    xoffset 0
-    yoffset 0
-    block:
-        linear 0.05 xoffset -3 yoffset 2
-        linear 0.05 xoffset 3 yoffset -2
-        linear 0.05 xoffset -2 yoffset 3
-        linear 0.05 xoffset 3 yoffset -1
-        linear 0.05 xoffset -3 yoffset -2
-        linear 0.05 xoffset 2 yoffset 2
-        linear 0.05 xoffset -2 yoffset -3
-        linear 0.05 xoffset 3 yoffset 1
-        repeat 5
-        # clack-clack
-        easeout 0.06 yoffset 9 xoffset -4
-        easein 0.12 yoffset -2 xoffset 2
-        easeout 0.06 yoffset 7 xoffset 3
-        easein 0.16 yoffset 0 xoffset 0
-        repeat
+    function menu_shake_normal
 
 # Hover = a small lift. Offsets never change layout size, so neighbouring
 # buttons no longer jitter.
@@ -1513,6 +1539,9 @@ image main_menu_bg_rotation:
     repeat
 
 # Game_Logo_Purple.webp also exists in game/images if you want a third colour.
+# the main menu logo: yellow, and red while the carriage rumbles (_menu_logo)
+image game_logo_rumble = DynamicDisplayable(_menu_logo)
+
 image game_logo_cycle:
     "images/Game_Logo_Red.webp" with dissolve
     pause 3.0
@@ -2063,7 +2092,7 @@ screen main_menu():
                         xsize gui.sidebar_content_width
                         spacing 26
 
-                        add "game_logo_cycle":
+                        add "game_logo_rumble":
                             xsize gui.sidebar_content_width
                             ysize 240
                             fit "contain"
@@ -2152,7 +2181,7 @@ screen main_menu():
                 if logo_glitched:
                     add Transform("images/Game_Logo_Purple.webp", fit="contain", xysize=(CINE_LOGO_W, int(CINE_LOGO_W * 808 / 1239.0))) at logo_glitch
                 else:
-                    add "game_logo_cycle":
+                    add "game_logo_rumble":
                         xysize (CINE_LOGO_W, int(CINE_LOGO_W * 808 / 1239.0))
                         fit "contain"
 
