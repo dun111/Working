@@ -164,7 +164,7 @@ init 1 python:
 # LOOK AND FEEL
 # ------------------------------------------------------------------------------
 
-image et c1 = Transform("bg carriage_1", matrixcolor=SaturationMatrix(0.0) * BrightnessMatrix(-0.32) * TintMatrix("#a8b4c4"))
+image et c1 = Transform("bg carriage_1_empty", matrixcolor=SaturationMatrix(0.0) * BrightnessMatrix(-0.32) * TintMatrix("#a8b4c4"))
 image et c2 = Solid("#0d0b10")
 image et c3 = Solid("#0b0d10")
 image et c4 = Solid("#0a0b09")

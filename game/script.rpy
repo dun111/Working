@@ -106,13 +106,14 @@ default door_c4_open = False
 
 screen carriage_1_map():
     add "bg carriage_1"
-    use golden_ticket("c1", 150, 470)    # hidden: secrets.rpy
+    use golden_ticket("c1", 1840, 700)    # hidden: secrets.rpy
+    # Fedora is drawn into the carriage art (images/Carriage_1_With_CharacterS.webp)
     if in_loop or not c1_talked_fedora:
-        use hs((700, 150, 200, 400), Call("c1_fedora_dialogue"), "Fedora", "talk")
-    use hs((950, 620, 160, 160), Call("c1_interact_window"), "Window", delay=0.05)
-    use hs((1150, 620, 160, 160), Call("c1_interact_cupboard"), "Cupboard", delay=0.1)
-    use hs((1350, 620, 160, 160), Call("c1_interact_admin_door"), "Admin door", delay=0.15)
-    use hs((1550, 620, 160, 160), Call("c1_interact_tea_stain"), "Tea stain", delay=0.2)
+        use hs((1185, 625, 125, 180), Call("c1_fedora_dialogue"), "Fedora", "talk")
+    use hs((740, 620, 160, 160), Call("c1_interact_window"), "Window", delay=0.05)
+    use hs((940, 620, 160, 160), Call("c1_interact_cupboard"), "Cupboard", delay=0.1)
+    use hs((1390, 620, 160, 160), Call("c1_interact_admin_door"), "Admin door", delay=0.15)
+    use hs((1590, 620, 160, 160), Call("c1_interact_tea_stain"), "Tea stain", delay=0.2)
     if in_loop or c1_talked_fedora:
         use hs((1100, 200, 150, 400), Jump("c1_door_to_carriage_2"), "Carriage 2", "door", 0.25)
 
@@ -257,7 +258,6 @@ label start:
     l "Eugh… augh… guhhh… I feel the ground underneath me moving, and hear the sound of… chugging?"
     "{i}(Chugging){/i}"
     "{i}He opens his eyes.{/i}"
-    l "“Wh-where am I?”{w=1}"
     "{i}He looks around, and sees a ticket woman.{/i}"
     show louis confused at speaker_background(xalign=0.1)
     show dorothy confused at speaker_focus(xalign=0.9)
@@ -778,24 +778,15 @@ label part2_start:
     show dorothy neutral at speaker_background(xalign=0.9)
     show louis neutral at speaker_focus(xalign=0.1)
     l "Man… This seems familiar…"
-    "{i}He opens his eyes.{/i}"
     l "“Here again?”"
-    "{i}He looks around, and sees a ticket woman.{/i}"
     show louis neutral at speaker_background(xalign=0.1)
     d "Excuse me sir, tickets please."
     show dorothy neutral at speaker_background(xalign=0.9)
     show louis confused at speaker_focus(xalign=0.1)
     l "Didn't I already give you my ticket?"
-    show louis confused at speaker_background(xalign=0.1)
-    d "Are you fine… sir?"
-    show dorothy neutral at speaker_background(xalign=0.9)
-    show louis confused at speaker_focus(xalign=0.1)
     "{i}Louis feels something in his pocket, looks down and sees the ticket is still there. Now, it has a word on it: “DO OR DIE.”{/i}"
     $ ticket_flash()
     l "Huh??"
-    show louis confused at speaker_background(xalign=0.1)
-    d "I see. Well sir, welcome aboard the Grekhov Express…"
-    show dorothy neutral at speaker_background(xalign=0.9)
     show louis neutral at speaker_focus(xalign=0.1)
     l "I'm… back at the start?"
     scene bg carriage_1 with dissolve
@@ -829,10 +820,6 @@ label c2_p2_talk_eduard:
     show eduard neutral at speaker_background(xalign=0.9)
     show louis neutral at speaker_focus(xalign=0.1)
     l "Uh… hey, you open?"
-    show louis neutral at speaker_background(xalign=0.1)
-    ed "All the better for me, I reckon…"
-    show eduard neutral at speaker_background(xalign=0.9)
-    l "...What?"
     show louis neutral at speaker_background(xalign=0.1)
     ed "All the better for me, I reckon…"
     show eduard neutral at speaker_background(xalign=0.9)
@@ -1302,8 +1289,6 @@ label c5_p2_pattison_dialogue:
     p "That's what I said, isn't it?"
     show pattison neutral at speaker_background(xalign=0.9)
     l "...Right. Thank you, Pattison."
-    show louis neutral at speaker_background(xalign=0.1)
-    p "This goes to the clock, while this goes to the end..."
     "{i}He returns to his sorting like the conversation never happened.{/i}"
     $ found_clue("clue_alexander_alibi")
     $ achievement.grant("alibi_confirmed")
