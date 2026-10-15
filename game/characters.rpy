@@ -343,37 +343,47 @@ screen hs(rect, act, label="", kind="look", delay=0.0):
         alt (hkind + " " + label)
         at hs_in(delay)
 
+        # characters: the marker and tag float just above their head, so they
+        # don't cover the art. Everything else: marker in the middle, tag below.
+        $ on_head = (kind == "talk")
         fixed:
             fit_first False
             xysize (hw, hh)
 
             add Solid(hcol):
-                xysize (26, 26)
-                align (0.5, 0.5)
+                xysize (20, 20)
+                xalign 0.5
+                yalign (0.0 if on_head else 0.5)
+                yoffset (-18 if on_head else 0)
                 at hs_ring
             add Solid(hcol):
-                xysize (18, 18)
-                align (0.5, 0.5)
+                xysize (14, 14)
+                xalign 0.5
+                yalign (0.0 if on_head else 0.5)
+                yoffset (-15 if on_head else 0)
                 at hs_pulse
 
+            # one small tag:  TALK  Fedora
             frame:
                 xalign 0.5
-                yalign 0.5
-                yoffset 46
-                padding (12, 4)
-                idle_background rbox("#0a0a0ecc", 12)
-                hover_background rbox(hcol, 12)
-                vbox:
+                yalign (0.0 if on_head else 0.5)
+                yoffset (-58 if on_head else 34)
+                padding (10, 3)
+                idle_background rbox("#0a0a0ed8", 10)
+                hover_background rbox(hcol, 10)
+                hbox:
+                    spacing 7
                     text hkind:
-                        xalign 0.5
-                        size 13
+                        yalign 0.5
+                        size 11
                         font GFONT
                         idle_color hcol
                         hover_color "#0a0a0e"
                     if label:
                         text label:
-                            xalign 0.5
-                            size 18
+                            yalign 0.5
+                            layout "nobreak"
+                            size 15
                             font GFONT
                             idle_color "#e8e4dc"
                             hover_color "#0a0a0e"
