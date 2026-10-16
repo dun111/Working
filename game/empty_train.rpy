@@ -512,6 +512,7 @@ screen et_c6_crowd():
 # ------------------------------------------------------------------------------
 
 label empty_train:
+    $ in_secret_game = True        # saves made in here don't count for CONTINUE
     $ renpy.block_rollback()
     stop music fadeout 2.0
     hide screen loop_overlay

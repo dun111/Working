@@ -931,13 +931,27 @@ init python:
     KEY_LOOP_BACK = Transform("gui/key_loop.png", zoom=KEY_LOOP_ZOOM)
     KEY_LOOP_FRONT = Transform("gui/key_loop_front.png", zoom=KEY_LOOP_ZOOM)
 
+    # every save remembers whether it was made in the story or in a secret
+    # game (the empty train), so CONTINUE only picks up the story
+    def _save_tag(d):
+        d["story"] = not getattr(store, "in_secret_game", False)
+
+    config.save_json_callbacks.append(_save_tag)
+
     def latest_save():
-        """The newest save that can actually be loaded (not Ren'Py's own _reload slots)."""
+        """The newest story save that can be loaded. Skips Ren'Py's own _reload
+        slots, saves made in the secret empty-train game, and saves from before
+        saves were tagged."""
         try:
-            slot = renpy.newest_slot(r"^(?!_)")
-            return slot if (slot and renpy.can_load(slot)) else None
+            slots = renpy.list_slots(r"^(?!_)")
+            slots.sort(key=lambda s: renpy.slot_mtime(s) or 0, reverse=True)
+            for slot in slots:
+                info = renpy.slot_json(slot) or {}
+                if info.get("story") and renpy.can_load(slot):
+                    return slot
         except Exception:
-            return None
+            pass
+        return None
 
     def continue_game():
         """CONTINUE: load the newest save, or start a new game if there's nothing to continue."""
@@ -982,6 +996,7 @@ default persistent.mg_difficulty = 1
 default persistent.mg_timers = True
 default persistent.mg_skip_allowed = True
 default persistent.autosave_on = True
+default in_secret_game = False       # True while playing the empty train (empty_train.rpy)
 default persistent.film_transition = True
 default persistent.old_map = True
 default persistent.menu_style = "new"         # "new" or "classic" (the rounded sidebar)
