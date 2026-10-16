@@ -538,7 +538,7 @@ label empty_train:
 
     # 1 ------------------------------------------------------------------------
     call screen et_c1
-    call et_hard_cut
+    call et_hard_cut from _call_et_hard_cut
 
     # 2 ------------------------------------------------------------------------
     $ et_level = 2
@@ -555,7 +555,7 @@ label empty_train:
     with Dissolve(0.08)
     "{whisper}{i}No one is there.{/i}{/whisper}"
     call screen et_c2
-    call et_hard_cut
+    call et_hard_cut from _call_et_hard_cut_1
 
     # 3 ------------------------------------------------------------------------
     $ et_level = 3
@@ -566,7 +566,7 @@ label et_c3_loop:
     call screen et_c3
     $ et_rooms_open = et_rooms_open + [_return]
     if _return == et_room_door:
-        call et_hard_cut
+        call et_hard_cut from _call_et_hard_cut_2
         jump et_c4_start
     $ et_wrong += 1
     if et_wrong == 1:
@@ -584,7 +584,7 @@ label et_c4_start:
     "{whisper}Huh… It's dark..{/whisper}"
     $ et_c4_setup()
     call screen et_c4
-    call et_hard_cut
+    call et_hard_cut from _call_et_hard_cut_3
 
     # 5 ------------------------------------------------------------------------
 label et_c5_start:
@@ -599,7 +599,7 @@ label et_c5_start:
         $ et_scare(1.0)
         u "{glitch}You'll see.{/glitch}"
         jump et_c5_start
-    call et_hard_cut
+    call et_hard_cut from _call_et_hard_cut_4
 
     # 6 ------------------------------------------------------------------------
     $ et_level = 6
@@ -645,7 +645,7 @@ label et_c5_start:
     "{i}Louis wakes up violently to the sound of train tracks.{/i}"
     l "{tremble}I'm… back at the start?{/tremble}"
     # one last look
-    call et_hard_cut
+    call et_hard_cut from _call_et_hard_cut_5
 
     $ persistent.empty_train_done = True
     $ secret_found("empty_train", "empty_train")

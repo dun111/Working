@@ -274,7 +274,7 @@ label start:
     show louis looking_around at speaker_focus(xalign=0.1)
     "{i}Louis feels something in his pocket, looks down and sees a ticket.{/i}"
     l "Uh… uh… yes, the ticket. I think it's somewhere here…"
-    call play_required("mg_ticket", ticket_reset)
+    call play_required("mg_ticket", ticket_reset) from _call_play_required
     "{i}He pulls the ticket out of his pocket.{/i}"
     show louis confused at speaker_focus(xalign=0.1)
     l "Miss, what line is this?"
@@ -364,11 +364,11 @@ label c1_interact_tea_stain:
 label c1_door_to_carriage_2:
     if not in_loop and not door_c2_open:
         $ dr_bg = "bg carriage_1"
-        call play_required("mg_door", door_reset)
+        call play_required("mg_door", door_reset) from _call_play_required_1
         $ door_c2_open = True
     elif in_loop and not door_c2_open_loop:
         $ dr_bg = "bg carriage_1"
-        call play_required("mg_door", door_reset)
+        call play_required("mg_door", door_reset) from _call_play_required_2
         $ door_c2_open_loop = True
     show louis neutral at speaker_focus(xalign=0.5)
     if in_loop:
@@ -587,7 +587,7 @@ label c3_interact_luggage:
 label carriage_4_start:
     if not door_c4_open:
         $ dr_bg = "bg carriage_3"
-        call play_required("mg_door", door_reset)
+        call play_required("mg_door", door_reset) from _call_play_required_3
         $ door_c4_open = True
     if "c4" not in visited_carriages:
         $ visited_carriages.append("c4")
@@ -688,7 +688,7 @@ label c5_pattison_dialogue:
     l "U-uhm… what?"
     show louis neutral at speaker_background(xalign=0.1)
     p "Hello Sir, you another mailworker?"
-    call play_required("mg_mail", mail_reset)
+    call play_required("mg_mail", mail_reset) from _call_play_required_4
     show pattison neutral at speaker_background(xalign=0.9)
     l "No."
     l "I don't even know anybody on this express."
@@ -757,7 +757,7 @@ label c5_interact_luggage_room:
     return
 
 label c5_carriage6_door:
-    call play_required("mg_lockpick", lockpick_reset)
+    call play_required("mg_lockpick", lockpick_reset) from _call_play_required_5
     $ achievement.grant("carriage_5_complete")
     $ achievement.grant("eyes_in_the_dark")
     show louis confused at speaker_focus(xalign=0.5)
@@ -863,7 +863,7 @@ label c2_p2_bar_counter:
     return
 
 label c2_p2_second_table:
-    call play_required("mg_flashlight", flashlight_reset)
+    call play_required("mg_flashlight", flashlight_reset) from _call_play_required_6
     show louis neutral at speaker_focus(xalign=0.5)
     "{i}Someone is slumped over the table.{/i}"
     l "...Hey. Hey, sir? You okay?"
@@ -1080,7 +1080,7 @@ label c3_p2_interact_toys:
 label c3_p2_interact_luggage:
     if not clue_drug_wrapper:
         l "Sorry… I know this isn't really my business, but..."
-        call play_required("mg_combo", combo_reset)
+        call play_required("mg_combo", combo_reset) from _call_play_required_7
         "{i}He nudges one of the bags open, just slightly. Something crinkles.{/i}"
         "{i}Louis finds a small, crumpled wrapper wedged between the folds of a coat. Printed on it, half torn: “...APLE SUGAR… BANNED SUBSTANCE, RESTRICTED USE ONLY.”{/i}"
         l "...This is the same stuff Alexander was selling."
@@ -1095,7 +1095,7 @@ label c3_p2_interact_carpet:
     if not clue_hidden_tile:
         l "This again... It was like this the first time too."
         "{i}He kneels, and this time, pulls at the loose edge.{/i}"
-        call play_required("mg_pry", pry_reset)
+        call play_required("mg_pry", pry_reset) from _call_play_required_8
         "{i}Underneath, tucked flat against the floorboard, is a single mahjong tile - the exact match to the one missing from Shunyu's winning hand.{/i}" with jolt()
         l "...No. No way."
         l "This was under Misha's carpet the whole time."
@@ -1136,7 +1136,7 @@ label c3_p2_himmel_reinterview:
     show louis neutral at speaker_background(xalign=0.1)
     h "I- I don't know what you're talking about!"
     $ evidence_setup("himmel neutral", "Himmel", "I- I don't know what you're talking about!", "clue_drug_wrapper", "talk to himmel")
-    call play_required("mg_evidence", evidence_reset)
+    call play_required("mg_evidence", evidence_reset) from _call_play_required_9
     show himmel neutral at speaker_background(xalign=0.9)
     l "I found a wrapper in your luggage. The banned maple sugar."
     "{i}Himmel's face goes pale.{/i}"
@@ -1173,7 +1173,7 @@ label c3_p2_sebastian_reinterview:
     show sebastian neutral at speaker_background(xalign=0.9)
     show louis neutral at speaker_focus(xalign=0.1)
     $ evidence_setup("sebastian neutral", "Sebastian", "Mr. Popov has been in this cabin all evening, Mr. Louis. Under my supervision.", "clue_hidden_tile", "talk to sebastian")
-    call play_required("mg_evidence", evidence_reset)
+    call play_required("mg_evidence", evidence_reset) from _call_play_required_10
     "{i}Louis holds up the tile.{/i}"
     l "I found this under the carpet in his room, Sebastian. It matches the murder scene exactly."
     "{i}Sebastian's composure cracks, just barely - a flicker, gone as fast as it came.{/i}"
@@ -1246,7 +1246,7 @@ label c5_p2_alexander_dialogue:
     show louis neutral at speaker_focus(xalign=0.1)
     l "Alexander. I found this in Himmel's luggage."
     $ evidence_setup("alexander neutral", "Alexander", "And as for the other one… the stuff was strong so I don't remember.", "clue_drug_wrapper", "talk to alexander")
-    call play_required("mg_evidence", evidence_reset)
+    call play_required("mg_evidence", evidence_reset) from _call_play_required_11
     "{i}Louis holds up the wrapper.{/i}"
     show louis neutral at speaker_background(xalign=0.1)
     al "...Ha. Haha. So? Rich folk get nervous too, y'know."
@@ -1394,7 +1394,7 @@ label accusation_misha:
     show misha neutral at speaker_background(xalign=0.9)
     l "It was Misha."
     $ evidence_setup("misha neutral", "Misha", "You found it, didn't you? Under the carpet.", "clue_hidden_tile", "bg carriage_5")
-    call play_required("mg_evidence", evidence_reset)
+    call play_required("mg_evidence", evidence_reset) from _call_play_required_12
     l "The tile is missing from Shunyu's hand. Hidden under your carpet. The blood at the bar not matching where he was found, someone strong enough, or careless enough, to move a body without thinking twice about what that means. And you kept humming about a 'score.' About people coming back."
     l "{big}It was you the whole time, wasn't it?{/big}"
     "{i}Sebastian steps forward, voice cracking for the first time since Louis met him.{/i}"
@@ -1470,12 +1470,12 @@ label carriage_6_start:
     "{i}The Passenger's grin stretches wider. The Gentleman's shaking speeds up, wrappers peeling further off his skin like scabs. The Conductor-thing unfolds another half-foot taller, the ceiling groaning under it.{/i}"
     u "{glitch}You'll see.{/glitch} Three questions. Three chances. Choose carefully, Louis."
     hide misha with dissolve
-    call play_required("mg_survive", survive_reset)
+    call play_required("mg_survive", survive_reset) from _call_play_required_13
     jump c6_question_1
 
 label c6_question_1:
     $ reveal_setup("The Passenger", "shunyu_monster neutral", "shunyu neutral", "Shunyu")
-    call play_required("mg_reveal", reveal_reset)
+    call play_required("mg_reveal", reveal_reset) from _call_play_required_14
     "{i}The Passenger lurches forward, tiles clicking and clattering out of his throat, arranging themselves on the floor into a crude, shifting sentence only Louis can read.{/i}"
     show shunyu_monster neutral at speaker_focus(xalign=0.2)
     shunyu_monster "{i}(wet, clicking){/i} You can only lose one hundred percent... but you can win one hundred thousand percent... So tell me, matchstick... what did I actually lose?"
@@ -1501,7 +1501,7 @@ label c6_question_1:
 
 label c6_question_2:
     $ reveal_setup("The Gentleman", "himmel_monster neutral", "himmel neutral", "Himmel")
-    call play_required("mg_reveal", reveal_reset)
+    call play_required("mg_reveal", reveal_reset) from _call_play_required_15
     "{i}The Gentleman vibrates closer, wrappers crinkling with every juddering step, hands still clawing at his own chest.{/i}"
     show himmel_monster neutral at speaker_focus(xalign=0.8)
     himmel_monster "{i}(rapid, overlapping){/i} Tell me, tell me, WHAT was I actually running toward? Every time. Every single time. WHAT WAS IT."
@@ -1528,7 +1528,7 @@ label c6_question_2:
 
 label c6_question_3:
     $ reveal_setup("The Conductor", "conductor_monster neutral", "conductor_monster neutral", "The Conductor")
-    call play_required("mg_reveal", reveal_reset)
+    call play_required("mg_reveal", reveal_reset) from _call_play_required_16
     "{i}The Conductor-thing unfolds to its full, impossible height, the faceless expanse of fabric-skin tilting down toward Louis. The mouth-hole opens, and Dorothy's stolen voice pours out, layered and wrong.{/i}"
     show conductor_monster neutral at speaker_focus(xalign=0.5)
     conductor_monster "Thank you for boarding... the Grekhov Express... Tell me, passenger... what is a conductor {scream}FOR{/scream}... if none of you ever truly get off?"
@@ -1576,7 +1576,7 @@ label ending_1_death:
     hide screen loop_overlay
     scene black with dissolve
     call screen ending_card(_("ENDING 1"), _("WRONG GUESS"), _("The train doesn't forgive wrong guesses."), "#a8281a")
-    call ending_video
+    call ending_video from _call_ending_video
     $ MainMenu(confirm=False)()
     return
 
@@ -1585,7 +1585,7 @@ label ending_2_escape:
     scene black with dissolve
     "Nice, you escaped!"
     call screen ending_card(_("ENDING 2"), _("PARTIAL TRUTH"), _("You escaped, but not everything was resolved."), "#e6a817")
-    call ending_video
+    call ending_video from _call_ending_video_1
     $ MainMenu(confirm=False)()
     return
 
@@ -1601,7 +1601,7 @@ label ending_3_true:
     d "Yes. The train is free. All of us."
     scene black with dissolve
     call screen ending_card(_("ENDING 3"), _("THE TRUE LINE"), _("You solved the mystery and freed everyone from the loop."), "#e0521f")
-    call ending_video
+    call ending_video from _call_ending_video_2
     $ MainMenu(confirm=False)()
     return
 
