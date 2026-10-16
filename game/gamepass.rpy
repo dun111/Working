@@ -621,7 +621,7 @@ screen jukebox_list(w):
                 vbox:
                     yalign 0.5
                     spacing 2
-                    text (("♪  " if on else "") + title):
+                    text ((_("PLAYING:  ") if on else "") + title):
                         size 22
                         color ("#ffd700" if on else "#e8e4dc")
                         font GFONT
