@@ -3381,7 +3381,7 @@ screen preferences():
                             font GFONT
                         use rbtn("›", Function(radio_station_step, 1), w=56, h=44, r=14, size=24)
 
-                    use pref_onoff(_("RADIO BAR"), _("The little player in the bottom-right corner: previous, pause, next and the station."), "radio_bar", 0.42)
+                    use pref_onoff(_("RADIO BAR"), _("The little RADIO tab in the bottom-right corner. Point at it to open the radio, click it to keep it open."), "radio_bar", 0.42)
 
         showif pref_tab == "gameplay":
             viewport:

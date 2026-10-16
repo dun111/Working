@@ -366,144 +366,151 @@ screen now_playing(title, artist):
 
 # ------------------------------------------------------------------------------
 # THE RADIO  (bottom right, on every screen; Settings > Audio > RADIO BAR)
-# An old wooden set: a speaker grille, a tuning dial with the stations on it
-# (click the dial to tune to the next one), the song in a little lit window,
-# and three brass knobs.
+# Folded away as a little RADIO tab. Point at it to open the radio; click it
+# to keep the radio open (HIDE folds it away again).
+# The radio: a wooden box, a dial with the stations (click it to tune to the
+# next one), the song that's on, and three knobs.
 # ------------------------------------------------------------------------------
 
-define RADIO_W = 690
-define RADIO_H = 104
-define RADIO_DIAL_W = 330
+define RADIO_W = 600
+define RADIO_H = 92
+define RADIO_DIAL_W = 300
 define RADIO_DIAL_PAD = 34      # room at the ends of the dial for the station names
+define RADIO_RIGHT = 150        # gap from the right edge of the screen
+define RADIO_BOTTOM = 8         # gap from the bottom
+define RADIO_TAB_W = 92         # the folded tab
+define RADIO_TAB_H = 30
 
-transform radio_fade:
-    on idle:
-        ease 0.25 alpha 0.82
-    on hover:
-        ease 0.15 alpha 1.0
+init python:
+    class _RADIOUI(object):
+        hover = False
+        pinned = False
 
-# a brass knob with its label underneath
+    def radio_hover(on):
+        if _RADIOUI.hover != on:
+            _RADIOUI.hover = on
+            renpy.restart_interaction()
+
+    def radio_pin(on):
+        _RADIOUI.pinned = on
+        renpy.restart_interaction()
+
+    def radio_open():
+        return _RADIOUI.hover or _RADIOUI.pinned
+
+transform radio_unfold:
+    alpha 0.0
+    yoffset 20
+    easein 0.15 alpha 1.0 yoffset 0
+
+# a round knob with its label underneath
 screen radio_knob(label, act):
     button:
-        xysize (66, 84)
+        xysize (60, 74)
         padding (0, 0)
         background None
         action act
-        fixed:
-            xysize (66, 84)
-            add Transform("gui/round/r256.png", xysize=(48, 48), matrixcolor=TintMatrix("#2a1a0c")):
-                xalign 0.5
-                ypos 4
-            add Transform("gui/round/r256.png", xysize=(42, 42), matrixcolor=TintMatrix("#b8913e")):
-                xalign 0.5
-                ypos 7
-            add Transform("gui/round/r256.png", xysize=(26, 26), matrixcolor=TintMatrix("#d9b866")):
-                xalign 0.5
-                ypos 15
-            # the little line on the knob
-            add Solid("#4a3010"):
-                xalign 0.5
-                ypos 9
-                xysize (3, 12)
-            text label:
-                xalign 0.5
-                ypos 60
-                size 12
-                color "#e8d9b0"
-                hover_color "#ffd76a"
-                font GFONT
+        add Transform("gui/round/r256.png", xysize=(40, 40), matrixcolor=TintMatrix("#c9a24a")):
+            xalign 0.5
+            ypos 4
+        text label:
+            xalign 0.5
+            ypos 52
+            size 12
+            color "#f2e6d0"
+            hover_color "#ffd76a"
+            font GFONT
 
 screen radio_bar():
     zorder 1250
     if persistent.radio_bar:
-        $ cur = renpy.music.get_playing("music")
-        $ song = SONG_BY_FILE.get(cur)
-        $ ids = [k for k, _n in RADIO_STATIONS]
-        $ si = ids.index(persistent.radio_station) if persistent.radio_station in ids else 0
-        $ step = (RADIO_DIAL_W - 2 * RADIO_DIAL_PAD) / float(len(ids) - 1)
-        frame:
-            xalign 1.0
-            yalign 1.0
-            offset (-150, -8)
-            xysize (RADIO_W, RADIO_H)
-            padding (0, 0)
-            background None
-            at radio_fade
+        # folded: only the tab opens it. Open: pointing anywhere over the radio keeps it open
+        if radio_open():
+            mousearea:
+                area (config.screen_width - RADIO_RIGHT - RADIO_W, config.screen_height - RADIO_BOTTOM - RADIO_H, RADIO_W, RADIO_H)
+                hovered Function(radio_hover, True)
+                unhovered Function(radio_hover, False)
+        else:
+            mousearea:
+                area (config.screen_width - RADIO_RIGHT - RADIO_TAB_W, config.screen_height - RADIO_BOTTOM - RADIO_TAB_H, RADIO_TAB_W, RADIO_TAB_H)
+                hovered Function(radio_hover, True)
 
-            # the wooden cabinet
-            add rbox("#24160a", 18):
+        if radio_open():
+            $ cur = renpy.music.get_playing("music")
+            $ song = SONG_BY_FILE.get(cur)
+            $ ids = [k for k, _n in RADIO_STATIONS]
+            $ si = ids.index(persistent.radio_station) if persistent.radio_station in ids else 0
+            $ step = (RADIO_DIAL_W - 2 * RADIO_DIAL_PAD) / float(len(ids) - 1)
+            frame:
+                xalign 1.0
+                yalign 1.0
+                offset (-RADIO_RIGHT, -RADIO_BOTTOM)
                 xysize (RADIO_W, RADIO_H)
-            add rbox("#6b4524", 16):
-                pos (3, 3)
-                xysize (RADIO_W - 6, RADIO_H - 6)
-            add Transform("gui/grain.png", xysize=(RADIO_W - 6, RADIO_H - 6), alpha=0.10):
-                pos (3, 3)
-
-            hbox:
-                xpos 14
-                yalign 0.5
-                spacing 14
-
-                # speaker grille
-                frame:
-                    xysize (92, 76)
-                    padding (8, 8)
-                    background rbox("#2e1c0c", 10)
-                    vbox:
-                        spacing 6
-                        for _r in range(6):
-                            add Solid("#1a0f06"):
-                                xysize (76, 4)
-
-                # the dial (click to tune) and the lit window with the song
-                vbox:
+                padding (14, 0)
+                background rbox("#6b4524", 14)
+                at radio_unfold
+                hbox:
                     yalign 0.5
-                    spacing 6
-                    button:
-                        xysize (RADIO_DIAL_W, 44)
-                        padding (0, 0)
-                        background rbox("#e8d9b0", 8)
-                        hover_background rbox("#f4e7c4", 8)
-                        action Function(radio_station_step, 1)
-                        tooltip _("Turn the dial to change station")
-                        fixed:
-                            xysize (RADIO_DIAL_W, 44)
-                            # the scale
-                            for k in range(29):
-                                add Solid("#6b5534"):
-                                    xpos RADIO_DIAL_PAD + int(k * (RADIO_DIAL_W - 2 * RADIO_DIAL_PAD) / 28.0)
-                                    ypos (4 if k % 7 == 0 else 6)
-                                    xysize (1, (12 if k % 7 == 0 else 7))
+                    spacing 14
+                    vbox:
+                        yalign 0.5
+                        spacing 6
+                        # the dial: click to tune to the next station
+                        button:
+                            xysize (RADIO_DIAL_W, 34)
+                            padding (0, 0)
+                            background rbox("#e8d9b0", 6)
+                            hover_background rbox("#f4e7c4", 6)
+                            action Function(radio_station_step, 1)
                             for k, (sid, sname) in enumerate(RADIO_STATIONS):
                                 text sid.upper():
                                     xcenter RADIO_DIAL_PAD + int(k * step)
-                                    ypos 20
-                                    size 11
+                                    yalign 0.5
+                                    size 12
                                     color ("#7a1f12" if k == si else "#6b5534")
                                     font GFONT
-                            # the needle
                             add Solid("#c0281a"):
                                 xcenter RADIO_DIAL_PAD + int(si * step)
-                                ypos 2
-                                xysize (2, 40)
-                    frame:
-                        xysize (RADIO_DIAL_W, 30)
-                        padding (10, 0)
-                        background rbox("#1a0f06", 6)
-                        text ((("%s - %s" % (song[1], song[2])) if song else _("Nothing on air"))[:44]):
-                            yalign 0.5
-                            size 14
-                            layout "nobreak"
-                            color ("#ffb84a" if song else "#7a5a34")
-                            font GFONT
-
-                # the knobs
-                hbox:
-                    yalign 0.5
-                    spacing 4
+                                yalign 0.5
+                                xysize (2, 28)
+                        frame:
+                            xysize (RADIO_DIAL_W, 28)
+                            padding (10, 0)
+                            background rbox("#1a0f06", 6)
+                            text ((("%s - %s" % (song[1], song[2])) if song else _("Nothing on air"))[:40]):
+                                yalign 0.5
+                                size 13
+                                layout "nobreak"
+                                color ("#ffb84a" if song else "#7a5a34")
+                                font GFONT
                     use radio_knob(_("PREV"), Function(radio_prev))
                     use radio_knob((_("PLAY") if (radio_paused() or not cur) else _("PAUSE")), Function(radio_toggle_pause))
                     use radio_knob(_("NEXT"), Function(radio_next))
+                    textbutton (_("HIDE") if _RADIOUI.pinned else _("PIN")):
+                        yalign 0.5
+                        padding (6, 4)
+                        background None
+                        text_size 11
+                        text_color "#c9a982"
+                        text_hover_color "#ffd76a"
+                        text_font GFONT
+                        action Function(radio_pin, not _RADIOUI.pinned)
+        else:
+            # folded away: just a little tab
+            button:
+                xalign 1.0
+                yalign 1.0
+                offset (-RADIO_RIGHT, -RADIO_BOTTOM)
+                xysize (RADIO_TAB_W, RADIO_TAB_H)
+                padding (0, 0)
+                background rbox("#6b4524cc", 10)
+                hover_background rbox("#8a5a2e", 10)
+                action Function(radio_pin, True)
+                text _("RADIO"):
+                    align (0.5, 0.5)
+                    size 14
+                    color "#f2e6d0"
+                    font GFONT
 
 init python:
     config.always_shown_screens.append("radio_bar")
