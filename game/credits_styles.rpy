@@ -6,7 +6,8 @@
 #   GTA         the game's art drifting behind, roles and names rolling up
 #   TICKETS     every member on a ticket card
 #   FILM        old film credits: role on the left, name on the right
-#   DEPARTURES  the crew on a departure board, a page at a time
+#   SPOTLIGHT   a black stage: the camera drifts over every carriage and
+#               everyone on the train under a spotlight, one name at a time
 #
 # Every name can be clicked for its surprise (credits_fx.rpy). The people and
 # their roles come from CREW in screens.rpy.
@@ -16,7 +17,7 @@ define CREDIT_STYLES = [
     ("gta",        _("GTA")),
     ("tickets",    _("TICKETS")),
     ("film",       _("FILM")),
-    ("departures", _("DEPARTURES")),
+    ("spotlight",  _("SPOTLIGHT")),
 ]
 
 default persistent.credits_style = "gta"
@@ -41,7 +42,7 @@ init python:
         set_credits_style(ids[(k + d) % len(ids)])
 
     def credit_pairs():
-        """Every (role, person) - one line each - for the departure board."""
+        """Every (role, person) - one line each."""
         out = []
         for roles, people in credit_roles():
             for r in roles:
@@ -445,122 +446,199 @@ screen credits_film():
 
 
 # ------------------------------------------------------------------------------
-# DEPARTURES
+# SPOTLIGHT
+# A black stage with one spotlight. The camera drifts and zooms over a picture
+# (a carriage, the train, or one of the passengers) for SPOT_TIME seconds, then
+# the light moves on to the next, while the crew's roles and names fade in
+# beside it. Light textures: gui/spotlight.png, gui/spot_hole.png, gui/spot_cone.png
 # ------------------------------------------------------------------------------
 
-define BOARD_ROWS = 8        # rows on one page of the board
-define BOARD_PAGE = 6.0      # seconds a page stays up
+define SPOT_TIME = 7.0          # seconds on each picture
+define SPOT_X = 0.36            # where the light falls (fraction of the screen)
+define SPOT_Y = 0.52
+define SPOT_RX = 0.85           # the light's half-width and half-height (x screen height)
+define SPOT_RY = 1.25
+
+# (picture, "person" or "place"). People stand in the light; places are seen
+# through it while the camera moves across them.
+define SPOT_SLIDES = [
+    ("images/Carriage_1_With_CharacterS.webp", "place"),
+    ("images/louis_neutral.png", "person"),
+    ("images/dorothy_normal.png", "person"),
+    ("images/fedora.png", "person"),
+    ("images/Train_BP.webp", "place"),
+    ("eduard neutral", "person"),
+    ("shunyu neutral", "person"),
+    ("images/Kimmy_Idle.png", "person"),
+    ("himmel neutral", "person"),
+    ("images/bg_carriage_5.webp", "place"),
+    ("sebastian neutral", "person"),
+    ("misha neutral", "person"),
+    ("agatha neutral", "person"),
+    ("ichora neutral", "person"),
+    ("images/PT2_Carriage_1_With_CharacterS.webp", "place"),
+    ("pattison neutral", "person"),
+    ("alexander neutral", "person"),
+    ("images/dorothy_sad.png", "person"),
+    ("conductor_monster neutral", "person"),
+]
 
 init python:
-    def board_pages():
-        rows = credit_pairs() + [(_("Special credits"), {"key": None, "name": "larp music"})]
-        return [rows[i:i + BOARD_ROWS] for i in range(0, len(rows), BOARD_ROWS)]
+    def spot_slide(i):
+        img, kind = SPOT_SLIDES[i % len(SPOT_SLIDES)]
+        sw, sh = config.screen_width, config.screen_height
+        if kind == "person":
+            return Transform(img, fit="contain", ysize=int(sh * 0.92))
+        return Transform(img, fit="cover", xysize=(int(sw * 1.3), int(sh * 1.3)))
 
-    def credit_platform(c):
-        keys = [m["key"] for m in CREW]
-        return str(keys.index(c["key"]) + 1) if c["key"] in keys else "-"
+    def spot_credit(i):
+        """The crew block shown with picture i (the logo comes first)."""
+        blocks = credit_roles() + [([_("Special credits")], [{"key": None, "name": "larp music"}])]
+        if i == 0:
+            return None
+        return blocks[(i - 1) % len(blocks)]
 
-screen credits_departures():
-    default page = 0
-    $ pages = board_pages()
-    timer BOARD_PAGE repeat True action SetLocalVariable("page", (page + 1) % len(pages))
+    # each picture gets its own camera move, so it never feels repeated
+    SPOT_MOVES = [
+        (1.00, 1.18, -60, 60, 30, -20),
+        (1.15, 1.02, 70, -50, -20, 20),
+        (1.05, 1.25, 0, 0, 60, -40),
+        (1.22, 1.05, -80, 40, -30, 10),
+    ]
 
-    add "images/1st_carriage_Visualnovel_Background.webp":
-        fit "cover"
-        xysize (config.screen_width, config.screen_height)
-        matrixcolor theme_matrix()
-    add Solid("#000000c0")
+    def spot_move(i):
+        return SPOT_MOVES[i % len(SPOT_MOVES)]
 
-    frame:
-        align (0.5, 0.5)
-        xsize 1900
-        padding (50, 36)
-        background rbox("#0a0a0ef0", 24)
-        vbox:
-            spacing 0
-            hbox:
-                xfill True
-                text _("DEPARTURES"):
-                    size 40
-                    color "#e6a817"
-                    font CREDIT_FONT
-                text (_("CREW  ·  PAGE %d / %d") % (page + 1, len(pages))):
-                    xalign 1.0
-                    yalign 0.5
+# the camera: fade up, drift and zoom, fade down
+transform spot_cam(z0, z1, x0, x1, y0, y1, key):
+    alpha 0.0
+    zoom z0
+    xoffset x0
+    yoffset y0
+    parallel:
+        ease 1.0 alpha 1.0
+        pause (SPOT_TIME - 2.0)
+        ease 1.0 alpha 0.0
+    parallel:
+        linear SPOT_TIME zoom z1 xoffset x1 yoffset y1
+
+# the light itself sways a little, like someone is holding it
+transform spot_sway:
+    xoffset 0
+    yoffset 0
+    block:
+        ease 3.1 xoffset 26 yoffset -10
+        ease 2.7 xoffset -18 yoffset 8
+        ease 3.4 xoffset 8 yoffset 14
+        ease 2.9 xoffset 0 yoffset 0
+        repeat
+
+transform spot_text_in(key):
+    alpha 0.0
+    xoffset 30
+    pause 1.2
+    easein 0.8 alpha 1.0 xoffset 0
+    pause (SPOT_TIME - 3.0)
+    easeout 0.8 alpha 0.0
+
+transform spot_flicker:
+    alpha 0.9
+    block:
+        linear 0.12 alpha 1.0
+        linear 0.18 alpha 0.92
+        linear 0.10 alpha 0.98
+        repeat
+
+screen credits_spotlight():
+    default slide = 0
+    # SetLocalVariable: this screen is "use"d by about, so it has its own scope
+    timer SPOT_TIME repeat True action SetLocalVariable("slide", slide + 1)
+    $ sw, sh = config.screen_width, config.screen_height
+    $ z0, z1, x0, x1, y0, y1 = spot_move(slide)
+    $ kind = SPOT_SLIDES[slide % len(SPOT_SLIDES)][1]
+
+    add Solid("#000000")
+
+    # ---- what's under the light, with the camera moving over it
+    fixed:
+        at (spot_sway if not persistent.reduce_motion else Transform())
+        # "index k": a new picture is a new displayable, so its camera move
+        # starts from the beginning instead of carrying on from the last one
+        for k index k in [slide]:
+            add spot_slide(k):
+                xcenter SPOT_X
+                yanchor (1.0 if kind == "person" else 0.5)
+                ypos (1.04 if kind == "person" else SPOT_Y)
+                at spot_cam(z0, (z1 if not persistent.reduce_motion else z0), x0, (x1 if not persistent.reduce_motion else x0), y0, (y1 if not persistent.reduce_motion else y0), k)
+
+        # the dark all around the light: a tall oval of light, black beyond
+        add "gui/spot_hole.png":
+            xysize (int(sh * SPOT_RX * 2), int(sh * SPOT_RY * 2))
+            xcenter SPOT_X
+            ycenter SPOT_Y
+        # black past every edge too, so nothing peeks out while the light sways
+        add Solid("#000000"):
+            pos (-100, -100)
+            xysize (max(0, int(sw * SPOT_X - sh * SPOT_RX) + 102), sh + 200)
+        add Solid("#000000"):
+            pos (int(sw * SPOT_X + sh * SPOT_RX) - 2, -100)
+            xysize (max(0, sw - int(sw * SPOT_X + sh * SPOT_RX) + 102), sh + 200)
+        add Solid("#000000"):
+            pos (-100, -100)
+            xysize (sw + 200, max(0, int(sh * SPOT_Y - sh * SPOT_RY) + 102))
+        add Solid("#000000"):
+            pos (-100, sh - 2)
+            xysize (sw + 200, 102)
+
+        # warm light on the floor of the stage, and the beam from above
+        add Transform("gui/spotlight.png", alpha=0.10, xysize=(int(sh * 1.1), int(sh * 1.1))):
+            xcenter SPOT_X
+            ycenter SPOT_Y
+        add Transform("gui/spot_cone.png", xysize=(int(sh * 1.0), int(sh * 1.25))):
+            xcenter SPOT_X
+            yanchor 1.0
+            ypos (SPOT_Y + 0.2)
+            at spot_flicker
+
+    # dust drifting through the beam
+    if not persistent.reduce_motion:
+        for ex, esz, edur, edelay, esway in MENU_EMBERS[:14]:
+            add Solid("#fff4dc88"):
+                xpos (SPOT_X - 0.12 + ex * 0.24)
+                xsize max(2, esz - 2)
+                ysize max(2, esz - 2)
+                at ember(edur * 1.4, edelay, esway // 2)
+
+    # ---- the credit beside the light
+    $ block = spot_credit(slide)
+    for k index k in [slide]:
+      vbox:
+        xpos 0.62
+        yalign 0.5
+        xsize int(sw * 0.33)
+        spacing 6
+        at spot_text_in(k)
+        if block is None:
+            add Transform("images/Game_Logo_Yellow.webp", fit="contain", xysize=(620, 400))
+            null height 10
+            text _("A BLACKBERRY STUDIOS GAME"):
+                size 22
+                color "#8a8a8a"
+                font GFONT
+        else:
+            $ roles, people = block
+            for role in roles:
+                text role.upper():
                     size 22
-                    color "#55556a"
-                    font CREDIT_FONT
-            null height 14
-            hbox:
-                text _("TIME"):
-                    min_width 170
-                    size 16
-                    color "#44445a"
+                    color credit_accent()
                     font GFONT
-                text _("NAME"):
-                    min_width 420
-                    size 16
-                    color "#44445a"
-                    font GFONT
-                text _("ROLE"):
-                    min_width 860
-                    size 16
-                    color "#44445a"
-                    font GFONT
-                text _("PLATFORM"):
-                    min_width 180
-                    size 16
-                    color "#44445a"
-                    font GFONT
-                text _("STATUS"):
-                    size 16
-                    color "#44445a"
-                    font GFONT
-            null height 8
-            add Solid("#2a2a35"):
-                xysize (1800, 2)
-            for i, (role, c) in enumerate(pages[page % len(pages)]):
-                hbox:
-                    ysize 74
-                    fixed:
-                        xysize (170, 74)
-                        text "4:00":
-                            yalign 0.5
-                            size 30
-                            color "#ffd76a"
-                            font CREDIT_FONT
-                            at board_flip(("t", page, i), i * 0.08)
-                    fixed:
-                        xysize (420, 74)
-                        textbutton c["name"].upper():
-                            yalign 0.5
-                            padding (0, 0)
-                            background None
-                            action (Function(credits_click, c["key"]) if c["key"] else None)
-                            text_size 34
-                            text_color "#f2ead8"
-                            text_hover_color credit_accent()
-                            text_font CREDIT_FONT
-                            at board_flip(("n", page, i), 0.04 + i * 0.08)
-                    fixed:
-                        xysize (860, 74)
-                        text role.upper():
-                            yalign 0.5
-                            size 22
-                            color "#cfcac0"
-                            font GFONT
-                            at board_flip(("r", page, i), 0.08 + i * 0.08)
-                    fixed:
-                        xysize (180, 74)
-                        text credit_platform(c):
-                            yalign 0.5
-                            size 30
-                            color "#e8e4dc"
-                            font CREDIT_FONT
-                    text (_("BOARDING") if i == 0 else _("ON TIME")):
-                        yalign 0.5
-                        size 22
-                        color ("#e0521f" if i == 0 else "#6dffa5")
-                        font CREDIT_FONT
-                add Solid("#ffffff0d"):
-                    xysize (1800, 1)
+            null height 10
+            for c in people:
+                textbutton c["name"]:
+                    padding (0, 0)
+                    background None
+                    action (Function(credits_click, c["key"]) if c.get("key") else None)
+                    text_size 86
+                    text_color "#f2ead8"
+                    text_hover_color credit_accent()
+                    text_font CREDIT_FONT
