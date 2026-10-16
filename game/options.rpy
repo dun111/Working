@@ -23,7 +23,7 @@ define gui.show_name = True
 
 ## The version of the game.
 
-define config.version = "1.5 Alpha"
+define config.version = "2.0 Beta"
 
 
 ## Text that is placed on the game's about screen. Place the text between the
@@ -38,6 +38,10 @@ define gui.about = _p("""
 ## or semicolons.
 
 define build.name = "Working"
+
+## The version in the build's file names (no spaces allowed there).
+## config.version above is what the game shows.
+define build.version = "2.0-beta"
 
 
 ## Sounds and music ############################################################
@@ -73,23 +77,23 @@ define config.has_voice = True
 
 ## Entering or exiting the game menu.
 
-define config.enter_transition = dissolve
-define config.exit_transition = dissolve
+# config.enter_transition is set in screens.rpy (GLOBAL TRANSITIONS)
+# config.exit_transition is set in screens.rpy (GLOBAL TRANSITIONS)
 
 
 ## Between screens of the game menu.
 
-define config.intra_transition = dissolve
+# config.intra_transition is set in screens.rpy (GLOBAL TRANSITIONS)
 
 
 ## A transition that is used after a game has been loaded.
 
-define config.after_load_transition = None
+# config.after_load_transition is set in screens.rpy (GLOBAL TRANSITIONS)
 
 
 ## Used when entering the main menu after the game has ended.
 
-define config.end_game_transition = None
+# config.end_game_transition is set in screens.rpy (GLOBAL TRANSITIONS)
 
 
 ## A variable to set the transition used when the game starts does not exist.
@@ -111,8 +115,8 @@ define config.window = "auto"
 
 ## Transitions used to show and hide the dialogue window
 
-define config.window_show_transition = Dissolve(.2)
-define config.window_hide_transition = Dissolve(.2)
+# config.window_show_transition is set in screens.rpy (GLOBAL TRANSITIONS)
+# config.window_hide_transition is set in screens.rpy (GLOBAL TRANSITIONS)
 
 
 ## Preference defaults #########################################################
@@ -183,6 +187,14 @@ init python:
     build.classify('**/.**', None)
     build.classify('**/#**', None)
     build.classify('**/thumbs.db', None)
+
+    ## Our own working files - never shipped with the game.
+    build.classify('music_source/**', None)     # the full-size song files
+    build.classify('video_source/**', None)     # the full-size video
+    build.classify('tools/**', None)            # asset scripts
+    build.classify('game/_mcp/**', None)
+    build.classify('game/zz_**', None)          # test files
+    build.classify('*.png', None)               # screenshots in the project folder
 
     ## To archive files, classify them as 'archive'.
 
