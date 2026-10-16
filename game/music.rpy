@@ -70,19 +70,25 @@ define MUSIC_FOR = {
     "credits": ["gta6_main_theme", "flower_in_a_hurricane", "rhyno", "gta6_trailer_song", "midnight_city", "gta6_extended_look"],
     "credits_tickets": ["larp"],
     # radio stations (the radio bar at the bottom)
-    "station_gta": ["gta6_main_theme", "flower_in_a_hurricane", "rhyno", "gta6_trailer_song", "midnight_city", "gta6_extended_look"],
+    "station_rush": ["gta6_main_theme", "flower_in_a_hurricane", "rhyno", "gta6_trailer_song", "midnight_city", "gta6_extended_look"],
     "station_chill": ["walking_on_a_dream", "stella", "end_of_beginning", "sunflower", "earrings", "the_less_i_know", "slide"],
+    "station_ryan": ["stayin_alive", "music_sounds_better", "slide", "sunflower", "pumped_up_kicks"],
 }
 
-# (id, name). SCENE MUSIC = the songs that fit where you are (MUSIC_FOR);
-# the others play their own list everywhere until you change station.
+# (id, name). The train's own stations, named after the people on board.
+# GREKHOV FM = the songs that fit where you are (MUSIC_FOR); the others play
+# their own list everywhere until you change station.
 define RADIO_STATIONS = [
-    ("scene", _("SCENE MUSIC")),
-    ("all",   _("ALL SONGS")),
-    ("gta",   _("GTA RADIO")),
-    ("chill", _("CHILL")),
-    ("off",   _("RADIO OFF")),
+    ("scene", _("GREKHOV FM")),          # the train itself
+    ("all",   _("EDUARD'S JUKEBOX")),    # the bar plays everything
+    ("rush",  _("SUGAR RUSH FM")),       # Alexander's maple sugar
+    ("chill", _("KIMMY'S CABIN")),       # the expensive cabin, slow songs
+    ("ryan",  _("RYAN'S SNACK RADIO")),  # music to eat to
+    ("off",   _("OFF AIR")),
 ]
+
+# what's printed next to each station
+define RADIO_FREQ = {"scene": "88.0", "all": "91.4", "rush": "96.0", "chill": "101.3", "ryan": "104.7", "off": "--.-"}
 
 # story label -> place. (label, place, place while in the loop)
 define LABEL_MUSIC = {
@@ -130,7 +136,7 @@ init python:
         scene = None        # the story place we're in (for SCENE MUSIC)
 
     def radio_scene():
-        return persistent.radio_station == "scene"
+        return radio_station_now() == "scene"
 
     def music_for(place, fade=2.0, carry=False):
         """Switch to a place's songs. Already playing them: carry on.
@@ -197,8 +203,13 @@ init python:
     class _RADIO(object):
         history = []        # songs played, newest last (for PREVIOUS)
 
-    def radio_play_station(restart=True):
+    def radio_station_now():
+        """The station that's on (a station that's been renamed/removed -> GREKHOV FM)."""
         st = persistent.radio_station
+        return st if st in dict(RADIO_STATIONS) else "scene"
+
+    def radio_play_station(restart=True):
+        st = radio_station_now()
         if st == "off":
             _MUSIC.place = "off"
             renpy.music.stop(channel="music", fadeout=1.0)
@@ -225,7 +236,7 @@ init python:
 
     def radio_station_step(d=1):
         ids = [k for k, _n in RADIO_STATIONS]
-        k = ids.index(persistent.radio_station) if persistent.radio_station in ids else 0
+        k = ids.index(radio_station_now())
         persistent.radio_station = ids[(k + d) % len(ids)]
         renpy.music.set_pause(False, channel="music")
         _menu_music_config()
@@ -233,7 +244,7 @@ init python:
         renpy.restart_interaction()
 
     def radio_station_name():
-        return dict(RADIO_STATIONS).get(persistent.radio_station, _("SCENE MUSIC"))
+        return dict(RADIO_STATIONS)[radio_station_now()]
 
     def radio_paused():
         try:
@@ -368,14 +379,13 @@ screen now_playing(title, artist):
 # THE RADIO  (bottom right, on every screen; Settings > Audio > RADIO BAR)
 # Folded away as a little RADIO tab. Point at it to open the radio; click it
 # to keep the radio open (HIDE folds it away again).
-# The radio: a wooden box, a dial with the stations (click it to tune to the
-# next one), the song that's on, and three knobs.
+# The radio: a wooden box with the station (< > to tune), the song that's on
+# (long names slide across), and PREV / PAUSE / NEXT.
 # ------------------------------------------------------------------------------
 
-define RADIO_W = 600
-define RADIO_H = 92
-define RADIO_DIAL_W = 300
-define RADIO_DIAL_PAD = 34      # room at the ends of the dial for the station names
+define RADIO_W = 640
+define RADIO_H = 96
+define RADIO_WIN_W = 360        # the window the station and the song sit in
 define RADIO_RIGHT = 150        # gap from the right edge of the screen
 define RADIO_BOTTOM = 8         # gap from the bottom
 define RADIO_TAB_W = 92         # the folded tab
@@ -403,22 +413,48 @@ transform radio_unfold:
     yoffset 20
     easein 0.15 alpha 1.0 yoffset 0
 
-# a round knob with its label underneath
-screen radio_knob(label, act):
+# the song in the window: long names slide across instead of running out of it
+transform radio_marquee(dist, key):
+    xoffset 0
+    pause 2.0
+    block:
+        linear (dist / 40.0) xoffset -dist
+        pause 1.5
+        xoffset 0
+        pause 2.0
+        repeat
+
+# a name that fits stays put (and drops any slide left over from a long one)
+transform radio_still:
+    xoffset 0
+
+init python:
+    def radio_song_text():
+        cur = renpy.music.get_playing("music")
+        song = SONG_BY_FILE.get(cur)
+        return ("%s - %s" % (song[1], song[2])) if song else _("Nothing on air")
+
+    def radio_overflow(t, size, width):
+        """Roughly how far a line of text runs past the window (0 = it fits)."""
+        try:
+            w = renpy.render(Text(t, size=size, font=GFONT), 4000, 100, 0, 0).width
+        except Exception:
+            w = len(t) * size * 0.62
+        return max(0, int(w - width))
+
+# a small wooden button
+screen radio_key(label, act, w=74):
     button:
-        xysize (60, 74)
+        xysize (w, 32)
         padding (0, 0)
-        background None
+        background rbox("#3e2814", 8)
+        hover_background rbox("#c9a24a", 8)
         action act
-        add Transform("gui/round/r256.png", xysize=(40, 40), matrixcolor=TintMatrix("#c9a24a")):
-            xalign 0.5
-            ypos 4
         text label:
-            xalign 0.5
-            ypos 52
-            size 12
+            align (0.5, 0.5)
+            size 13
             color "#f2e6d0"
-            hover_color "#ffd76a"
+            hover_color "#2a1a0c"
             font GFONT
 
 screen radio_bar():
@@ -437,64 +473,64 @@ screen radio_bar():
 
         if radio_open():
             $ cur = renpy.music.get_playing("music")
-            $ song = SONG_BY_FILE.get(cur)
-            $ ids = [k for k, _n in RADIO_STATIONS]
-            $ si = ids.index(persistent.radio_station) if persistent.radio_station in ids else 0
-            $ step = (RADIO_DIAL_W - 2 * RADIO_DIAL_PAD) / float(len(ids) - 1)
+            $ st = radio_station_now()
+            $ line = radio_song_text()
+            $ over = radio_overflow(line, 15, RADIO_WIN_W - 24)
             frame:
                 xalign 1.0
                 yalign 1.0
                 offset (-RADIO_RIGHT, -RADIO_BOTTOM)
                 xysize (RADIO_W, RADIO_H)
-                padding (14, 0)
+                padding (14, 10)
                 background rbox("#6b4524", 14)
                 at radio_unfold
-                hbox:
-                    yalign 0.5
-                    spacing 14
-                    vbox:
-                        yalign 0.5
-                        spacing 6
-                        # the dial: click to tune to the next station
-                        button:
-                            xysize (RADIO_DIAL_W, 34)
-                            padding (0, 0)
-                            background rbox("#e8d9b0", 6)
-                            hover_background rbox("#f4e7c4", 6)
-                            action Function(radio_station_step, 1)
-                            for k, (sid, sname) in enumerate(RADIO_STATIONS):
-                                text sid.upper():
-                                    xcenter RADIO_DIAL_PAD + int(k * step)
-                                    yalign 0.5
-                                    size 12
-                                    color ("#7a1f12" if k == si else "#6b5534")
-                                    font GFONT
-                            add Solid("#c0281a"):
-                                xcenter RADIO_DIAL_PAD + int(si * step)
-                                yalign 0.5
-                                xysize (2, 28)
+                vbox:
+                    spacing 8
+                    # station: < name frequency >
+                    hbox:
+                        spacing 8
+                        use radio_key("<", Function(radio_station_step, -1), w=32)
                         frame:
-                            xysize (RADIO_DIAL_W, 28)
-                            padding (10, 0)
-                            background rbox("#1a0f06", 6)
-                            text ((("%s - %s" % (song[1], song[2])) if song else _("Nothing on air"))[:40]):
+                            xysize (RADIO_WIN_W - 80, 32)
+                            padding (12, 0)
+                            background rbox("#e8d9b0", 8)
+                            text radio_station_name():
+                                yalign 0.5
+                                size 14
+                                color "#7a1f12"
+                                font GFONT
+                            text RADIO_FREQ.get(st, ""):
+                                xalign 1.0
                                 yalign 0.5
                                 size 13
-                                layout "nobreak"
-                                color ("#ffb84a" if song else "#7a5a34")
+                                color "#6b5534"
                                 font GFONT
-                    use radio_knob(_("PREV"), Function(radio_prev))
-                    use radio_knob((_("PLAY") if (radio_paused() or not cur) else _("PAUSE")), Function(radio_toggle_pause))
-                    use radio_knob(_("NEXT"), Function(radio_next))
-                    textbutton (_("HIDE") if _RADIOUI.pinned else _("PIN")):
-                        yalign 0.5
-                        padding (6, 4)
-                        background None
-                        text_size 11
-                        text_color "#c9a982"
-                        text_hover_color "#ffd76a"
-                        text_font GFONT
-                        action Function(radio_pin, not _RADIOUI.pinned)
+                        use radio_key(">", Function(radio_station_step, 1), w=32)
+                        null width 10
+                        use radio_key(_("HIDE") if _RADIOUI.pinned else _("PIN"), Function(radio_pin, not _RADIOUI.pinned), w=62)
+                    hbox:
+                        spacing 8
+                        # the song: clipped to its window, sliding if it's too long
+                        fixed:
+                          xysize (RADIO_WIN_W, 32)
+                          add rbox("#1a0f06", 8):
+                              xysize (RADIO_WIN_W, 32)
+                          viewport:
+                            xysize (RADIO_WIN_W, 32)
+                            frame:
+                                xysize (max(RADIO_WIN_W, RADIO_WIN_W + over + 24), 32)
+                                padding (12, 0)
+                                background None
+                                text line:
+                                    yalign 0.5
+                                    size 15
+                                    layout "nobreak"
+                                    color ("#ffb84a" if cur else "#7a5a34")
+                                    font GFONT
+                                    at (radio_marquee(over + 24, line) if over else radio_still)
+                        use radio_key(_("PREV"), Function(radio_prev))
+                        use radio_key((_("PLAY") if (radio_paused() or not cur) else _("PAUSE")), Function(radio_toggle_pause))
+                        use radio_key(_("NEXT"), Function(radio_next))
         else:
             # folded away: just a little tab
             button:

@@ -3399,7 +3399,7 @@ screen preferences():
                     use pref_row(_("NOW PLAYING"), now_playing_title(), 0.36):
                         use pref_toggle(_("NEXT SONG"), Function(music_skip), selected=False, w=200)
 
-                    use pref_row(_("RADIO STATION"), _("SCENE MUSIC fits where you are. The others play their own songs everywhere, without being reset."), 0.39):
+                    use pref_row(_("RADIO STATION"), _("GREKHOV FM plays songs that fit where you are. The other stations play their own songs everywhere, without being reset."), 0.39):
                         use rbtn("‹", Function(radio_station_step, -1), w=56, h=44, r=14, size=24)
                         text radio_station_name():
                             yalign 0.5
