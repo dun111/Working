@@ -2218,7 +2218,8 @@ screen main_menu():
                     text_color ("#e0521f" if primary else "#cfcac0")
                     text_hover_color ("#ff7a3d" if primary else "#ffd76a")
                     text_font GFONT
-                    at fade_slide_in(0.35 + i * 0.05, xoff=0), cine_hover
+                    # a small lift on hover, so the line stays centred
+                    at mm_in(0.35 + i * 0.05), mm_lift
             null height 20
             text (GetTooltip() or _("Point at an option to see what it does.")):
                 xalign 0.5

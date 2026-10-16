@@ -10,7 +10,7 @@
 define MENU_STYLES = [
     ("new",       _("BOARD"),     _("The cinematic menu: the logo, the train and the departure board down the left.")),
     ("classic",   _("CLASSIC"),   _("The rounded sidebar.")),
-    ("minimal",   _("MINIMAL"),   _("Just the logo and a clean list, bottom left.")),
+    ("minimal",   _("MINIMAL"),   _("Just the logo and a clean list, in one column on the left.")),
     ("panel",     _("PANEL"),     _("A dark glass panel down the right side.")),
     ("cinema",    _("CINEMA"),    _("Black bars top and bottom, the logo big in the middle, the options along the bottom.")),
     ("ticket",    _("TICKET"),    _("The menu printed on a train ticket.")),
@@ -95,22 +95,24 @@ screen mm_departures(col="#55556a", size=16):
 
 screen mm_minimal(rows):
     add Solid("#00000050")
+    # one column on the left: logo, tagline, options and help all share its centre
     vbox:
         xpos 120
-        ypos 90
-        at mm_in(0.1)
-        use mm_logo(520)
+        yalign 0.5
+        xsize 560
+        spacing 0
+        hbox:
+            xalign 0.5
+            at mm_in(0.1)
+            use mm_logo(520)
         fixed:
-            xsize 520
-            ysize 30
+            xsize 560
+            ysize 34
             use menu_tagline(0.5, 18)
-
-    vbox:
-        xpos 120
-        yalign 0.9
-        spacing 6
+        null height 40
         for i, (lab, act, primary) in enumerate(rows):
             textbutton lab:
+                xalign 0.5
                 padding (0, 4)
                 background None
                 action act
@@ -119,10 +121,12 @@ screen mm_minimal(rows):
                 text_color ("#e0521f" if primary else "#cfcac0")
                 text_hover_color ("#ff7a3d" if primary else "#ffffff")
                 text_font GFONT
-                at mm_in(0.25 + i * 0.04), cine_hover
-        null height 14
-        use mm_help(w=760)
+                at mm_in(0.25 + i * 0.04), mm_lift
+        null height 18
+        use mm_help(xa=0.5, w=560)
+        null height 6
         hbox:
+            xalign 0.5
             spacing 30
             use mm_departures
             text "v[config.version]":
