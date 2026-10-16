@@ -4255,10 +4255,6 @@ transform map_title_in:
     yoffset -20
     ease 0.6 alpha 1.0 yoffset 0
 
-transform map_deco_in:
-    alpha 0.0
-    ease 1.0 alpha 1.0
-
 transform lamp_flicker:
     alpha 0.05
     block:
@@ -4354,15 +4350,11 @@ screen old_map_fx():
     zorder 40
     $ mt = active_map_title()
     if mt:
-        if renpy.loadable("images/old_map_overlay.png"):
-            add "images/old_map_overlay.png":
-                xysize (config.screen_width, config.screen_height)
-                blend "multiply"
-        else:
-            add Solid("#c9a46a"):
-                xysize (config.screen_width, config.screen_height)
-                blend "multiply"
-                alpha 0.55
+        # a plain warm tint makes the map look old
+        add Solid("#c9a46a"):
+            xysize (config.screen_width, config.screen_height)
+            blend "multiply"
+            alpha 0.55
         if not persistent.reduce_motion:
             add Solid("#ffb050"):
                 xysize (config.screen_width, config.screen_height)
