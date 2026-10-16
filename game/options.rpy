@@ -184,6 +184,14 @@ init python:
     build.classify('**/#**', None)
     build.classify('**/thumbs.db', None)
 
+    ## Our own working files - never shipped with the game.
+    build.classify('music_source/**', None)     # the full-size song files
+    build.classify('video_source/**', None)     # the full-size video
+    build.classify('tools/**', None)            # asset scripts
+    build.classify('game/_mcp/**', None)
+    build.classify('game/zz_**', None)          # test files
+    build.classify('*.png', None)               # screenshots in the project folder
+
     ## To archive files, classify them as 'archive'.
 
     # build.classify('game/**.png', 'archive')
