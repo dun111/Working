@@ -744,6 +744,9 @@ init python:
         ms = persistent.menu_style
         if ms in THEME_MENUS and not has_pass("themes"):
             return "new"
+        # a style that's been removed (or a typo) -> the default
+        if ms not in [m[0] for m in MENU_STYLES]:
+            return "new"
         return ms
 
     def say_background(ds, op):

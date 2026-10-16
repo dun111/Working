@@ -3243,7 +3243,7 @@ screen preferences():
                             font GFONT
                         use rbtn("›", Function(menu_style_step, 1), w=56, h=44, r=14, size=24)
 
-                    use pref_row(_("CREDITS STYLE"), _("How the credits look: GTA, TICKETS, FILM, TERMINAL or DEPARTURES. You can also switch inside the credits."), 0.0):
+                    use pref_row(_("CREDITS STYLE"), _("How the credits look: GTA, TICKETS, FILM or DEPARTURES. You can also switch inside the credits."), 0.0):
                         for cid, cname in CREDIT_STYLES:
                             use pref_toggle(cname, Function(set_credits_style, cid), selected=(credits_style_now() == cid), w=(160 if cid == "departures" else 130))
 
