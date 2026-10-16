@@ -945,8 +945,11 @@ init python:
         try:
             slots = renpy.list_slots(r"^(?!_)")
             slots.sort(key=lambda s: renpy.slot_mtime(s) or 0, reverse=True)
+            broken = set(persistent.broken_saves or ())
             for slot in slots:
                 info = renpy.slot_json(slot) or {}
+                if (slot, renpy.slot_mtime(slot)) in broken:
+                    continue        # tried before: made by an older version of the game
                 if info.get("story") and renpy.can_load(slot):
                     return slot
         except Exception:
@@ -954,12 +957,34 @@ init python:
         return None
 
     def continue_game():
-        """CONTINUE: load the newest save, or start a new game if there's nothing to continue."""
+        """CONTINUE: load the newest save, or start a new game if there's nothing to continue.
+        A save the game can't open any more goes to save_too_old, which marks it
+        and comes back here to try the next one."""
         slot = latest_save()
         if slot:
+            persistent.cont_trying = (slot, renpy.slot_mtime(slot))
             renpy.load(slot)
         else:
+            persistent.cont_trying = None
             renpy.run(Start())
+
+    def continue_after_fail():
+        """On the main menu after a save couldn't be opened: say so, and if it
+        was CONTINUE, carry on with the next save (or a new game)."""
+        if persistent.cont_msg:
+            persistent.cont_msg = False
+            renpy.notify(_("That save is from an older version of the game and can't be opened."))
+        if persistent.cont_retry:
+            persistent.cont_retry = False
+            continue_game()
+
+    def _loaded_ok():
+        persistent.cont_trying = None
+
+    config.after_load_callbacks.append(_loaded_ok)
+
+    # a save the current script can't restore: don't crash, go to save_too_old
+    config.load_failed_label = "save_too_old"
 
     MENU_STREAKS = [
         (140, 2.4, 0.0, 520),
@@ -996,6 +1021,10 @@ default persistent.mg_difficulty = 1
 default persistent.mg_timers = True
 default persistent.mg_skip_allowed = True
 default persistent.autosave_on = True
+default persistent.broken_saves = set()   # (slot, time) of saves this version can't open
+default persistent.cont_trying = None     # the save CONTINUE is opening
+default persistent.cont_retry = False
+default persistent.cont_msg = False
 default in_secret_game = False       # True while playing the empty train (empty_train.rpy)
 default persistent.film_transition = True
 default persistent.old_map = True
@@ -1949,7 +1978,7 @@ screen main_menu():
     $ fx = persistent.menu_fx and not persistent.reduce_motion
     use secret_listener
     use cheat_hotkey
-    on "show" action Function(check_departure)
+    on "show" action [Function(check_departure), Function(continue_after_fail)]
     timer 15.0 repeat True action Function(check_departure)
     timer 1.0 action Function(check_halloween)
 
@@ -4870,3 +4899,20 @@ screen extras_menu():
         ysize (config.screen_height - 360)
 
     use game_menu_back(back_action)
+
+
+# ------------------------------------------------------------------------------
+# A save that this version of the game can't open (config.load_failed_label):
+# back to the main menu with a message. If CONTINUE was opening it, it's marked
+# so CONTINUE skips it, and CONTINUE tries the next save or starts a new game.
+# ------------------------------------------------------------------------------
+
+label save_too_old:
+    python:
+        if persistent.cont_trying:
+            persistent.broken_saves = set(persistent.broken_saves or ()) | set([tuple(persistent.cont_trying)])
+            persistent.cont_retry = True
+        persistent.cont_trying = None
+        persistent.cont_msg = True
+        renpy.save_persistent()
+    $ renpy.full_restart()
