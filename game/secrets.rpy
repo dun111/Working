@@ -228,7 +228,7 @@ screen pixel_parade():
 # ==============================================================================
 
 define ENDING_VIDEO = "movies/ending_video.webm"
-define CREDITS_MUSIC = "gui/larp.mp3"       # plays while the credits are open
+define CREDITS_MUSIC = "Songs/larp.mp3"     # the TICKETS credits; the others play MUSIC_FOR["credits"] (music.rpy)
 
 # the little text that pops up in the corner when you click someone in the
 # credits (placeholders for now - put your own text here)
@@ -325,8 +325,8 @@ init python:
             renpy.music.stop(fadeout=0.5)
             renpy.invoke_in_new_context(renpy.movie_cutscene, ENDING_VIDEO)
             persistent.ending_video_seen = True
-            if config.main_menu_music:
-                renpy.music.play(config.main_menu_music, fadein=1.0)
+            if main_menu:
+                music_menu()
             renpy.restart_interaction()
 
     # ------------------------------------------------------------ passengers
@@ -365,15 +365,27 @@ init python:
             secret_found("credits_all", "credits_all")
 
     # ------------------------------------------------------------ credits music
+    class _CREDMUS(object):
+        before = None       # where the music was before the credits opened
+
     def credits_music_on():
-        if renpy.loadable(CREDITS_MUSIC):
-            renpy.music.play(CREDITS_MUSIC, channel="music", fadein=1.0, if_changed=True)
+        """The credits' own songs: GTA songs, or larp music for the TICKETS style."""
+        if _MUSIC.place not in ("credits", "credits_tickets"):
+            _CREDMUS.before = _MUSIC.place
+        menu_music_filter_off()
+        music_for("credits_tickets" if persistent.credits_style == "tickets" else "credits", fade=1.0)
 
     def credits_music_off():
-        if main_menu and config.main_menu_music:
-            renpy.music.play(config.main_menu_music, channel="music", fadein=1.0, if_changed=True)
+        if main_menu:
+            menu_music_filter_on()
+            music_menu()
         else:
-            renpy.music.stop(channel="music", fadeout=1.0)
+            before = _CREDMUS.before
+            _MUSIC.place = None
+            if before and persistent.ingame_music:
+                music_for(before, fade=1.0)
+            else:
+                renpy.music.stop(channel="music", fadeout=1.0)
 
     # -------------------------------------------------------------- halloween
     def check_halloween():

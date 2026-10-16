@@ -777,20 +777,21 @@ init python:
     def carriage_art(path):
         return Fixed(Solid("#150d0d"), Transform(path, xysize=(DESIGN_W, DESIGN_H)), xysize=(DESIGN_W, DESIGN_H))
 
-image bg carriage_1 = ConditionSwitch(
+# themed(): Settings > COLOUR THEME tints these backgrounds (gamepass.rpy)
+image bg carriage_1 = themed(ConditionSwitch(
     "in_loop", wide_bg(carriage_art("images/PT2_Carriage_1_With_CharacterS.webp")),
-    "True", wide_bg(carriage_art("images/Carriage_1_With_CharacterS.webp")))
+    "True", wide_bg(carriage_art("images/Carriage_1_With_CharacterS.webp"))))
 
 # the empty carriage (no one in it) - used by the empty train
 image bg carriage_1_empty = wide_bg("images/bg_carriage_1.webp")
-image bg carriage_5 = wide_bg("images/bg_carriage_5.webp")
+image bg carriage_5 = themed(wide_bg("images/bg_carriage_5.webp"))
 
 # Placeholder backgrounds: the real bg carriage 2/3/4 .webp files are not in
 # the project yet. Replace each Solid with "images/bg_carriage_N.webp" once the
 # art is added.
-image bg carriage_2 = Solid("#2a2430")
-image bg carriage_3 = Solid("#242a30")
-image bg carriage_4 = Solid("#2a3024")
+image bg carriage_2 = themed(Solid("#2a2430"))
+image bg carriage_3 = themed(Solid("#242a30"))
+image bg carriage_4 = themed(Solid("#2a3024"))
 
 # "talk to <name>" conversation backgrounds live in characters.rpy
 
@@ -832,12 +833,10 @@ define config.say_attribute_transition_layer = "master"
 # MENU MUSIC
 # ==============================================================================
 
-define audio.menu_theme = "gui/main_menu.mp3"
+define audio.menu_theme = "Songs/main_menu.mp3"
 
+# config.main_menu_music is set in music.rpy (MAIN MENU MUSIC: theme / shuffle)
 init python:
-    # Only set the menu music if the file is actually in the project
-    if renpy.loadable("gui/main_menu.mp3"):
-        config.main_menu_music = "gui/main_menu.mp3"
 
     def menu_music_filter_on():
         if not persistent.menu_echo:
@@ -1049,6 +1048,9 @@ init python:
         persistent.line_spacing = 10
         persistent.text_fx = "full"
         persistent.quick_menu_shown = True
+        persistent.ingame_music = True
+        persistent.song_popups = True
+        persistent.credits_style = "gta"
         persistent.dialogue_font_size = 30
         persistent.dialogue_opacity = 0.93
         persistent.menu_fx = True
@@ -1939,6 +1941,7 @@ screen main_menu():
     add "images/1st_carriage_Visualnovel_Background.webp":
         fit "cover"
         xysize (config.screen_width, config.screen_height)
+        matrixcolor theme_matrix()
         at ((menu_bg_drift, menu_rumble_at()) if (persistent.screen_shake_enabled and not persistent.reduce_motion)
             else (menu_bg_drift if not persistent.reduce_motion else menu_bg_still))
     add Solid("#08080cb8")
@@ -1951,7 +1954,7 @@ screen main_menu():
             at passing_light
 
     fixed:
-        at menu_rumble_at()
+        at menu_rumble_at(), Transform(matrixcolor=theme_matrix())
 
         # psst: click the big 4:00 four times (empty_train.rpy)
         textbutton "4:00":
@@ -1985,7 +1988,7 @@ screen main_menu():
             xpos 0.76
             ypos 0
             xysize (int(340 * KEY_SCALE), int(840 * KEY_SCALE))
-            at (key_drop if not persistent.reduce_motion else key_static)
+            at (key_drop if not persistent.reduce_motion else key_static), Transform(alpha=(0.0 if menu_hides_key() else 1.0))
 
             add Solid("#7a7a88", xsize=3, ysize=KEY_STRING_H):
                 xalign 0.5
@@ -2036,42 +2039,6 @@ screen main_menu():
             add Transform("images/louis_neutral.png", matrixcolor=flat_color("#050002"), zoom=0.9):
                 at idle_walker
 
-
-    # ---- Tickets (EXTRAS > GAMEPASS) and coins (click: the casino) ---------------
-    button:
-        xalign 1.0
-        xoffset -40
-        ypos 34
-        padding (20, 10)
-        background rbox("#0c0c10d8", 16)
-        hover_background rbox("#2a2210e8", 16)
-        action Function(casino_open)
-        tooltip _("Open the 4:00 Casino: slots, roulette, horse racing and mahjong for coins.")
-        at fade_slide_in(1.0, xoff=40)
-        hbox:
-            spacing 12
-            if has_pass("eric"):
-                text _("DEV"):
-                    yalign 0.5
-                    size 18
-                    color "#61afef"
-                    font CREDIT_FONT
-            add rbox("#e6a817", 5):
-                yalign 0.5
-                xysize (30, 20)
-            text (_("TICKETS  %d") % (persistent.tickets or 0)):
-                yalign 0.5
-                size 20
-                color "#e6a817"
-                font GFONT
-            null width 8
-            add circ_coin(20):
-                yalign 0.5
-            text (_("COINS  %d") % (persistent.coins or 0)):
-                yalign 0.5
-                size 20
-                color "#ffd76a"
-                font GFONT
 
     if mstyle == "centered":
         # darker in the middle, behind the menu
@@ -2198,6 +2165,10 @@ screen main_menu():
                         color "#55556a"
                         font GFONT
 
+
+    elif mstyle in MENU_EXTRA:
+        # minimal, panel, cinema, ticket, terminal, timetable (menu_styles.rpy)
+        use expression ("mm_" + mstyle) pass (rows)
 
     elif mstyle == "centered":
         # ---- THEME PACK: the logo and the menu down the middle --------------------
@@ -2361,6 +2332,42 @@ screen main_menu():
                         text_font GFONT
                         action Function(version_poke)
 
+
+    # ---- Tickets (EXTRAS > GAMEPASS) and coins (click: the casino) ---------------
+    button:
+        xalign 1.0
+        xoffset -40
+        ypos 34
+        padding (20, 10)
+        background rbox("#0c0c10d8", 16)
+        hover_background rbox("#2a2210e8", 16)
+        action Function(casino_open)
+        tooltip _("Open the 4:00 Casino: slots, roulette, horse racing and mahjong for coins.")
+        at fade_slide_in(1.0, xoff=40)
+        hbox:
+            spacing 12
+            if has_pass("eric"):
+                text _("DEV"):
+                    yalign 0.5
+                    size 18
+                    color "#61afef"
+                    font CREDIT_FONT
+            add rbox("#e6a817", 5):
+                yalign 0.5
+                xysize (30, 20)
+            text (_("TICKETS  %d") % (persistent.tickets or 0)):
+                yalign 0.5
+                size 20
+                color "#e6a817"
+                font GFONT
+            null width 8
+            add circ_coin(20):
+                yalign 0.5
+            text (_("COINS  %d") % (persistent.coins or 0)):
+                yalign 0.5
+                size 20
+                color "#ffd76a"
+                font GFONT
 
     # the timers for the main-menu secrets (secrets.rpy)
     if logo_glitched:
@@ -3225,16 +3232,32 @@ screen preferences():
                                 color "#55556a"
                                 font GFONT
 
-                    use pref_row(_("MAIN MENU STYLE"), (_("Classic: the rounded sidebar. New: the cinematic menu with the departure board. Centered (THEME PACK): the logo and menu down the middle.")), 0.0):
-                        use pref_toggle(_("CLASSIC"), SetField(persistent, "menu_style", "classic"), selected=(menu_style_now() == "classic"), w=130)
-                        use pref_toggle(_("NEW"), SetField(persistent, "menu_style", "new"), selected=(menu_style_now() == "new"), w=130)
-                        if has_pass("themes"):
-                            use pref_toggle(_("CENTERED"), SetField(persistent, "menu_style", "centered"), selected=(menu_style_now() == "centered"), w=150)
+                    use pref_row(_("MAIN MENU STYLE"), menu_style_info()[1], 0.0):
+                        use rbtn("‹", Function(menu_style_step, -1), w=56, h=44, r=14, size=24)
+                        text menu_style_info()[0]:
+                            yalign 0.5
+                            min_width 220
+                            text_align 0.5
+                            size 20
+                            color "#e6a817"
+                            font GFONT
+                        use rbtn("›", Function(menu_style_step, 1), w=56, h=44, r=14, size=24)
 
-                    use pref_row(_("COLOUR THEME"), (_("THEME PACK: recolours every menu and box, and grades the scenes to match.") if has_pass("themes") else _("Unlock MIDNIGHT, BLOOD MOON, ROYAL and NOIR with the THEME PACK gamepass (EXTRAS > GAMEPASS).")), 0.0):
+                    use pref_row(_("CREDITS STYLE"), _("How the credits look: GTA, TICKETS, FILM, TERMINAL or DEPARTURES. You can also switch inside the credits."), 0.0):
+                        for cid, cname in CREDIT_STYLES:
+                            use pref_toggle(cname, Function(set_credits_style, cid), selected=(credits_style_now() == cid), w=(160 if cid == "departures" else 130))
+
+                    use pref_row(_("COLOUR THEME"), (_("THEME PACK: a soft colour grade on the carriage backgrounds, the maps and the main menu. Characters and text are never tinted.") if has_pass("themes") else _("Unlock 10 colour themes with the THEME PACK gamepass (EXTRAS > GAMEPASS).")), 0.0):
                         if has_pass("themes"):
-                            for tid, tname in UI_THEMES:
-                                use pref_toggle(tname, Function(set_theme, tid), selected=(theme_now() == tid), w=(150 if tid == "blood" else 120))
+                            use rbtn("‹", Function(theme_step, -1), w=56, h=44, r=14, size=24)
+                            text theme_name():
+                                yalign 0.5
+                                min_width 220
+                                text_align 0.5
+                                size 20
+                                color "#e6a817"
+                                font GFONT
+                            use rbtn("›", Function(theme_step, 1), w=56, h=44, r=14, size=24)
                         else:
                             text _("LOCKED"):
                                 yalign 0.5
@@ -3316,6 +3339,19 @@ screen preferences():
                         use pref_toggle(_("SOUND ON"), Preference("all mute", "disable"))
 
                     use pref_onoff(_("MENU MUSIC ECHO"), _("Muffled, echoey music on the main menu. Applies instantly."), "menu_echo", 0.24)
+
+                    use pref_row(_("IN-GAME MUSIC"), _("Songs that fit each carriage, the investigation and the endings. Quiet when it matters."), 0.27):
+                        use pref_toggle(_("ON"), Function(set_ingame_music, True), selected=bool(persistent.ingame_music))
+                        use pref_toggle(_("OFF"), Function(set_ingame_music, False), selected=(not persistent.ingame_music))
+
+                    use pref_row(_("MAIN MENU MUSIC"), _("The main theme on repeat, or shuffle through a few songs."), 0.30):
+                        use pref_toggle(_("THEME"), Function(set_menu_music, "theme"), selected=(persistent.menu_music != "shuffle"))
+                        use pref_toggle(_("SHUFFLE"), Function(set_menu_music, "shuffle"), selected=(persistent.menu_music == "shuffle"))
+
+                    use pref_onoff(_("SONG POPUPS"), _("Show the song's name when a new one starts, like a radio."), "song_popups", 0.33)
+
+                    use pref_row(_("NOW PLAYING"), now_playing_title(), 0.36):
+                        use pref_toggle(_("NEXT SONG"), Function(music_skip), selected=False, w=200)
 
         showif pref_tab == "gameplay":
             viewport:
@@ -3900,93 +3936,14 @@ screen about():
     tag menu
     key "game_menu" action (ShowMenu("main_menu") if main_menu else Return())
 
-    # larp music plays while the credits are open
+    # the credits have their own songs (music.rpy)
     on "show" action Function(credits_music_on)
     on "replace" action Function(credits_music_on)
     on "hide" action Function(credits_music_off)
     on "replaced" action Function(credits_music_off)
-    default cred_adj = ui.adjustment()
 
-    add Solid("#000000")
-    add ("credits_art_still" if persistent.reduce_motion else "credits_art")
-    # dark enough to read over, darkest down the middle
-    add Solid("#000000a8")
-    add "gui/vignette.png":
-        xysize (config.screen_width, config.screen_height)
-
-    # ---- the roll ----
-    viewport:
-        xalign 0.5
-        xsize 1600
-        ysize config.screen_height
-        yadjustment cred_adj
-        mousewheel True
-        draggable True
-
-        vbox:
-            xsize 1600
-            spacing 0
-
-            null height config.screen_height
-
-            add "game_logo_cycle":
-                xalign 0.5
-                xsize 720
-                ysize 440
-                fit "contain"
-
-            null height 180
-
-            # psst: every name does something when you click it (credits_fx.rpy)
-            for roles, people in credit_roles():
-                for role in roles:
-                    text role.upper():
-                        xalign 0.5
-                        size 26
-                        color credit_accent()
-                        font GFONT
-                null height 8
-                for c in people:
-                    textbutton c["name"]:
-                        xalign 0.5
-                        padding (20, 0)
-                        background None
-                        action Function(credits_click, c["key"])
-                        text_size 72
-                        text_color "#f2ead8"
-                        text_hover_color credit_accent()
-                        text_font CREDIT_FONT
-                        text_outlines [(0, "#00000099", 3, 4)]
-                null height 90
-
-            text _("SPECIAL CREDITS"):
-                xalign 0.5
-                size 26
-                color credit_accent()
-                font GFONT
-            null height 8
-            text _("larp music"):
-                xalign 0.5
-                size 72
-                color "#f2ead8"
-                font CREDIT_FONT
-            null height 200
-
-            text _("THANKS FOR PLAYING!"):
-                xalign 0.5
-                size 80
-                color "#ffffff"
-                font CREDIT_FONT
-            null height 30
-            text _("Version [config.version]   ·   Made with Ren'Py [renpy.version_only]"):
-                xalign 0.5
-                size 18
-                color "#8888a0"
-                font GFONT
-
-            null height config.screen_height
-
-    timer 0.03 repeat True action Function(credits_step, cred_adj)
+    # Settings > Display > CREDITS STYLE (credits_styles.rpy)
+    use expression ("credits_" + credits_style_now())
 
     fixed:
         xpos 80
@@ -3994,12 +3951,25 @@ screen about():
         xsize 160
         ysize 50
         use rbtn(_("BACK"), (ShowMenu("main_menu") if main_menu else Return()), w=160, h=50, r=14, size=24)
-    text _("Scroll to speed up or go back. Click a name."):
+
+    # switch style right here
+    hbox:
         xalign 0.97
-        yalign 0.96
-        size 15
-        color "#55556a"
-        font GFONT
+        ypos 30
+        spacing 10
+        use rbtn("‹", Function(credits_style_step, -1), w=50, h=44, r=14, size=22)
+        frame:
+            ysize 44
+            padding (16, 0)
+            background rbox("#0a0a0ecc", 14)
+            text credits_style_name():
+                yalign 0.5
+                min_width 170
+                text_align 0.5
+                size 18
+                color "#e6a817"
+                font GFONT
+        use rbtn("›", Function(credits_style_step, 1), w=50, h=44, r=14, size=22)
 
 
 # ==============================================================================
