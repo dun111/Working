@@ -1,12 +1,11 @@
 # ==============================================================================
 # DEPARTURE AT 4:00  -  credits_styles.rpy
-# The five looks the credits can have (Settings > Display > CREDITS STYLE, or
+# The four looks the credits can have (Settings > Display > CREDITS STYLE, or
 # the < > in the top-right corner of the credits):
 #
 #   GTA         the game's art drifting behind, roles and names rolling up
 #   TICKETS     every member on a ticket card
 #   FILM        old film credits: role on the left, name on the right
-#   TERMINAL    the credits typed out in a console
 #   DEPARTURES  the crew on a departure board, a page at a time
 #
 # Every name can be clicked for its surprise (credits_fx.rpy). The people and
@@ -17,7 +16,6 @@ define CREDIT_STYLES = [
     ("gta",        _("GTA")),
     ("tickets",    _("TICKETS")),
     ("film",       _("FILM")),
-    ("terminal",   _("TERMINAL")),
     ("departures", _("DEPARTURES")),
 ]
 
@@ -43,7 +41,7 @@ init python:
         set_credits_style(ids[(k + d) % len(ids)])
 
     def credit_pairs():
-        """Every (role, person) - one line each - for the board and the terminal."""
+        """Every (role, person) - one line each - for the departure board."""
         out = []
         for roles, people in credit_roles():
             for r in roles:
@@ -444,101 +442,6 @@ screen credits_film():
             null height config.screen_height
 
     timer 0.03 repeat True action Function(credits_step, cred_adj)
-
-
-# ------------------------------------------------------------------------------
-# TERMINAL
-# ------------------------------------------------------------------------------
-
-define TERM_KEEP = 22        # how many lines fit on the screen
-
-init python:
-    def term_lines():
-        """(prompt, text, person or None) for every line the console prints."""
-        lines = [("$", "./credits --all", None), ("", _("loading crew... ok"), None), ("", "", None)]
-        for roles, people in credit_roles():
-            for r in roles:
-                lines.append(("", "[[ %s ]" % r.upper(), None))    # [[ = a plain "["
-            for c in people:
-                lines.append(("", "    > ", c))
-            lines.append(("", "", None))
-        lines += [("", _("[[ SPECIAL CREDITS ]"), None), ("", "    > larp music", None), ("", "", None),
-                  ("", _("THANKS FOR PLAYING!"), None), ("$", "", None)]
-        return lines
-
-    def term_tick(n, total):
-        # print the next line; after a pause at the end, start again
-        return (n + 1) if n < total + 12 else 0
-
-transform term_cursor:
-    alpha 1.0
-    pause 0.5
-    alpha 0.0
-    pause 0.5
-    repeat
-
-screen credits_terminal():
-    default shown = 0
-    $ lines = term_lines()
-    # SetLocalVariable: this screen is "use"d by about, so it has its own scope
-    timer 0.32 repeat True action SetLocalVariable("shown", term_tick(shown, len(lines)))
-
-    add Solid("#0c0c0c")
-    frame:
-        align (0.5, 0.5)
-        xysize (1700, 900)
-        padding (0, 0)
-        background rbox("#0c0c0c", 12)
-        # the title bar
-        add rbox("#2b2b2e", 12):
-            xysize (1700, 46)
-        add Solid("#2b2b2e"):
-            ypos 32
-            xysize (1700, 14)
-        hbox:
-            xpos 20
-            ypos 15
-            spacing 10
-            for dot in ("#ff5f57", "#febc2e", "#28c840"):
-                add rbox(dot, 8):
-                    xysize (16, 16)
-        text "credits":
-            xalign 0.5
-            ypos 12
-            size 18
-            color "#9a9aa0"
-            font "DejaVuSans.ttf"
-        vbox:
-            xpos 40
-            ypos 70
-            spacing 4
-            $ first = max(0, min(shown, len(lines)) - TERM_KEEP)
-            for prompt, line, who in lines[first:min(shown, len(lines))]:
-                hbox:
-                    spacing 12
-                    if prompt:
-                        text prompt:
-                            size 24
-                            color "#28c840"
-                            font "DejaVuSans.ttf"
-                    text line:
-                        size 24
-                        color ("#e6a817" if line.startswith("[") else "#d8d8d8")
-                        font "DejaVuSans.ttf"
-                    if who:
-                        textbutton who["name"]:
-                            padding (0, 0)
-                            background None
-                            action Function(credits_click, who["key"])
-                            text_size 24
-                            text_color "#ffffff"
-                            text_hover_color "#28c840"
-                            text_font "DejaVuSans.ttf"
-            text "_":
-                size 24
-                color "#d8d8d8"
-                font "DejaVuSans.ttf"
-                at term_cursor
 
 
 # ------------------------------------------------------------------------------

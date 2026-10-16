@@ -14,13 +14,11 @@ define MENU_STYLES = [
     ("panel",     _("PANEL"),     _("A dark glass panel down the right side.")),
     ("cinema",    _("CINEMA"),    _("Black bars top and bottom, the logo big in the middle, the options along the bottom.")),
     ("ticket",    _("TICKET"),    _("The menu printed on a train ticket.")),
-    ("terminal",  _("TERMINAL"),  _("A plain terminal window. Press the numbers to choose.")),
-    ("timetable", _("TIMETABLE"), _("A full departure board: every option is a train.")),
     ("centered",  _("CENTERED"),  _("THEME PACK: the logo and the menu down the middle.")),
 ]
 
 # the styles drawn by the screens in this file
-define MENU_EXTRA = ("minimal", "panel", "cinema", "ticket", "terminal", "timetable")
+define MENU_EXTRA = ("minimal", "panel", "cinema", "ticket")
 
 init python:
     def menu_styles_usable():
@@ -40,8 +38,8 @@ init python:
         return MENU_STYLES[0][1], MENU_STYLES[0][2]
 
     def menu_hides_key():
-        """The PANEL and TERMINAL styles need the right side of the screen."""
-        return menu_style_now() in ("panel", "terminal")
+        """The PANEL style needs the right side of the screen."""
+        return menu_style_now() == "panel"
 
 transform mm_lift:
     on idle:
@@ -341,203 +339,3 @@ screen mm_ticket(rows):
                 hbox:
                     xalign 1.0
                     use mm_departures(col="#7a6a4a")
-
-
-# ------------------------------------------------------------------------------
-# TERMINAL
-# ------------------------------------------------------------------------------
-
-transform mm_cursor:
-    alpha 1.0
-    pause 0.5
-    alpha 0.0
-    pause 0.5
-    repeat
-
-screen mm_terminal(rows):
-    add Solid("#000000")
-    # press a number to choose
-    for i, (lab, act, primary) in enumerate(rows[:9]):
-        key ("K_%d" % (i + 1)) action act
-        key ("K_KP%d" % (i + 1)) action act
-
-    frame:
-        align (0.5, 0.5)
-        xysize (1500, 860)
-        padding (0, 0)
-        background rbox("#0c0c0c", 12)
-        at mm_in(0.0)
-        add rbox("#2b2b2e", 12):
-            xysize (1500, 46)
-        add Solid("#2b2b2e"):
-            ypos 32
-            xysize (1500, 14)
-        hbox:
-            xpos 20
-            ypos 15
-            spacing 10
-            for dot in ("#ff5f57", "#febc2e", "#28c840"):
-                add rbox(dot, 8):
-                    xysize (16, 16)
-        text "departure-at-4:00":
-            xalign 0.5
-            ypos 12
-            size 18
-            color "#9a9aa0"
-            font "DejaVuSans.ttf"
-        vbox:
-            xpos 50
-            ypos 80
-            spacing 10
-            text "GREKHOV EXPRESS  v[config.version]":
-                size 26
-                color "#e6a817"
-                font "DejaVuSans.ttf"
-            null height 10
-            text _("$ select a destination"):
-                size 24
-                color "#28c840"
-                font "DejaVuSans.ttf"
-            null height 6
-            for i, (lab, act, primary) in enumerate(rows):
-                # [[ is a plain "[" (a single one would be read as a variable)
-                textbutton ("[[%d]  %s" % (i + 1, lab.lower()) if i < 9 else "     " + lab.lower()):
-                    padding (10, 2)
-                    background None
-                    hover_background Solid("#d8d8d8")
-                    action act
-                    tooltip MENU_HELP.get(lab, "")
-                    text_size 26
-                    text_color ("#ffffff" if primary else "#d8d8d8")
-                    text_hover_color "#0c0c0c"
-                    text_font "DejaVuSans.ttf"
-            null height 14
-            text ("# " + (GetTooltip() or _("press a number, or click"))):
-                size 20
-                color "#6a6a70"
-                font "DejaVuSans.ttf"
-            hbox:
-                spacing 8
-                text "$":
-                    size 24
-                    color "#28c840"
-                    font "DejaVuSans.ttf"
-                text "_":
-                    size 24
-                    color "#d8d8d8"
-                    font "DejaVuSans.ttf"
-                    at mm_cursor
-        hbox:
-            xalign 0.97
-            yalign 0.96
-            use mm_departures(col="#6a6a70", size=16)
-
-
-# ------------------------------------------------------------------------------
-# TIMETABLE
-# ------------------------------------------------------------------------------
-
-screen mm_timetable(rows):
-    add Solid("#00000080")
-    vbox:
-        xalign 0.5
-        yalign 0.5
-        spacing 20
-        hbox:
-            xalign 0.5
-            at mm_in(0.05)
-            use mm_logo(420)
-        frame:
-            xalign 0.5
-            xsize 1800
-            padding (48, 30)
-            background rbox("#0a0a0ef0", 22)
-            at mm_in(0.15)
-            vbox:
-                spacing 0
-                hbox:
-                    xfill True
-                    button:
-                        padding (0, 0)
-                        background None
-                        action Function(casino_open)
-                        text _("DEPARTURES"):
-                            size 40
-                            color "#e6a817"
-                            hover_color "#ffd76a"
-                            font CREDIT_FONT
-                    text "GREKHOV EXPRESS":
-                        xalign 1.0
-                        yalign 0.5
-                        size 22
-                        color "#55556a"
-                        font CREDIT_FONT
-                null height 10
-                hbox:
-                    text _("TIME"):
-                        min_width 200
-                        size 16
-                        color "#44445a"
-                        font GFONT
-                    text _("DESTINATION"):
-                        min_width 820
-                        size 16
-                        color "#44445a"
-                        font GFONT
-                    text _("PLATFORM"):
-                        min_width 260
-                        size 16
-                        color "#44445a"
-                        font GFONT
-                    text _("STATUS"):
-                        size 16
-                        color "#44445a"
-                        font GFONT
-                null height 6
-                add Solid("#2a2a35"):
-                    xysize (1704, 2)
-                for i, (lab, act, primary) in enumerate(rows):
-                    $ t = board_time(i)
-                    button:
-                        xsize 1704
-                        ysize (78 if primary else 62)
-                        padding (0, 0)
-                        background None
-                        hover_background rbox("#ffffff10", 8)
-                        action act
-                        tooltip MENU_HELP.get(lab, "")
-                        hbox:
-                            yalign 0.5
-                            fixed:
-                                xysize (200, 60)
-                                text t:
-                                    yalign 0.5
-                                    size (36 if primary else 28)
-                                    color (("#ffd76a" if primary else "#c9a24a") if t == "4:00" else "#e0521f")
-                                    font CREDIT_FONT
-                                    at board_flip(("t", i, t), 0.05)
-                            fixed:
-                                xysize (820, 60)
-                                text lab:
-                                    yalign 0.5
-                                    size (40 if primary else 30)
-                                    color ("#e0521f" if primary else "#cfcac0")
-                                    hover_color ("#ff7a3d" if primary else "#ffffff")
-                                    font GFONT
-                            fixed:
-                                xysize (260, 60)
-                                text str(i + 1):
-                                    yalign 0.5
-                                    size 30
-                                    color "#e8e4dc"
-                                    font CREDIT_FONT
-                            text (_("BOARDING") if primary else _("ON TIME")):
-                                yalign 0.5
-                                size 22
-                                color ("#e0521f" if primary else "#6dffa5")
-                                font CREDIT_FONT
-                                at (board_blink if primary else Transform())
-                    add Solid("#ffffff0d"):
-                        xysize (1704, 1)
-                null height 12
-                use mm_help(w=1600)
