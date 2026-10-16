@@ -208,6 +208,8 @@ init python:
     class DEV(object):
         label = "-"
 
+# init 1: after screens.rpy sets its own label callback, so this one chains onto it
+init 1 python:
     _old_label_cb = config.label_callback
 
     def _dev_label_cb(name, abnormal=False):
@@ -217,6 +219,8 @@ init python:
             _old_label_cb(name, abnormal)
 
     config.label_callback = _dev_label_cb
+
+init python:
 
     def dev_hud_lines():
         clues = len([c for c, _t, _x in CLUE_LIST if getattr(store, c, False)])
@@ -480,11 +484,7 @@ define GALLERY = [
     ("conductor_monster neutral", "The Conductor"),
 ]
 
-# (title, file)
-define JUKEBOX = [
-    (_("MAIN MENU"), "gui/main_menu.mp3"),
-    (_("LARP MUSIC"), "gui/larp.mp3"),
-]
+# the jukebox plays everything in SONG_ORDER (music.rpy)
 
 # (title, file)
 define THEATRE = [
@@ -498,11 +498,27 @@ init python:
         return [("gallery", _("GALLERY")), ("jukebox", _("JUKEBOX")), ("theatre", _("THEATRE"))]
 
     def jukebox_play(f):
-        renpy.music.play(f, channel="music", fadein=0.6, loop=True)
+        """Play one song, then carry on through the rest of the list."""
+        files = song_files(SONG_ORDER)
+        if f in files:
+            k = files.index(f)
+            files = files[k:] + files[:k]
+        _MUSIC.place = "jukebox"
+        menu_music_filter_off()
+        renpy.music.play(files or f, channel="music", fadein=0.6, fadeout=0.6, loop=True)
+        renpy.restart_interaction()
+
+    def jukebox_shuffle():
+        files = song_files(SONG_ORDER)
+        renpy.random.shuffle(files)
+        _MUSIC.place = "jukebox"
+        menu_music_filter_off()
+        renpy.music.play(files, channel="music", fadein=0.6, fadeout=0.6, loop=True)
         renpy.restart_interaction()
 
     def jukebox_stop():
         renpy.music.stop(channel="music", fadeout=0.6)
+        _MUSIC.place = None
         renpy.restart_interaction()
 
     def theatre_play(f):
@@ -566,28 +582,60 @@ screen gallery_list(w):
 
 screen jukebox_list(w):
     $ playing = renpy.music.get_playing(channel="music")
-    for idx, (title, f) in enumerate(JUKEBOX):
+    frame:
+        xfill True
+        background rbox("#17150d", 22)
+        padding (26, 14)
+        fixed:
+            xfill True
+            ysize 56
+            vbox:
+                yalign 0.5
+                spacing 4
+                text _("NOW PLAYING"):
+                    size 15
+                    color "#8888a0"
+                    font GFONT
+                text now_playing_title():
+                    size 22
+                    color "#ffd700"
+                    font GFONT
+            hbox:
+                xalign 1.0
+                yalign 0.5
+                spacing 12
+                use rbtn(_("SHUFFLE ALL"), Function(jukebox_shuffle), w=190, h=50, r=16, size=18, bg="#8a4a22", hov="#b8631f", col="#f2e6d8", hcol="#ffffff")
+                use rbtn(_("NEXT"), (Function(music_skip) if playing else None), w=120, h=50, r=16, size=18)
+                use rbtn(_("STOP"), (Function(jukebox_stop) if playing else None), w=120, h=50, r=16, size=18)
+    for idx, sid in enumerate(SONG_ORDER):
+        $ f, title, artist = SONGS[sid]
         $ on = (playing == f)
         frame:
             xfill True
             background rbox("#17150d" if on else "#101014", 22)
-            padding (26, 14)
-            at row_pop(min(idx * 0.05, 0.5))
+            padding (26, 10)
+            at row_pop(min(idx * 0.03, 0.5))
             fixed:
                 xfill True
-                ysize 56
-                text (("♪  " if on else "") + title):
+                ysize 50
+                vbox:
                     yalign 0.5
-                    size 26
-                    color ("#ffd700" if on else "#e8e4dc")
-                    font GFONT
+                    spacing 2
+                    text (("♪  " if on else "") + title):
+                        size 22
+                        color ("#ffd700" if on else "#e8e4dc")
+                        font GFONT
+                    text artist:
+                        size 15
+                        color "#8888a0"
+                        font GFONT
                 hbox:
                     xalign 1.0
                     yalign 0.5
                     if on:
-                        use rbtn(_("STOP"), Function(jukebox_stop), w=150, h=50, r=16, size=22)
+                        use rbtn(_("STOP"), Function(jukebox_stop), w=130, h=44, r=14, size=18)
                     else:
-                        use rbtn(_("PLAY"), Function(jukebox_play, f), w=150, h=50, r=16, size=22, bg="#8a4a22", hov="#b8631f", col="#f2e6d8", hcol="#ffffff")
+                        use rbtn(_("PLAY"), Function(jukebox_play, f), w=130, h=44, r=14, size=18, bg="#8a4a22", hov="#b8631f", col="#f2e6d8", hcol="#ffffff")
 
 screen theatre_list(w):
     # only videos that are actually on this device
@@ -618,13 +666,20 @@ screen theatre_list(w):
 
 default persistent.ui_theme = "default"
 
-# (id, name)
+# (id, name). A theme only tints the backgrounds of the carriages and maps
+# and the main menu's picture - never the characters or the dialogue box.
 define UI_THEMES = [
     ("default",  _("DEFAULT")),
+    ("soft",     _("SOFT")),
     ("midnight", _("MIDNIGHT")),
     ("blood",    _("BLOOD MOON")),
     ("royal",    _("ROYAL")),
     ("noir",     _("NOIR")),
+    ("sepia",    _("SEPIA")),
+    ("sunset",   _("SUNSET")),
+    ("forest",   _("FOREST")),
+    ("frost",    _("FROST")),
+    ("dusk",     _("DUSK")),
 ]
 
 # the dialogue boxes and main menus only the THEME PACK unlocks
@@ -632,33 +687,48 @@ define THEME_DIALOGUE = ("terminal", "ticket")
 define THEME_MENUS = ("centered",)
 
 init python:
-    # menus, buttons and boxes get their colours turned...
-    THEME_UI = {
-        "midnight": HueMatrix(200) * SaturationMatrix(0.85),
-        "blood":    HueMatrix(-24) * SaturationMatrix(1.35),
-        "royal":    HueMatrix(255),
-        "noir":     SaturationMatrix(0.0),
-    }
-    # ...and the scenes get a gentle colour grade, so the people still look right
-    THEME_SCENE = {
+    # gentle colour grades, easy on the eyes
+    THEME_GRADE = {
+        "soft":     ContrastMatrix(0.88) * BrightnessMatrix(-0.04),
         "midnight": SaturationMatrix(0.9) * TintMatrix("#e2e8ff"),
-        "blood":    TintMatrix("#ffdcd4"),
-        "royal":    TintMatrix("#f0e8ff"),
-        "noir":     SaturationMatrix(0.0),
+        "blood":    TintMatrix("#ffded6"),
+        "royal":    TintMatrix("#eee4ff"),
+        "noir":     SaturationMatrix(0.15) * ContrastMatrix(0.95),
+        "sepia":    SaturationMatrix(0.35) * TintMatrix("#fff0d6"),
+        "sunset":   TintMatrix("#ffe6cc"),
+        "forest":   TintMatrix("#e4f4de"),
+        "frost":    SaturationMatrix(0.85) * TintMatrix("#e6f4ff"),
+        "dusk":     SaturationMatrix(0.9) * TintMatrix("#f2e0ee"),
     }
 
     def theme_now():
         t = persistent.ui_theme
-        return t if (t in THEME_UI and has_pass("themes")) else "default"
+        return t if (t in THEME_GRADE and has_pass("themes")) else "default"
 
-    def _theme_layer(table):
-        def apply(d):
-            m = table.get(theme_now())
-            return Transform(d, matrixcolor=m) if m is not None else d
-        return apply
+    def theme_matrix():
+        """The colour grade for the chosen theme (no change for DEFAULT)."""
+        return THEME_GRADE.get(theme_now(), IdentityMatrix())
 
-    config.layer_transforms["screens"] = [_theme_layer(THEME_UI)]
-    config.layer_transforms["master"] = [_theme_layer(THEME_SCENE)]
+    _THEMED = {}
+
+    def _themed(st, at, d):
+        key = (id(d), theme_now())
+        t = _THEMED.get(key)
+        if t is None:
+            t = _THEMED[key] = Transform(d, matrixcolor=theme_matrix())
+        return t, None
+
+    def themed(d):
+        """A background that follows Settings > COLOUR THEME."""
+        return DynamicDisplayable(_themed, d=d)
+
+    def theme_step(d):
+        ids = [t for t, _n in UI_THEMES]
+        k = ids.index(theme_now()) if theme_now() in ids else 0
+        set_theme(ids[(k + d) % len(ids)])
+
+    def theme_name():
+        return dict(UI_THEMES).get(theme_now(), _("DEFAULT"))
 
     def set_theme(t):
         persistent.ui_theme = t

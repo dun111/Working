@@ -70,6 +70,16 @@ init python:
         if store.casino_bet not in casino_bets():
             store.casino_bet = 10
         renpy.show_screen("casino")
+        # casino songs while you're in here (music.rpy)
+        menu_music_filter_off()
+        music_for("casino", fade=1.0)
+        renpy.restart_interaction()
+
+    def casino_close():
+        renpy.hide_screen("casino")
+        if main_menu:
+            menu_music_filter_on()
+            music_menu()
         renpy.restart_interaction()
 
 
@@ -175,7 +185,7 @@ init python:
 screen casino():
     modal True
     zorder 290
-    key "game_menu" action Hide("casino")
+    key "game_menu" action Function(casino_close)
 
     add Solid("#06060ae8")
     use casino_wallet
@@ -232,7 +242,7 @@ screen casino():
                     use mg_btn((_("FREE DAILY COINS  +%d") % casino_daily_amount()), Function(casino_claim_daily), w=420, h=60, size=20)
                 else:
                     use rbtn(_("DAILY COINS: COME BACK TOMORROW"), None, w=420, h=60, r=20, size=16)
-                use rbtn(_("LEAVE"), Hide("casino"), w=180, h=60, r=20, size=22)
+                use rbtn(_("LEAVE"), Function(casino_close), w=180, h=60, r=20, size=22)
             text (_("BIGGEST WIN %d   ·   WON ALL TIME %d") % ((persistent.casino_best or 0), (persistent.casino_won or 0))):
                 size 16
                 color "#55556a"
