@@ -1095,7 +1095,7 @@ init python:
         persistent.ingame_music = True
         persistent.song_popups = True
         persistent.radio_bar = True
-        persistent.credits_style = "gta"
+        persistent.credits_style = "scroll"
         persistent.dialogue_font_size = 30
         persistent.dialogue_opacity = 0.93
         persistent.menu_fx = True
@@ -3289,7 +3289,7 @@ screen preferences():
                             font GFONT
                         use rbtn("›", Function(menu_style_step, 1), w=56, h=44, r=14, size=24)
 
-                    use pref_row(_("CREDITS STYLE"), _("How the credits look: GTA, TICKETS, FILM or SPOTLIGHT. You can also switch inside the credits."), 0.0):
+                    use pref_row(_("CREDITS STYLE"), _("How the credits look: SCROLL, TICKETS, FILM or SPOTLIGHT. You can also switch inside the credits."), 0.0):
                         for cid, cname in CREDIT_STYLES:
                             use pref_toggle(cname, Function(set_credits_style, cid), selected=(credits_style_now() == cid), w=(160 if cid == "departures" else 130))
 
@@ -3902,7 +3902,7 @@ init python:
         except Exception:
             pass
 
-# GTA-style credits: the game's art drifts slowly behind, one picture fading
+# SCROLL credits: the game's art drifts slowly behind, one picture fading
 # into the next, while the roles and names roll up the middle.
 
 # every role, in the order it first appears in CREW, with everyone who did it.

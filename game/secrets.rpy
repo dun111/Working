@@ -369,7 +369,7 @@ init python:
         before = None       # where the music was before the credits opened
 
     def credits_music_on():
-        """The credits' own songs: GTA songs, or larp music for the TICKETS style."""
+        """The credits' own songs, or larp music for the TICKETS style."""
         if _MUSIC.place not in ("credits", "credits_tickets"):
             _CREDMUS.before = _MUSIC.place
         menu_music_filter_off()

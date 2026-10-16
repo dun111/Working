@@ -3,7 +3,7 @@
 # The four looks the credits can have (Settings > Display > CREDITS STYLE, or
 # the < > in the top-right corner of the credits):
 #
-#   GTA         the game's art drifting behind, roles and names rolling up
+#   SCROLL      the game's art drifting behind, roles and names rolling up
 #   TICKETS     every member on a ticket card
 #   FILM        old film credits: role on the left, name on the right
 #   SPOTLIGHT   a black stage: the camera drifts over every carriage and
@@ -14,18 +14,18 @@
 # ==============================================================================
 
 define CREDIT_STYLES = [
-    ("gta",        _("GTA")),
+    ("scroll",     _("SCROLL")),
     ("tickets",    _("TICKETS")),
     ("film",       _("FILM")),
     ("spotlight",  _("SPOTLIGHT")),
 ]
 
-default persistent.credits_style = "gta"
+default persistent.credits_style = "scroll"
 
 init python:
     def credits_style_now():
         s = persistent.credits_style
-        return s if s in dict(CREDIT_STYLES) else "gta"
+        return s if s in dict(CREDIT_STYLES) else "scroll"
 
     def credits_style_name():
         return dict(CREDIT_STYLES)[credits_style_now()]
@@ -52,10 +52,10 @@ init python:
 
 
 # ------------------------------------------------------------------------------
-# GTA
+# SCROLL
 # ------------------------------------------------------------------------------
 
-screen credits_gta():
+screen credits_scroll():
     default cred_adj = ui.adjustment()
     add Solid("#000000")
     add ("credits_art_still" if persistent.reduce_motion else "credits_art")
