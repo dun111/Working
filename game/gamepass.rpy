@@ -19,15 +19,15 @@ default persistent.passes = set()
 define GAMEPASSES = [
     ("double",       _("DOUBLE TICKETS"), _("Earn twice as many tickets from now on."), 10),
     ("gold_key",     _("GOLDEN KEY"),     _("The key on the main menu turns gold."), 6),
-    ("gold_credits", _("GOLD CREDITS"),   _("The ticket cards in the credits turn gold."), 4),
+    ("gold_credits", _("GOLD CREDITS"),   _("The names and roles in the credits turn gold."), 4),
     ("extra_life",   _("EXTRA LIFE"),     _("+1 life in DON'T LET THEM REACH YOU, +4 battery in SEARCH IN THE DARK, +3 tries on THE LUGGAGE LOCK, +1 tear on PULL UP THE CARPET."), 8),
     ("cheats",       _("CHEAT MENU"),     _("Press F9 to open the cheat menu in any copy of the game."), 15),
     ("empty_train",  _("4:01"),           _("Board the empty train from this page whenever you like."), 12),
-    ("eric",         _("ERIC PASS"),      _("Developer mode: a DEV badge on the main menu, a developer HUD in game, and Eric's DEBUG game in the Arcade."), 20),
+    ("eric",         _("ERIC PASS"),      _("Developer mode: the F10 DEV CONSOLE (jump to any scene, live game state, hotspot coordinates, skip to the next choice, every gamepass), the F9 cheat menu, a developer HUD, a DEV badge and Eric's DEBUG game in the Arcade."), 20),
     ("dlc",          _("DLC"),            _("Three new EXTRAS tabs: GALLERY (every character), JUKEBOX (the soundtrack) and THEATRE (the videos)."), 25),
     ("revealer",     _("CHOICE REVEALER"), _("Every choice shows where it leads: the right answers, the deadly ones, achievements, minigames, and what you picked last time."), 18),
     ("rewind",       _("REWIND"),         _("A REWIND button in the quick menu takes you straight back to your last choice so you can pick again."), 14),
-    ("themes",       _("THEME PACK"),     _("Exclusive colour themes for the whole game (MIDNIGHT, BLOOD MOON, ROYAL, NOIR), the CENTERED main menu, and the TERMINAL and TICKET dialogue boxes. Switch in SETTINGS > DISPLAY."), 16),
+    ("themes",       _("THEME PACK"),     _("Exclusive colour themes for the whole game (MIDNIGHT, BLOOD MOON, ROYAL, NOIR), the CENTERED main menu, and the TERMINAL (a plain terminal window) and TICKET dialogue boxes. Switch in SETTINGS > DISPLAY."), 16),
     ("high_roller",  _("HIGH ROLLER"),    _("4:00 Casino: 100 and 250 coin bets, and double the free daily coins."), 10),
 ]
 
@@ -253,6 +253,218 @@ init python:
     config.overlay_screens.append("dev_hud")
 
 
+# ------------------------------------------------------------------------------
+# DEV CONSOLE  (ERIC PASS, F10 anywhere)
+# ------------------------------------------------------------------------------
+
+default persistent.dev_coords = False      # mouse position readout
+
+define DEV_TABS = [("tools", _("TOOLS")), ("labels", _("JUMP TO LABEL")), ("state", _("GAME STATE"))]
+
+init python:
+    def dev_labels():
+        """Every story label, in the order they appear in the script."""
+        out = []
+        for name in renpy.get_all_labels():
+            if not isinstance(name, (type(u""), type(""))) or name.startswith("_") or name.startswith("zz"):
+                continue
+            try:
+                node = renpy.game.script.namemap[name]
+                if not node.filename.replace("\\", "/").startswith("game/"):
+                    continue
+                out.append((node.filename, node.linenumber, name))
+            except Exception:
+                out.append(("~", 0, name))
+        out.sort()
+        return [(n, "%s:%d" % (f.split("/")[-1], l)) for f, l, n in out]
+
+    def dev_jump(name):
+        renpy.hide_screen("dev_console")
+        if main_menu:
+            renpy.run(Start(name))
+        else:
+            renpy.jump(name)
+
+    def dev_all_passes():
+        persistent.passes = set(persistent.passes) | set(p[0] for p in GAMEPASSES)
+        renpy.notify(_("Every gamepass unlocked."))
+
+    def dev_state_lines():
+        info = getattr(store, "sprite_info", {}) or {}
+        clues = [c for c, _t, _x in CLUE_LIST if getattr(store, c, False)]
+        try:
+            music = renpy.music.get_playing(channel="music") or "-"
+        except Exception:
+            music = "-"
+        return [
+            ("label", DEV.label),
+            ("part", "2 (in the loop)" if getattr(store, "in_loop", False) else "1"),
+            ("sprites", ", ".join("%s%s" % (t, "*" if st == "f" else "") for t, (x, st) in info.items()) or "-"),
+            ("clues", "%d / %d  %s" % (len(clues), len(CLUE_LIST), ", ".join(clues))),
+            ("music", music),
+            ("coins / tickets", "%d / %d" % (persistent.coins or 0, persistent.tickets or 0)),
+            ("passes", ", ".join(sorted(persistent.passes)) or "-"),
+            ("endings seen", ", ".join(sorted(persistent.endings_seen)) or "-"),
+            ("runs / playtime", "%d / %d min" % (persistent.runs or 0, int((persistent.playtime or 0) // 60))),
+            ("rumble / theme", "%s / %s" % (getattr(store, "rumble_on", None), theme_now())),
+            ("screen", "%d x %d   map scale %.2f" % (config.screen_width, config.screen_height, MAP_K)),
+        ]
+
+    def _dev_coords(st, at):
+        x, y = renpy.get_mouse_pos()
+        mx = int((x - MAP_OX) / MAP_K)
+        my = int((y - MAP_OY) / MAP_K)
+        return Text("screen %d, %d    map %d, %d" % (x, y, mx, my), size=16, color="#98c379", font="DejaVuSans.ttf"), 0.05
+
+    DEV_COORDS = DynamicDisplayable(_dev_coords)
+
+screen dev_hotkey():
+    if has_pass("eric"):
+        key "K_F10" action ToggleScreen("dev_console")
+
+# where the mouse is, in screen pixels and in map-art pixels (for placing hotspots)
+screen dev_coords():
+    zorder 1500
+    if has_pass("eric") and persistent.dev_coords:
+        frame:
+            xalign 1.0
+            yalign 1.0
+            offset (-20, -70)
+            padding (14, 6)
+            background rbox("#0a0e14dd", 8)
+            add DEV_COORDS
+
+init python:
+    config.always_shown_screens.append("dev_hotkey")
+    config.always_shown_screens.append("dev_coords")
+
+screen dev_btn(label, act, sel=False, w=300):
+    use rbtn(label, act, w=w, h=46, r=12, size=16, bg="#14202e", hov="#1f3048", col="#61afef", hcol="#ffffff", sel=sel)
+
+screen dev_console():
+    modal True
+    zorder 1400
+    default tab = "tools"
+    key "game_menu" action Hide("dev_console")
+    key "K_F10" action Hide("dev_console")
+
+    add Solid("#000000a0")
+    frame:
+        align (0.5, 0.5)
+        xysize (1300, 820)
+        padding (36, 28)
+        background rbox("#0a0e14f4", 20)
+        vbox:
+            spacing 16
+            hbox:
+                spacing 20
+                text _("DEV CONSOLE"):
+                    yalign 0.5
+                    size 30
+                    color "#61afef"
+                    font GFONT
+                text ("label: %s" % DEV.label):
+                    yalign 0.5
+                    size 16
+                    color "#98c379"
+                    font "DejaVuSans.ttf"
+            hbox:
+                spacing 10
+                for tk, tl in DEV_TABS:
+                    use dev_btn(tl, SetScreenVariable("tab", tk), sel=(tab == tk), w=240)
+
+            if tab == "tools":
+                grid 3 6:
+                    spacing 14
+                    use dev_btn(_("CHEAT MENU (F9)"), [Hide("dev_console"), Show("cheat_menu")])
+                    use dev_btn(_("SKIP TO NEXT CHOICE"), ([Hide("dev_console"), Skip(fast=True, confirm=False)] if not main_menu else None))
+                    use dev_btn(_("SCREENSHOT"), [Hide("dev_console"), Screenshot()])
+                    use dev_btn(_("MOUSE COORDINATES"), ToggleField(persistent, "dev_coords"), sel=persistent.dev_coords)
+                    use dev_btn(_("HOTSPOT OUTLINES"), ToggleField(persistent, "cheat_hotspots"), sel=persistent.cheat_hotspots)
+                    use dev_btn(_("DEV HUD"), ToggleField(persistent, "dev_hud"), sel=persistent.dev_hud)
+                    use dev_btn(_("INSTANT TEXT"), Preference("text speed", 0))
+                    use dev_btn(_("NORMAL TEXT"), Preference("text speed", 40))
+                    use dev_btn(_("MINIGAMES AUTO-WIN"), ToggleField(persistent, "cheat_autowin"), sel=persistent.cheat_autowin)
+                    use dev_btn(_("+1000 COINS"), Function(give_coins, 1000))
+                    use dev_btn(_("+50 TICKETS"), Function(give_tickets, 50))
+                    use dev_btn(_("EVERY GAMEPASS"), Function(dev_all_passes))
+                    use dev_btn(_("JUMPSCARES"), ToggleField(persistent, "jumpscares"), sel=persistent.jumpscares)
+                    use dev_btn(_("REDUCE MOTION"), ToggleField(persistent, "reduce_motion"), sel=persistent.reduce_motion)
+                    use dev_btn(_("PLAY DEBUG GAME"), Function(play_minigame, "mg_debug", debug_reset))
+                    use dev_btn(_("RELOAD SCRIPT"), (Function(renpy.reload_script) if config.developer else None))
+                    use dev_btn(_("MAIN MENU"), (MainMenu(confirm=False) if not main_menu else None))
+                    use dev_btn(_("CLOSE (F10)"), Hide("dev_console"))
+                text _("MOUSE COORDINATES shows the map position under the cursor - those are the numbers hotspots use in characters.rpy."):
+                    size 15
+                    color "#55556a"
+                    font GFONT
+
+            elif tab == "labels":
+                text _("Jumps straight to a label with the current story state (use the cheat menu's JUMP to set the state up properly)."):
+                    size 15
+                    color "#55556a"
+                    font GFONT
+                hbox:
+                  spacing 12
+                  viewport:
+                    id "dev_vp_labels"
+                    xysize (1200, 560)
+                    mousewheel True
+                    vbox:
+                        spacing 4
+                        for lname, lwhere in dev_labels():
+                            button:
+                                xsize 1180
+                                ysize 34
+                                padding (14, 0)
+                                background None
+                                hover_background rbox("#1f3048", 8)
+                                action Function(dev_jump, lname)
+                                text lname:
+                                    yalign 0.5
+                                    size 17
+                                    color "#e8e4dc"
+                                    hover_color "#ffffff"
+                                    font "DejaVuSans.ttf"
+                                text lwhere:
+                                    xalign 1.0
+                                    yalign 0.5
+                                    size 14
+                                    color "#55556a"
+                                    font "DejaVuSans.ttf"
+                  vbar:
+                    style "pref_vbar"
+                    value YScrollValue("dev_vp_labels")
+                    ysize 560
+
+            else:
+                hbox:
+                  spacing 12
+                  viewport:
+                    id "dev_vp_state"
+                    xysize (1200, 600)
+                    mousewheel True
+                    vbox:
+                        spacing 10
+                        for k, v in dev_state_lines():
+                            hbox:
+                                spacing 20
+                                text k:
+                                    min_width 220
+                                    size 17
+                                    color "#61afef"
+                                    font "DejaVuSans.ttf"
+                                text _esc(str(v)):
+                                    xmaximum 920
+                                    size 17
+                                    color "#98c379"
+                                    font "DejaVuSans.ttf"
+                  vbar:
+                    style "pref_vbar"
+                    value YScrollValue("dev_vp_state")
+                    ysize 600
+
+
 # ==============================================================================
 # DLC  -  GALLERY, JUKEBOX, THEATRE   (EXTRAS tabs)
 # ==============================================================================
@@ -423,16 +635,16 @@ init python:
     # menus, buttons and boxes get their colours turned...
     THEME_UI = {
         "midnight": HueMatrix(200) * SaturationMatrix(0.85),
-        "blood":    HueMatrix(-28) * SaturationMatrix(1.6) * BrightnessMatrix(-0.04),
+        "blood":    HueMatrix(-24) * SaturationMatrix(1.35),
         "royal":    HueMatrix(255),
-        "noir":     SaturationMatrix(0.0) * ContrastMatrix(1.1),
+        "noir":     SaturationMatrix(0.0),
     }
     # ...and the scenes get a gentle colour grade, so the people still look right
     THEME_SCENE = {
-        "midnight": SaturationMatrix(0.75) * TintMatrix("#c4d0ff"),
-        "blood":    TintMatrix("#ffb0a0"),
-        "royal":    TintMatrix("#e6d4ff"),
-        "noir":     SaturationMatrix(0.0) * ContrastMatrix(1.15),
+        "midnight": SaturationMatrix(0.9) * TintMatrix("#e2e8ff"),
+        "blood":    TintMatrix("#ffdcd4"),
+        "royal":    TintMatrix("#f0e8ff"),
+        "noir":     SaturationMatrix(0.0),
     }
 
     def theme_now():
@@ -472,7 +684,7 @@ init python:
         if ds == "paper":
             return rbox(Color("#e9dfc8").replace_opacity(op), 26)
         if ds == "terminal":
-            return rbox(Color("#020a05").replace_opacity(op), 10)
+            return rbox(Color("#0c0c0c").replace_opacity(max(op, 0.96)), 10)
         if ds == "ticket":
             return rbox(Color("#efe3c4").replace_opacity(op), 18)
         return rbox(Color("#0a0a0e").replace_opacity(op), 26)
@@ -481,7 +693,7 @@ init python:
         if ds in ("paper", "ticket"):
             return "#2a1f10"
         if ds == "terminal":
-            return "#7dff9a"
+            return "#d8d8d8"
         return TEXT_COLORS.get(persistent.text_color, "#e8e4dc")
 
 
