@@ -339,15 +339,18 @@ screen now_playing(title, artist):
         xalign 0.5
         ypos 30
         padding (22, 12)
-        background rbox("#0a0a0ee0", 16)
+        background rbox("#3a2412f0", 14)
         at np_slide
         hbox:
             spacing 16
-            text "♪":
+            frame:
                 yalign 0.5
-                size 34
-                color "#e6a817"
-                font "DejaVuSans.ttf"
+                padding (10, 4)
+                background rbox("#e8d9b0", 6)
+                text _("ON AIR"):
+                    size 14
+                    color "#7a1f12"
+                    font GFONT
             vbox:
                 spacing 2
                 text title:
@@ -356,83 +359,151 @@ screen now_playing(title, artist):
                     font GFONT
                 text artist:
                     size 15
-                    color "#8888a0"
+                    color "#c9a982"
                     font GFONT
     timer 5.2 action Hide("now_playing")
 
 
 # ------------------------------------------------------------------------------
-# THE RADIO BAR  (bottom right, on every screen; Settings > Audio > RADIO BAR)
+# THE RADIO  (bottom right, on every screen; Settings > Audio > RADIO BAR)
+# An old wooden set: a speaker grille, a tuning dial with the stations on it
+# (click the dial to tune to the next one), the song in a little lit window,
+# and three brass knobs.
 # ------------------------------------------------------------------------------
+
+define RADIO_W = 690
+define RADIO_H = 104
+define RADIO_DIAL_W = 330
+define RADIO_DIAL_PAD = 34      # room at the ends of the dial for the station names
 
 transform radio_fade:
     on idle:
-        ease 0.25 alpha 0.75
+        ease 0.25 alpha 0.82
     on hover:
         ease 0.15 alpha 1.0
 
-screen radio_btn(label, act, w=46, size=18):
+# a brass knob with its label underneath
+screen radio_knob(label, act):
     button:
-        xysize (w, 36)
+        xysize (66, 84)
         padding (0, 0)
         background None
-        hover_background rbox("#ffffff1c", 12)
         action act
-        text label:
-            align (0.5, 0.5)
-            size size
-            color "#cfcac0"
-            hover_color "#ffd700"
-            font "DejaVuSans.ttf"
+        fixed:
+            xysize (66, 84)
+            add Transform("gui/round/r256.png", xysize=(48, 48), matrixcolor=TintMatrix("#2a1a0c")):
+                xalign 0.5
+                ypos 4
+            add Transform("gui/round/r256.png", xysize=(42, 42), matrixcolor=TintMatrix("#b8913e")):
+                xalign 0.5
+                ypos 7
+            add Transform("gui/round/r256.png", xysize=(26, 26), matrixcolor=TintMatrix("#d9b866")):
+                xalign 0.5
+                ypos 15
+            # the little line on the knob
+            add Solid("#4a3010"):
+                xalign 0.5
+                ypos 9
+                xysize (3, 12)
+            text label:
+                xalign 0.5
+                ypos 60
+                size 12
+                color "#e8d9b0"
+                hover_color "#ffd76a"
+                font GFONT
 
 screen radio_bar():
     zorder 1250
     if persistent.radio_bar:
         $ cur = renpy.music.get_playing("music")
         $ song = SONG_BY_FILE.get(cur)
-        button:
+        $ ids = [k for k, _n in RADIO_STATIONS]
+        $ si = ids.index(persistent.radio_station) if persistent.radio_station in ids else 0
+        $ step = (RADIO_DIAL_W - 2 * RADIO_DIAL_PAD) / float(len(ids) - 1)
+        frame:
             xalign 1.0
             yalign 1.0
-            offset (-170, -12)
-            padding (10, 4)
-            background rbox("#0a0a0ee6", 18)
-            action NullAction()
+            offset (-150, -8)
+            xysize (RADIO_W, RADIO_H)
+            padding (0, 0)
+            background None
             at radio_fade
+
+            # the wooden cabinet
+            add rbox("#24160a", 18):
+                xysize (RADIO_W, RADIO_H)
+            add rbox("#6b4524", 16):
+                pos (3, 3)
+                xysize (RADIO_W - 6, RADIO_H - 6)
+            add Transform("gui/grain.png", xysize=(RADIO_W - 6, RADIO_H - 6), alpha=0.10):
+                pos (3, 3)
+
             hbox:
-                spacing 4
+                xpos 14
                 yalign 0.5
-                use radio_btn("|◄", Function(radio_prev), size=16)
-                use radio_btn(("►" if (radio_paused() or not cur) else "II"), Function(radio_toggle_pause), size=16)
-                use radio_btn("►|", Function(radio_next), size=16)
-                null width 6
+                spacing 14
+
+                # speaker grille
+                frame:
+                    xysize (92, 76)
+                    padding (8, 8)
+                    background rbox("#2e1c0c", 10)
+                    vbox:
+                        spacing 6
+                        for _r in range(6):
+                            add Solid("#1a0f06"):
+                                xysize (76, 4)
+
+                # the dial (click to tune) and the lit window with the song
                 vbox:
                     yalign 0.5
-                    xsize 300
-                    spacing 0
-                    text ((song[1] if song else _("Nothing playing"))[:30]):
-                        size 15
-                        color "#f2e6d8"
-                        layout "nobreak"
-                        font GFONT
-                    text ((song[2] if song else "")[:34]):
-                        size 12
-                        color "#8888a0"
-                        layout "nobreak"
-                        font GFONT
-                button:
+                    spacing 6
+                    button:
+                        xysize (RADIO_DIAL_W, 44)
+                        padding (0, 0)
+                        background rbox("#e8d9b0", 8)
+                        hover_background rbox("#f4e7c4", 8)
+                        action Function(radio_station_step, 1)
+                        tooltip _("Turn the dial to change station")
+                        fixed:
+                            xysize (RADIO_DIAL_W, 44)
+                            # the scale
+                            for k in range(29):
+                                add Solid("#6b5534"):
+                                    xpos RADIO_DIAL_PAD + int(k * (RADIO_DIAL_W - 2 * RADIO_DIAL_PAD) / 28.0)
+                                    ypos (4 if k % 7 == 0 else 6)
+                                    xysize (1, (12 if k % 7 == 0 else 7))
+                            for k, (sid, sname) in enumerate(RADIO_STATIONS):
+                                text sid.upper():
+                                    xcenter RADIO_DIAL_PAD + int(k * step)
+                                    ypos 20
+                                    size 11
+                                    color ("#7a1f12" if k == si else "#6b5534")
+                                    font GFONT
+                            # the needle
+                            add Solid("#c0281a"):
+                                xcenter RADIO_DIAL_PAD + int(si * step)
+                                ypos 2
+                                xysize (2, 40)
+                    frame:
+                        xysize (RADIO_DIAL_W, 30)
+                        padding (10, 0)
+                        background rbox("#1a0f06", 6)
+                        text ((("%s - %s" % (song[1], song[2])) if song else _("Nothing on air"))[:44]):
+                            yalign 0.5
+                            size 14
+                            layout "nobreak"
+                            color ("#ffb84a" if song else "#7a5a34")
+                            font GFONT
+
+                # the knobs
+                hbox:
                     yalign 0.5
-                    ysize 36
-                    padding (12, 0)
-                    background rbox("#ffffff10", 12)
-                    hover_background rbox("#e6a81744", 12)
-                    action Function(radio_station_step, 1)
-                    tooltip _("Change station")
-                    text radio_station_name():
-                        yalign 0.5
-                        size 13
-                        color "#e6a817"
-                        hover_color "#ffd700"
-                        font GFONT
+                    spacing 4
+                    use radio_knob(_("PREV"), Function(radio_prev))
+                    use radio_knob((_("PLAY") if (radio_paused() or not cur) else _("PAUSE")), Function(radio_toggle_pause))
+                    use radio_knob(_("NEXT"), Function(radio_next))
 
 init python:
     config.always_shown_screens.append("radio_bar")
