@@ -39,6 +39,10 @@ define gui.about = _p("""
 
 define build.name = "Working"
 
+## The version in the build's file names (no spaces allowed there).
+## config.version above is what the game shows.
+define build.version = "2.0-beta"
+
 
 ## Sounds and music ############################################################
 
