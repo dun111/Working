@@ -49,7 +49,7 @@ init 1 python:
 
 init python:
     def cheats_allowed():
-        return bool(config.developer or persistent.cheats_on or has_pass("cheats"))
+        return bool(config.developer or persistent.cheats_on or has_pass("cheats") or has_pass("eric"))
 
     def toggle_cheats():
         persistent.cheats_on = not persistent.cheats_on

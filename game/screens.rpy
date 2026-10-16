@@ -114,6 +114,7 @@ style pref_bar:
 style pref_vbar:
     xsize 14
     bar_vertical True
+    bar_invert True             # the handle starts at the top
     unscrollable "hide"         # no scrollbar when there's nothing to scroll
     top_bar rbox("#222233", 4)
     bottom_bar rbox("#222233", 4)
@@ -528,8 +529,8 @@ transform tilt(a=0):
 # "hide" fades the sprite out.
 # whoever isn't talking is darkened and see-through (SP_DIM / SP_BG_ALPHA)
 define SP_LIT = BrightnessMatrix(0.0) * SaturationMatrix(1.0)
-define SP_DIM = BrightnessMatrix(-0.45) * SaturationMatrix(0.45)
-define SP_BG_ALPHA = 0.6
+define SP_DIM = BrightnessMatrix(-0.16) * SaturationMatrix(0.8)
+define SP_BG_ALPHA = 0.82
 
 transform _sp_focus(xalign=0.7):
     xanchor 0.5
@@ -2466,19 +2467,24 @@ screen say(who, what, plate="#8a4a22", creepy=False):
                 yalign 0.0
                 yoffset 10
         elif ds == "terminal":
-            # THEME PACK: an old green screen
-            add rbox("#3dff7a", 2):
+            # THEME PACK: a plain terminal window - title bar, three buttons, black inside
+            add rbox("#2b2b2e", 10):
+                xysize (box_w, 42)
+            add Solid("#2b2b2e"):
+                ypos 30
+                xysize (box_w, 12)
+            hbox:
+                xpos 18
+                ypos 14
+                spacing 9
+                for dot in ("#ff5f57", "#febc2e", "#28c840"):
+                    add rbox(dot, 7):
+                        xysize (14, 14)
+            text "Terminal":
                 xalign 0.5
-                xsize (box_w - 40)
-                ysize 2
-                yalign 0.0
-                yoffset 8
-            add Transform("gui/grain.png", xysize=(box_w, 290), alpha=0.06)
-            text "GREKHOV-OS  v4.00":
-                xalign 0.98
-                ypos 18
-                size 14
-                color "#2a8a48"
+                ypos 11
+                size 16
+                color "#9a9aa0"
                 font "DejaVuSans.ttf"
         elif ds == "ticket":
             # THEME PACK: a train ticket - a stub on the left, torn along the dots
@@ -2522,12 +2528,12 @@ screen say(who, what, plate="#8a4a22", creepy=False):
                         color "#f2e6d8"
                         font GFONT
             elif ds == "terminal":
-                text ("> " + who.upper()):
+                text (who.lower() + " $"):
                     id "who"
                     xpos 40
-                    ypos 30
-                    size (persistent.dialogue_font_size - 4)
-                    color "#3dff7a"
+                    ypos 58
+                    size (persistent.dialogue_font_size - 6)
+                    color "#28c840"
                     font "DejaVuSans.ttf"
                     at (plate_pop if TALK.changed else plate_still)
             elif ds == "ticket":
@@ -2561,7 +2567,7 @@ screen say(who, what, plate="#8a4a22", creepy=False):
             xanchor (0.5 if ds == "film" else 0.0)
             xsize (0.8 if ds == "film" else (box_w - 380 if ds == "ticket" else 0.85))
             text_align (0.5 if ds == "film" else 0.0)
-            ypos (72 if not boxed else (40 if ds == "ticket" else (84 if ds == "terminal" else 104)))
+            ypos (72 if not boxed else (40 if ds == "ticket" else (100 if ds == "terminal" else 104)))
             size persistent.dialogue_font_size
             color say_ink(ds)
             font ("DejaVuSans.ttf" if ds == "terminal" else say_font())
@@ -2577,7 +2583,7 @@ screen say(who, what, plate="#8a4a22", creepy=False):
                 xalign 0.97
                 yalign 0.88
                 size 34
-                color "#3dff7a"
+                color "#d8d8d8"
                 font "DejaVuSans.ttf"
                 at soft_pulse
         else:
@@ -3208,7 +3214,7 @@ screen preferences():
                         use pref_toggle(_("PAPER"), SetField(persistent, "dialogue_style", "paper"), selected=(persistent.dialogue_style == "paper"), w=130)
                         use pref_toggle(_("FILM"), SetField(persistent, "dialogue_style", "film"), selected=(persistent.dialogue_style == "film"), w=130)
 
-                    use pref_row(_("THEME PACK DIALOGUE BOXES"), (_("Exclusive: an old green terminal, or a train ticket.") if has_pass("themes") else _("Unlock TERMINAL and TICKET with the THEME PACK gamepass (EXTRAS > GAMEPASS).")), 0.0):
+                    use pref_row(_("THEME PACK DIALOGUE BOXES"), (_("Exclusive: a plain terminal window, or a train ticket.") if has_pass("themes") else _("Unlock TERMINAL and TICKET with the THEME PACK gamepass (EXTRAS > GAMEPASS).")), 0.0):
                         if has_pass("themes"):
                             use pref_toggle(_("TERMINAL"), SetField(persistent, "dialogue_style", "terminal"), selected=(persistent.dialogue_style == "terminal"), w=150)
                             use pref_toggle(_("TICKET"), SetField(persistent, "dialogue_style", "ticket"), selected=(persistent.dialogue_style == "ticket"), w=150)
@@ -3801,81 +3807,87 @@ init python:
         except Exception:
             pass
 
-# the little badge next to each name (what they did)
-define CREW_BADGES = {"eric": "</>", "hannah": "✎", "aydin": "www", "ryan": "☕", "hanyu": "♥"}
+# GTA-style credits: the game's art drifts slowly behind, one picture fading
+# into the next, while the roles and names roll up the middle.
 
-# one ticket card in the credits: number stub, name, every role they took on
-screen crew_card(ci, c):
-    $ card_h = max(150, 96 + 34 * len(c["roles"]))
-    hbox:
-        frame:
-            xsize 150
-            ysize card_h
-            background rbox(credit_accent(), 26)
-            text ("%02d" % (ci + 1)):
-                align (0.5, 0.5)
-                size 54
-                color "#0a0a0e"
-                font GFONT
+# every role, in the order it first appears in CREW, with everyone who did it.
+# Roles next to each other done by the same people share one block, so a name
+# isn't repeated: ([role, role, ...], [person, ...])
+init python:
+    def credit_roles():
+        order, who = [], {}
+        for c in CREW:
+            for r in c["roles"]:
+                if r not in who:
+                    order.append(r)
+                    who[r] = []
+                who[r].append(c)
+        blocks = []
+        for r in order:
+            keys = [c["key"] for c in who[r]]
+            if blocks and [c["key"] for c in blocks[-1][1]] == keys:
+                blocks[-1][0].append(r)
+            else:
+                blocks.append(([r], who[r]))
+        return blocks
 
-        # perforation dots
-        vbox:
-            xsize 24
-            yalign 0.5
-            spacing 10
-            for _d in range(max(6, len(c["roles"]) + 3)):
-                add rbox("#33334a", 4):
-                    xalign 0.5
-                    xsize 8
-                    ysize 8
+# the slow drift across each picture
+transform credits_drift(z0, z1, x0, x1):
+    xalign x0
+    yalign 0.5
+    zoom z0
+    linear 9.0 zoom z1 xalign x1
 
-        vbox:
-            yalign 0.5
-            spacing 4
-            xoffset 14
-            hbox:
-                spacing 18
-                text c["name"]:
-                    size 60
-                    color "#f2ead8"
-                    hover_color credit_accent()
-                    font CREDIT_FONT
-                    outlines [(0, "#00000080", 2, 3)]
-                if c["key"] in CREW_BADGES:
-                    frame:
-                        yalign 0.6
-                        padding (12, 4)
-                        background rbox("#22222c", 10)
-                        text CREW_BADGES[c["key"]]:
-                            size 22
-                            color "#8888a0"
-                            hover_color "#e8e4dc"
-                            font "DejaVuSans.ttf"
-            null height 4
-            for role in c["roles"]:
-                hbox:
-                    spacing 12
-                    add rbox(credit_accent(), 2):
-                        xysize (8, 8)
-                        yalign 0.5
-                    text role:
-                        size 22
-                        color "#e6a817"
-                        font GFONT
+# one picture: a carriage, with someone standing in it now and then
+init python:
+    def _credit_slide(bg, who=None, side=1.0):
+        kids = [Transform(bg, fit="cover", xysize=(config.screen_width, config.screen_height))]
+        if who:
+            kids.append(At(Transform(who, fit="contain", ysize=int(config.screen_height * 0.95)),
+                           Transform(xalign=side, yalign=1.0, xoffset=(-160 if side > 0.5 else 160))))
+        return Fixed(*kids, xysize=(config.screen_width, config.screen_height))
 
-# credits: cards slide in one after another, lean out when you point at them,
-# and the logo floats
-transform card_in(d):
-    alpha 0.0
-    xoffset 260
-    pause d
-    easein 0.6 alpha 1.0 xoffset 0
+    CREDIT_SLIDES = [
+        _credit_slide("images/1st_carriage_Visualnovel_Background.webp"),
+        _credit_slide("images/bg_carriage_1.webp", "images/louis_neutral.png", 1.0),
+        _credit_slide("images/Carriage_1_With_CharacterS.webp"),
+        _credit_slide("images/bg_carriage_5.webp", "images/fedora.png", 0.0),
+        _credit_slide("images/PT2_Carriage_1_With_CharacterS.webp"),
+        _credit_slide("images/bg_carriage_1.webp", "images/dorothy_normal.png", 1.0),
+        _credit_slide("images/Train_BP.webp"),
+        _credit_slide("images/bg_carriage_5.webp", "images/Kimmy_Idle.png", 0.0),
+    ]
 
-transform card_hover:
-    on idle:
-        ease 0.25 xoffset 0 zoom 1.0
-    on hover:
-        ease 0.25 xoffset -18 zoom 1.01
+image credits_art:
+    At(CREDIT_SLIDES[0], credits_drift(1.05, 1.15, 0.3, 0.7)) with Dissolve(2.0)
+    pause 7.0
+    At(CREDIT_SLIDES[1], credits_drift(1.15, 1.05, 0.6, 0.4)) with Dissolve(2.0)
+    pause 7.0
+    At(CREDIT_SLIDES[2], credits_drift(1.05, 1.15, 0.7, 0.3)) with Dissolve(2.0)
+    pause 7.0
+    At(CREDIT_SLIDES[3], credits_drift(1.15, 1.05, 0.4, 0.6)) with Dissolve(2.0)
+    pause 7.0
+    At(CREDIT_SLIDES[4], credits_drift(1.05, 1.15, 0.3, 0.7)) with Dissolve(2.0)
+    pause 7.0
+    At(CREDIT_SLIDES[5], credits_drift(1.15, 1.05, 0.6, 0.4)) with Dissolve(2.0)
+    pause 7.0
+    At(CREDIT_SLIDES[6], credits_drift(1.0, 1.1, 0.5, 0.5)) with Dissolve(2.0)
+    pause 7.0
+    At(CREDIT_SLIDES[7], credits_drift(1.15, 1.05, 0.4, 0.6)) with Dissolve(2.0)
+    pause 7.0
+    repeat
+
+# with REDUCE MOTION the pictures still change, they just don't move
+image credits_art_still:
+    CREDIT_SLIDES[0] with Dissolve(2.0)
+    pause 7.0
+    CREDIT_SLIDES[2] with Dissolve(2.0)
+    pause 7.0
+    CREDIT_SLIDES[4] with Dissolve(2.0)
+    pause 7.0
+    CREDIT_SLIDES[6] with Dissolve(2.0)
+    pause 7.0
+    repeat
 
 transform logo_float:
     yoffset 0
@@ -3895,129 +3907,84 @@ screen about():
     on "replaced" action Function(credits_music_off)
     default cred_adj = ui.adjustment()
 
-    add Solid("#08080c")
+    add Solid("#000000")
+    add ("credits_art_still" if persistent.reduce_motion else "credits_art")
+    # dark enough to read over, darkest down the middle
+    add Solid("#000000a8")
+    add "gui/vignette.png":
+        xysize (config.screen_width, config.screen_height)
 
-    if persistent.menu_fx and not persistent.reduce_motion:
-        for sy, sdur, sdelay, slen in MENU_STREAKS:
-            add Solid("#ffffff10", xsize=slen, ysize=2):
-                ypos sy
-                at streak(sdur, sdelay)
-
-    # ---- left title panel ----
-    frame:
-        xpos 80
-        ypos 70
-        xsize 560
-        ysize 830
-        padding (2, 2)
-        background rbox("#ffffff1e", 40)
-        at fade_slide_in(0.0, xoff=-50)
-
-        frame:
-            xfill True
-            yfill True
-            padding (40, 40)
-            background rbox("#14141aee", 38)
-
-            vbox:
-                spacing 26
-                xfill True
-
-                text _("CREDITS"):
-                    xalign 0.5
-                    size 54
-                    color "#ffffff"
-                    font GFONT
-
-                add rbox("#e0521f", 2):
-                    xalign 0.5
-                    xsize 160
-                    ysize 6
-
-                add "game_logo_cycle":
-                    xsize 440
-                    ysize 260
-                    fit "contain"
-                    xalign 0.5
-                    at logo_float
-
-                fixed:
-                    xfill True
-                    ysize 22
-                    use menu_tagline
-
-                null height 10
-
-                text _("Version [config.version]"):
-                    xalign 0.5
-                    size 20
-                    color "#e6a817"
-                    font GFONT
-
-                text _("Made with Ren'Py [renpy.version_only]"):
-                    xalign 0.5
-                    size 16
-                    color "#8888a0"
-                    font GFONT
-
-    # ---- scrolling ticket cards ----
+    # ---- the roll ----
     viewport:
-        xpos 720
-        ypos 70
-        xsize (config.screen_width - 800)
-        ysize 830
+        xalign 0.5
+        xsize 1600
+        ysize config.screen_height
         yadjustment cred_adj
         mousewheel True
         draggable True
 
         vbox:
-            xsize (config.screen_width - 820)
-            spacing 22
+            xsize 1600
+            spacing 0
 
-            null height 760
+            null height config.screen_height
 
-            for ci, c in enumerate(CREW):
-                # psst: everyone's card does something when you click it (credits_fx.rpy)
-                frame:
-                    xfill True
-                    padding (0, 0)
-                    background None
-                    at card_in(0.3 + ci * 0.15)
-                    button:
-                        xfill True
-                        padding (0, 0)
-                        background rbox("#14141a", 26)
-                        hover_background rbox("#1d1820", 26)
+            add "game_logo_cycle":
+                xalign 0.5
+                xsize 720
+                ysize 440
+                fit "contain"
+
+            null height 180
+
+            # psst: every name does something when you click it (credits_fx.rpy)
+            for roles, people in credit_roles():
+                for role in roles:
+                    text role.upper():
+                        xalign 0.5
+                        size 26
+                        color credit_accent()
+                        font GFONT
+                null height 8
+                for c in people:
+                    textbutton c["name"]:
+                        xalign 0.5
+                        padding (20, 0)
+                        background None
                         action Function(credits_click, c["key"])
-                        at card_hover
-                        use crew_card(ci, c)
+                        text_size 72
+                        text_color "#f2ead8"
+                        text_hover_color credit_accent()
+                        text_font CREDIT_FONT
+                        text_outlines [(0, "#00000099", 3, 4)]
+                null height 90
 
-            frame:
-                xfill True
-                background rbox("#14141a", 26)
-                padding (40, 34)
-                vbox:
-                    spacing 10
-                    xalign 0.5
-                    text _("SPECIAL CREDITS"):
-                        xalign 0.5
-                        size 20
-                        color "#e6a817"
-                        font GFONT
-                    text _("larp music"):
-                        xalign 0.5
-                        size 44
-                        color "#ffffff"
-                        font GFONT
+            text _("SPECIAL CREDITS"):
+                xalign 0.5
+                size 26
+                color credit_accent()
+                font GFONT
+            null height 8
+            text _("larp music"):
+                xalign 0.5
+                size 72
+                color "#f2ead8"
+                font CREDIT_FONT
+            null height 200
 
             text _("THANKS FOR PLAYING!"):
                 xalign 0.5
-                size 64
-                italic True
+                size 80
+                color "#ffffff"
+                font CREDIT_FONT
+            null height 30
+            text _("Version [config.version]   ·   Made with Ren'Py [renpy.version_only]"):
+                xalign 0.5
+                size 18
                 color "#8888a0"
                 font GFONT
 
-            null height 760
+            null height config.screen_height
 
     timer 0.03 repeat True action Function(credits_step, cred_adj)
 
@@ -4027,6 +3994,12 @@ screen about():
         xsize 160
         ysize 50
         use rbtn(_("BACK"), (ShowMenu("main_menu") if main_menu else Return()), w=160, h=50, r=14, size=24)
+    text _("Scroll to speed up or go back. Click a name."):
+        xalign 0.97
+        yalign 0.96
+        size 15
+        color "#55556a"
+        font GFONT
 
 
 # ==============================================================================
