@@ -1065,6 +1065,7 @@ init python:
         persistent.quick_menu_shown = True
         persistent.ingame_music = True
         persistent.song_popups = True
+        persistent.radio_bar = True
         persistent.credits_style = "gta"
         persistent.dialogue_font_size = 30
         persistent.dialogue_opacity = 0.93
@@ -3368,6 +3369,19 @@ screen preferences():
 
                     use pref_row(_("NOW PLAYING"), now_playing_title(), 0.36):
                         use pref_toggle(_("NEXT SONG"), Function(music_skip), selected=False, w=200)
+
+                    use pref_row(_("RADIO STATION"), _("SCENE MUSIC fits where you are. The others play their own songs everywhere, without being reset."), 0.39):
+                        use rbtn("‹", Function(radio_station_step, -1), w=56, h=44, r=14, size=24)
+                        text radio_station_name():
+                            yalign 0.5
+                            min_width 220
+                            text_align 0.5
+                            size 20
+                            color "#e6a817"
+                            font GFONT
+                        use rbtn("›", Function(radio_station_step, 1), w=56, h=44, r=14, size=24)
+
+                    use pref_onoff(_("RADIO BAR"), _("The little player in the bottom-right corner: previous, pause, next and the station."), "radio_bar", 0.42)
 
         showif pref_tab == "gameplay":
             viewport:
