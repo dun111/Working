@@ -689,16 +689,16 @@ define THEME_MENUS = ("centered",)
 init python:
     # gentle colour grades, easy on the eyes
     THEME_GRADE = {
-        "soft":     ContrastMatrix(0.84) * BrightnessMatrix(-0.05),
-        "midnight": SaturationMatrix(0.85) * TintMatrix("#d4ddff"),
-        "blood":    TintMatrix("#ffccc0"),
-        "royal":    TintMatrix("#e4d6ff"),
-        "noir":     SaturationMatrix(0.08) * ContrastMatrix(0.95),
-        "sepia":    SaturationMatrix(0.28) * TintMatrix("#ffe8c6"),
-        "sunset":   TintMatrix("#ffdcb8"),
-        "forest":   TintMatrix("#d8efd0"),
-        "frost":    SaturationMatrix(0.8) * TintMatrix("#d8eeff"),
-        "dusk":     SaturationMatrix(0.85) * TintMatrix("#ecd2e6"),
+        "soft":     ContrastMatrix(0.78) * BrightnessMatrix(-0.07),
+        "midnight": SaturationMatrix(0.75) * TintMatrix("#b8c6ff"),
+        "blood":    SaturationMatrix(1.1) * TintMatrix("#ffaa98"),
+        "royal":    TintMatrix("#d2bcff"),
+        "noir":     SaturationMatrix(0.0),
+        "sepia":    SaturationMatrix(0.15) * TintMatrix("#ffdcae"),
+        "sunset":   TintMatrix("#ffc890"),
+        "forest":   TintMatrix("#c2e6b6"),
+        "frost":    SaturationMatrix(0.7) * TintMatrix("#c4e4ff"),
+        "dusk":     SaturationMatrix(0.8) * TintMatrix("#e2bcd8"),
     }
 
     def theme_now():
