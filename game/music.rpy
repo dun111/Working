@@ -30,8 +30,11 @@ define SONGS = {
     "sunflower":            ("Songs/sunflower.opus",              "Sunflower",                           "Post Malone, Swae Lee"),
     "stella":               ("Songs/stella.opus",                 "STELLA",                              "SAINT PEPSI"),
     "pumped_up_kicks":      ("Songs/pumped_up_kicks.opus",        "Pumped Up Kicks",                     "Foster The People"),
-    "flower_in_a_hurricane": ("Songs/flower_in_a_hurricane.opus", "Flower In A Hurricane",               "Justice ft. Tame Impala, SZA, King Gizzard & the Lizard Wizard"),
+    "flower_in_a_hurricane": ("Songs/flower_in_a_hurricane.opus", "Flower In A Hurricane",               "Justice ft. Tame Impala, SZA, King Gizzard & the Lizard Wizard (GTA VI)"),
     "rhyno":                ("Songs/rhyno.opus",                  "RHYNO",                               "Travis Scott"),
+    "gta6_main_theme":      ("Songs/gta6_main_theme.opus",        "Grand Theft Auto VI Main Theme",      "Rockstar Games"),
+    "gta6_trailer_song":    ("Songs/gta6_trailer_song.opus",      "GTA VI Trailer Song (Edit)",          "Rockstar Games"),
+    "gta6_extended_look":   ("Songs/gta6_extended_look.opus",     "GTA VI: An Extended Look",            "Rockstar Games"),
     "midnight_city":        ("Songs/midnight_city.opus",          "Midnight City",                       "M83"),
 }
 
@@ -40,7 +43,8 @@ define SONG_ORDER = [
     "main_menu", "larp", "end_of_beginning", "earrings", "music_sounds_better", "stayin_alive",
     "everybody_wants_to_rule", "slide", "the_less_i_know", "somebodys_watching_me", "self_aware",
     "loser", "walking_on_a_dream", "sunflower", "stella", "pumped_up_kicks",
-    "flower_in_a_hurricane", "rhyno", "midnight_city",
+    "flower_in_a_hurricane", "gta6_main_theme", "gta6_trailer_song", "rhyno", "midnight_city",
+    "gta6_extended_look",
 ]
 
 # a place -> its songs
@@ -63,10 +67,11 @@ define MUSIC_FOR = {
     # away from the story
     "menu_shuffle": ["main_menu", "walking_on_a_dream", "stella", "end_of_beginning", "sunflower"],
     "casino": ["stella", "stayin_alive", "pumped_up_kicks", "music_sounds_better"],
-    "credits": ["flower_in_a_hurricane", "midnight_city", "rhyno", "walking_on_a_dream", "everybody_wants_to_rule"],
+    # Flower In A Hurricane (from the GTA VI soundtrack) opens the credits
+    "credits": ["flower_in_a_hurricane", "gta6_main_theme", "rhyno", "gta6_trailer_song", "midnight_city", "gta6_extended_look"],
     "credits_tickets": ["larp"],
     # radio stations (the radio bar at the bottom)
-    "station_rush": ["flower_in_a_hurricane", "rhyno", "midnight_city", "pumped_up_kicks", "self_aware", "stayin_alive"],
+    "station_rush": ["flower_in_a_hurricane", "gta6_main_theme", "rhyno", "gta6_trailer_song", "midnight_city", "gta6_extended_look"],
     "station_chill": ["walking_on_a_dream", "stella", "end_of_beginning", "sunflower", "earrings", "the_less_i_know", "slide"],
     "station_ryan": ["stayin_alive", "music_sounds_better", "slide", "sunflower", "pumped_up_kicks"],
 }
