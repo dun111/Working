@@ -67,8 +67,8 @@ define MUSIC_FOR = {
     # away from the story
     "menu_shuffle": ["main_menu", "walking_on_a_dream", "stella", "end_of_beginning", "sunflower"],
     "casino": ["stella", "stayin_alive", "pumped_up_kicks", "music_sounds_better"],
-    # Flower In A Hurricane (from the GTA VI soundtrack) opens the credits
-    "credits": ["flower_in_a_hurricane", "gta6_main_theme", "rhyno", "gta6_trailer_song", "midnight_city", "gta6_extended_look"],
+    # the credits: Flower In A Hurricane (from the GTA VI soundtrack), on repeat
+    "credits": ["flower_in_a_hurricane"],
     "credits_tickets": ["larp"],
     # radio stations (the radio bar at the bottom)
     "station_rush": ["flower_in_a_hurricane", "gta6_main_theme", "rhyno", "gta6_trailer_song", "midnight_city", "gta6_extended_look"],
