@@ -1844,18 +1844,6 @@ transform board_blink:
         alpha 1.0
         repeat
 
-transform cine_hover:
-    on idle:
-        ease 0.2 xoffset 0
-    on hover:
-        ease 0.2 xoffset 16
-
-transform cine_line:
-    xzoom 0.0
-    on idle:
-        ease 0.2 xzoom 0.0
-    on hover:
-        ease 0.3 xzoom 1.0
 
 # the times in front of the options: one at a time flips to a nearby time,
 # and every so often they all go back to 4:00
@@ -1890,9 +1878,12 @@ screen cine_entry(i, label, act, primary=False):
         padding (6, 3)
         background None
         hover_background rbox("#ffffff0e", 8)
+        # an orange bar down the left of the row you're pointing at. No movement on
+        # hover: a hover animation mixed with the slide-in could leave a row stuck.
+        hover_foreground Transform(Solid("#e0521f"), xsize=4)
         action act
         tooltip MENU_HELP.get(label, "")
-        at fade_slide_in(0.4 + i * 0.06, xoff=-30), cine_hover
+        at fade_slide_in(0.4 + i * 0.06, xoff=-30)
         hbox:
             fixed:
                 xysize (CINE_TIME_W, (56 if primary else 42))
@@ -1912,7 +1903,6 @@ screen cine_entry(i, label, act, primary=False):
                         color ("#e0521f" if primary else "#cfcac0")
                         hover_color ("#ff7a3d" if primary else "#ffffff")
                         font GFONT
-                        outlines ([(6, "#e0521f2e", 0, 0)] if primary else [])
                     if primary:
                         text _("BOARDING"):
                             yalign 0.5
@@ -1920,9 +1910,6 @@ screen cine_entry(i, label, act, primary=False):
                             color "#e0521f"
                             font CREDIT_FONT
                             at board_blink
-                add Solid("#e0521f"):
-                    xysize (int(len(label) * (26 if primary else 18)), 3)
-                    at cine_line
 
 # ---- the little train on its rail (left column) ---------------------------------
 # It rocks gently as if it's moving and puffs smoke. Click it and it fades away
@@ -2275,8 +2262,7 @@ screen main_menu():
                     text_color ("#e0521f" if primary else "#cfcac0")
                     text_hover_color ("#ff7a3d" if primary else "#ffd76a")
                     text_font GFONT
-                    # a small lift on hover, so the line stays centred
-                    at mm_in(0.35 + i * 0.05), mm_lift
+                    at mm_in(0.35 + i * 0.05)
             null height 20
             text (GetTooltip() or _("Point at an option to see what it does.")):
                 xalign 0.5

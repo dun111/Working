@@ -41,12 +41,6 @@ init python:
         """The PANEL style needs the right side of the screen."""
         return menu_style_now() == "panel"
 
-transform mm_lift:
-    on idle:
-        ease 0.15 yoffset 0
-    on hover:
-        ease 0.15 yoffset -4
-
 transform mm_in(d=0.0):
     alpha 0.0
     yoffset 16
@@ -121,7 +115,7 @@ screen mm_minimal(rows):
                 text_color ("#e0521f" if primary else "#cfcac0")
                 text_hover_color ("#ff7a3d" if primary else "#ffffff")
                 text_font GFONT
-                at mm_in(0.25 + i * 0.04), mm_lift
+                at mm_in(0.25 + i * 0.04)
         null height 18
         use mm_help(xa=0.5, w=560)
         null height 6
@@ -172,7 +166,7 @@ screen mm_panel(rows):
                     hover_background rbox(("#ff7a3d" if primary else "#26262f"), 16)
                     action act
                     tooltip MENU_HELP.get(lab, "")
-                    at mm_in(0.2 + i * 0.04), mm_lift
+                    at mm_in(0.2 + i * 0.04)
                     text lab:
                         yalign 0.5
                         size (30 if primary else 22)
@@ -242,7 +236,7 @@ screen mm_cinema(rows):
                 text_color ("#e0521f" if primary else "#cfcac0")
                 text_hover_color ("#ff7a3d" if primary else "#ffffff")
                 text_font GFONT
-                at mm_in(0.3 + i * 0.04), mm_lift
+                at mm_in(0.3 + i * 0.04)
         use mm_departures(size=20)
 
 
@@ -332,7 +326,6 @@ screen mm_ticket(rows):
                                 text_color ("#b0201a" if primary else "#2a1f10")
                                 text_hover_color "#e0521f"
                                 text_font GFONT
-                                at mm_lift
             null height 10
             add Solid("#2a1f1033"):
                 xysize (TICKET_W - 400, 2)
