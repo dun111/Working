@@ -3930,7 +3930,7 @@ init python:
             if adj.value >= adj.range - 2:
                 adj.change(0)
             else:
-                adj.change(adj.value + 1.3)
+                adj.change(adj.value + 0.9)     # slow, so the credits take their time
         except Exception:
             pass
 

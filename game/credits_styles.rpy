@@ -41,6 +41,23 @@ init python:
         k = ids.index(credits_style_now())
         set_credits_style(ids[(k + d) % len(ids)])
 
+    def credit_sections():
+        """The longer credits after the crew, all from what's in the game:
+        [(heading, [(line, small line under it or ""), ...]), ...]"""
+        passengers = []
+        try:
+            passengers = [m[1] for m in MANIFEST]
+        except Exception:
+            pass
+        passengers += ["The Passenger", "The Gentleman", "The Conductor"]
+        music = [(SONGS[i][1], SONGS[i][2]) for i in SONG_ORDER if i in SONGS]
+        return [
+            (_("The passengers"), [(n, "") for n in passengers]),
+            (_("Music"), music),
+            (_("Fonts"), [("Graduate", ""), ("Telegraphem", ""), ("Reggae One", ""), ("DejaVu Sans", "")]),
+            (_("Made with"), [("Ren'Py", renpy.version_only)]),
+        ]
+
     def credit_pairs():
         """Every (role, person) - one line each."""
         out = []
@@ -108,6 +125,30 @@ screen credits_scroll():
                         text_font CREDIT_FONT
                         text_outlines [(0, "#00000099", 3, 4)]
                 null height 90
+
+            # the passengers, the music, the fonts, the engine
+            for heading, lines in credit_sections():
+                text heading.upper():
+                    xalign 0.5
+                    size 26
+                    color credit_accent()
+                    font GFONT
+                null height 12
+                for ln, sub in lines:
+                    text ln:
+                        xalign 0.5
+                        size 56
+                        color "#f2ead8"
+                        font CREDIT_FONT
+                        outlines [(0, "#00000099", 3, 4)]
+                    if sub:
+                        text sub:
+                            xalign 0.5
+                            size 22
+                            color "#a8a8a8"
+                            font GFONT
+                    null height 14
+                null height 110
 
             text _("SPECIAL CREDITS"):
                 xalign 0.5
@@ -320,6 +361,26 @@ screen credits_tickets():
                         at card_hover
                         use crew_card(ci, c)
 
+            for heading, lines in credit_sections():
+                frame:
+                    xfill True
+                    background rbox("#14141a", 26)
+                    padding (40, 30)
+                    vbox:
+                        spacing 8
+                        xalign 0.5
+                        text heading.upper():
+                            xalign 0.5
+                            size 20
+                            color "#e6a817"
+                            font GFONT
+                        for ln, sub in lines:
+                            text ((ln + "   ·   " + sub) if sub else ln):
+                                xalign 0.5
+                                size 34
+                                color "#ffffff"
+                                font GFONT
+
             frame:
                 xfill True
                 background rbox("#14141a", 26)
@@ -419,7 +480,32 @@ screen credits_film():
                                 text_hover_color credit_accent()
                                 text_font CREDIT_FONT
                 null height 70
-            null height 120
+            null height 60
+            for heading, lines in credit_sections():
+                hbox:
+                    xalign 0.5
+                    spacing 60
+                    text heading:
+                        xsize 800
+                        text_align 1.0
+                        size 30
+                        color "#a8a8a8"
+                        font GFONT
+                    vbox:
+                        xsize 800
+                        spacing 4
+                        for ln, sub in lines:
+                            text ln:
+                                size 40
+                                color "#ededed"
+                                font CREDIT_FONT
+                            if sub:
+                                text sub:
+                                    size 22
+                                    color "#8a8a8a"
+                                    font GFONT
+                null height 80
+            null height 60
             hbox:
                 xalign 0.5
                 spacing 60
@@ -493,7 +579,11 @@ init python:
 
     def spot_credit(i):
         """The crew block shown with picture i (the logo comes first)."""
-        blocks = credit_roles() + [([_("Special credits")], [{"key": None, "name": "larp music"}])]
+        blocks = list(credit_roles())
+        for heading, lines in credit_sections():
+            for ln, sub in lines:
+                blocks.append(([heading] + ([sub] if sub else []), [{"key": None, "name": ln}]))
+        blocks.append(([_("Special credits")], [{"key": None, "name": "larp music"}]))
         if i == 0:
             return None
         return blocks[(i - 1) % len(blocks)]
@@ -646,6 +736,8 @@ transform spot_logo_in(d):
 
 # a name, letter by letter (click it for that person's surprise)
 screen spot_name(c, start):
+    # long names get smaller so they fit beside the light
+    $ nsz = 96 if len(c["name"]) <= 11 else max(50, int(96 * 11 / len(c["name"])))
     button:
         padding (0, 0)
         background None
@@ -653,7 +745,7 @@ screen spot_name(c, start):
         hbox:
             for li, ch in enumerate(c["name"]):
                 text ch:
-                    size 96
+                    size nsz
                     color "#f2ead8"
                     hover_color credit_accent()
                     font CREDIT_FONT
