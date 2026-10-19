@@ -3909,7 +3909,7 @@ screen history():
 # first, then the extra ones each person already had in the credits.
 define CREW = [
     {"key": "eric", "name": "Eric", "roles": [
-        "Story writer", "Generalist (fulfill needed roles)", "Game graphic design",
+        "Story writer", "Generalist", "Game graphic design",
         "Programming/game functionality", "General game design",
         "Head Chief Supreme Programmer", "Game UI manager and supervisor",
         "Commander General Generalist of generalism",
@@ -3917,11 +3917,11 @@ define CREW = [
         "Chief Financial Officer", "Head visionist", "R&D department lead"]},
     {"key": "hannah", "name": "Hannah", "roles": [
         "Game graphic design", "General graphic design", "Story writer",
-        "Generalist (fulfill needed roles)",
+        "Generalist",
         "Lead graphic designer", "Lead designer", "Character designer", "Map designer"]},
     {"key": "aydin", "name": "Aydin", "roles": [
         "Story writer", "General graphic design", "Game graphic design",
-        "Google Sites page/presentation", "Generalist (fulfill needed roles)",
+        "Google Sites page/presentation", "Generalist",
         "Lead designer", "Lead graphic designer", "Character designer",
         "Lead website developer / manager"]},
     {"key": "ryan", "name": "Ryan", "roles": [
