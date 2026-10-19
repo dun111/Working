@@ -1878,13 +1878,15 @@ screen cine_entry(i, label, act, primary=False):
         padding (6, 3)
         background None
         hover_background rbox("#ffffff0e", 8)
-        # an orange bar down the left of the row you're pointing at. No movement on
-        # hover: a hover animation mixed with the slide-in could leave a row stuck.
+        # an orange bar down the left of the row you're pointing at
         hover_foreground Transform(Solid("#e0521f"), xsize=4)
         action act
         tooltip MENU_HELP.get(label, "")
+        # the row slides in; its contents nudge right on hover (cine_hover).
+        # Kept on separate things so the two can't mix and leave a row stuck.
         at fade_slide_in(0.4 + i * 0.06, xoff=-30)
         hbox:
+            at cine_hover
             fixed:
                 xysize (CINE_TIME_W, (56 if primary else 42))
                 text t:
@@ -1910,6 +1912,22 @@ screen cine_entry(i, label, act, primary=False):
                             color "#e0521f"
                             font CREDIT_FONT
                             at board_blink
+                add Solid("#e0521f"):
+                    xysize (int(len(label) * (26 if primary else 18)), 3)
+                    at cine_line
+
+transform cine_hover:
+    on idle:
+        ease 0.2 xoffset 0
+    on hover:
+        ease 0.2 xoffset 16
+
+transform cine_line:
+    xzoom 0.0
+    on idle:
+        ease 0.2 xzoom 0.0
+    on hover:
+        ease 0.3 xzoom 1.0
 
 # ---- the little train on its rail (left column) ---------------------------------
 # It rocks gently as if it's moving and puffs smoke. Click it and it fades away
@@ -2252,17 +2270,7 @@ screen main_menu():
                 use menu_tagline(0.5, 22)
             null height 30
             for i, (lab, act, primary) in enumerate(rows):
-                textbutton lab:
-                    xalign 0.5
-                    padding (30, 6)
-                    background None
-                    action act
-                    tooltip MENU_HELP.get(lab, "")
-                    text_size (52 if primary else 34)
-                    text_color ("#e0521f" if primary else "#cfcac0")
-                    text_hover_color ("#ff7a3d" if primary else "#ffd76a")
-                    text_font GFONT
-                    at mm_in(0.35 + i * 0.05)
+                use mm_row(lab, act, (52 if primary else 34), ("#e0521f" if primary else "#cfcac0"), ("#ff7a3d" if primary else "#ffd76a"), 0.35 + i * 0.05, xa=0.5, pad=(30, 6))
             null height 20
             text (GetTooltip() or _("Point at an option to see what it does.")):
                 xalign 0.5

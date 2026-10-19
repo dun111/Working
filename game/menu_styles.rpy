@@ -41,6 +41,30 @@ init python:
         """The PANEL style needs the right side of the screen."""
         return menu_style_now() == "panel"
 
+# hover movement goes on the TEXT inside a row; the row itself only has its
+# slide-in (mm_in). Two animations on the same thing could leave a row stuck.
+transform mm_lift:
+    on idle:
+        ease 0.15 yoffset 0
+    on hover:
+        ease 0.15 yoffset -5
+
+# one option: slides in with the rest, lifts a little when you point at it
+screen mm_row(lab, act, size, col, hcol, delay=None, xa=0.0, pad=(0, 4)):
+    button:
+        xalign xa
+        padding pad
+        background None
+        action act
+        tooltip MENU_HELP.get(lab, "")
+        at (mm_in(delay) if delay is not None else Transform())
+        text lab:
+            size size
+            color col
+            hover_color hcol
+            font GFONT
+            at mm_lift
+
 transform mm_in(d=0.0):
     alpha 0.0
     yoffset 16
@@ -105,17 +129,7 @@ screen mm_minimal(rows):
             use menu_tagline(0.5, 18)
         null height 40
         for i, (lab, act, primary) in enumerate(rows):
-            textbutton lab:
-                xalign 0.5
-                padding (0, 4)
-                background None
-                action act
-                tooltip MENU_HELP.get(lab, "")
-                text_size (46 if primary else 32)
-                text_color ("#e0521f" if primary else "#cfcac0")
-                text_hover_color ("#ff7a3d" if primary else "#ffffff")
-                text_font GFONT
-                at mm_in(0.25 + i * 0.04)
+            use mm_row(lab, act, (46 if primary else 32), ("#e0521f" if primary else "#cfcac0"), ("#ff7a3d" if primary else "#ffffff"), 0.25 + i * 0.04, xa=0.5)
         null height 18
         use mm_help(xa=0.5, w=560)
         null height 6
@@ -173,6 +187,7 @@ screen mm_panel(rows):
                         color ("#0a0a0e" if primary else "#e8e4dc")
                         hover_color ("#0a0a0e" if primary else "#ffd76a")
                         font GFONT
+                        at mm_lift
             null height 12
             use mm_help(w=520)
             null height 6
@@ -227,16 +242,7 @@ screen mm_cinema(rows):
         yoffset -(CINEMA_BAR // 2 - 24)
         spacing 54
         for i, (lab, act, primary) in enumerate(rows):
-            textbutton lab:
-                padding (0, 4)
-                background None
-                action act
-                tooltip MENU_HELP.get(lab, "")
-                text_size (30 if primary else 24)
-                text_color ("#e0521f" if primary else "#cfcac0")
-                text_hover_color ("#ff7a3d" if primary else "#ffffff")
-                text_font GFONT
-                at mm_in(0.3 + i * 0.04)
+            use mm_row(lab, act, (30 if primary else 24), ("#e0521f" if primary else "#cfcac0"), ("#ff7a3d" if primary else "#ffffff"), 0.3 + i * 0.04)
         use mm_departures(size=20)
 
 
@@ -317,15 +323,7 @@ screen mm_ticket(rows):
                         xsize 360
                         spacing 8
                         for lab, act, primary in col:
-                            textbutton lab:
-                                padding (0, 4)
-                                background None
-                                action act
-                                tooltip MENU_HELP.get(lab, "")
-                                text_size (36 if primary else 28)
-                                text_color ("#b0201a" if primary else "#2a1f10")
-                                text_hover_color "#e0521f"
-                                text_font GFONT
+                            use mm_row(lab, act, (36 if primary else 28), ("#b0201a" if primary else "#2a1f10"), "#e0521f")
             null height 10
             add Solid("#2a1f1033"):
                 xysize (TICKET_W - 400, 2)
