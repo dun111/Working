@@ -875,6 +875,7 @@ init python:
 
 label before_main_menu:
     $ menu_music_filter_on()
+    $ _RADIOUI.booting = False      # the boot screen is over: show the radio
     return
 
 
@@ -1673,6 +1674,8 @@ screen loading():
                 xalign 0.5
 
 label splashscreen:
+    # no radio in the corner during the boot screen (shown again by before_main_menu)
+    $ _RADIOUI.booting = True
     scene black
     with Pause(0.3)
 

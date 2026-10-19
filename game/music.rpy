@@ -397,6 +397,7 @@ init python:
     class _RADIOUI(object):
         hover = False
         pinned = False
+        booting = True      # hidden on the boot screen; the main menu turns it on
 
     def radio_hover(on):
         if _RADIOUI.hover != on:
@@ -461,7 +462,7 @@ screen radio_key(label, act, w=74):
 
 screen radio_bar():
     zorder 1250
-    if persistent.radio_bar:
+    if persistent.radio_bar and not _RADIOUI.booting:
         # folded: only the tab opens it. Open: pointing anywhere over the radio keeps it open
         if radio_open():
             mousearea:
