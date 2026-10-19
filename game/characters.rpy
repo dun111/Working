@@ -283,6 +283,35 @@ init python:
 #     use hs((x, y, w, h), Call("label"), "Fedora", "talk")
 # kinds: talk, look, door (forward), back, decide
 
+define HS_CHECKED = "#7a7a88"     # the colour of a hotspot you've already checked
+define HS_NUDGE = 20.0             # seconds in a carriage before unchecked hotspots glow brighter
+
+# the story labels of everything you've checked so far (cleared for Part 2)
+default hs_done = set()
+
+init python:
+    def hs_checked(act):
+        lab = getattr(act, "label", None)
+        return bool(lab) and lab in store.hs_done
+
+# init 3: chains onto the other label callbacks (screens.rpy, gamepass.rpy, music.rpy)
+init 3 python:
+    _old_label_cb_hs = config.label_callback
+
+    def _hs_label_cb(name, abnormal=False):
+        try:
+            if isinstance(name, (type(u""), type(""))):
+                if name == "part2_start":
+                    store.hs_done = set()       # the loop: the same places can say new things
+                elif not main_menu:
+                    store.hs_done.add(name)
+        except Exception:
+            pass
+        if _old_label_cb_hs:
+            _old_label_cb_hs(name, abnormal)
+
+    config.label_callback = _hs_label_cb
+
 define HS_STYLE = {
     "talk": ("#e0521f", _("TALK")),
     "look": ("#e6a817", _("LOOK")),
@@ -324,6 +353,25 @@ transform hs_ring:
         pause 0.4
         repeat
 
+# a checked hotspot: a small, still, grey diamond
+transform hs_quiet:
+    transform_anchor True
+    rotate 45
+    alpha 0.75
+
+# the nudge: nothing for HS_NUDGE seconds, then a soft glow that swells
+transform hs_nudge:
+    transform_anchor True
+    rotate 45
+    alpha 0.0
+    zoom 1.0
+    pause HS_NUDGE
+    block:
+        ease 0.7 alpha (0.0 if persistent.reduce_motion else 0.45) zoom 1.8
+        ease 0.7 alpha 0.0 zoom 1.0
+        pause 0.3
+        repeat
+
 transform hs_in(delay=0.0):
     alpha 0.0
     pause anim_t(delay)
@@ -353,6 +401,11 @@ transform hs_tag_hover:
 screen hs(rect, act, label="", kind="look", delay=0.0):
     $ hx, hy, hw, hh = rect
     $ hcol, hkind = HS_STYLE.get(kind, HS_STYLE["look"])
+    # something you've already checked this part of the story goes quiet (grey,
+    # no pulse); still clickable. Doors never do.
+    $ checked = kind not in ("door", "back") and hs_checked(act)
+    if checked:
+        $ hcol = HS_CHECKED
     button:
         # map coordinates are in the 1920x1080 design area, centred on screen
         pos map_xy(hx, hy)
@@ -385,7 +438,21 @@ screen hs(rect, act, label="", kind="look", delay=0.0):
                     hover_color "#ffffff"
                     at door_nudge(10 if kind == "door" else -10)
 
-            if not edge:
+            if not edge and checked:
+                add Solid(hcol):
+                    xysize (12, 12)
+                    xalign 0.5
+                    yalign (0.0 if on_head else 0.5)
+                    yoffset (-14 if on_head else 0)
+                    at hs_quiet
+            elif not edge:
+                # stuck? after a while the things you haven't checked glow brighter
+                add Solid(hcol):
+                    xysize (30, 30)
+                    xalign 0.5
+                    yalign (0.0 if on_head else 0.5)
+                    yoffset (-23 if on_head else 0)
+                    at hs_nudge
                 add Solid(hcol):
                     xysize (20, 20)
                     xalign 0.5
