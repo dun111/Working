@@ -16,6 +16,7 @@
 define SONGS = {
     "main_menu":            ("Songs/main_menu.mp3",               _("Main Theme"),                       "Departure at 4:00"),
     "larp":                 ("Songs/larp.mp3",                    _("LARP Music"),                       "larp music"),
+    "carriage_3":           ("Songs/carriage_3.opus",             _("Carriage 3 Song"),                  "Departure at 4:00"),
     "end_of_beginning":     ("Songs/end_of_beginning.opus",       "End Of Beginning",                    "Djo"),
     "earrings":             ("Songs/earrings.opus",               "Earrings",                            "Malcolm Todd"),
     "music_sounds_better":  ("Songs/music_sounds_better.opus",    "Music Sounds Better With You",        "Stardust"),
@@ -40,7 +41,7 @@ define SONGS = {
 
 # the order the jukebox lists them in
 define SONG_ORDER = [
-    "main_menu", "larp", "end_of_beginning", "earrings", "music_sounds_better", "stayin_alive",
+    "main_menu", "larp", "carriage_3", "end_of_beginning", "earrings", "music_sounds_better", "stayin_alive",
     "everybody_wants_to_rule", "slide", "the_less_i_know", "somebodys_watching_me", "self_aware",
     "loser", "walking_on_a_dream", "sunflower", "stella", "pumped_up_kicks",
     "flower_in_a_hurricane", "gta6_main_theme", "gta6_trailer_song", "rhyno", "midnight_city",
@@ -52,7 +53,7 @@ define MUSIC_FOR = {
     # Part 1: an ordinary (ish) train ride
     "c1": ["end_of_beginning", "earrings"],                 # waking up, confused
     "c2": ["music_sounds_better", "stayin_alive"],          # the bar and the gambler
-    "c3": ["everybody_wants_to_rule"],                      # the expensive cabin
+    "c3": ["carriage_3"],                                   # the expensive cabin
     "c4": ["slide"],                                        # the engine
     "c5": ["the_less_i_know"],                              # Alexander's corner
     # Part 2: someone's dead and the train keeps looping
