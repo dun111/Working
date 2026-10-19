@@ -16,10 +16,12 @@
 define SONGS = {
     "main_menu":            ("Songs/main_menu.mp3",               _("Grekhov Theme"),                    "Departure at 4:00"),
     "carriage_3":           ("Songs/carriage_3.opus",             "Rendezvous (Instrumental)",           "Carriage 3"),
+    # the larp song (the credits thank "larp music" for it)
+    "larp":                 ("Songs/larp.opus",                   "We Do What We Want",                  "Alan Fitzpatrick"),
 }
 
 # the order the jukebox lists them in
-define SONG_ORDER = ["main_menu", "carriage_3"]
+define SONG_ORDER = ["main_menu", "carriage_3", "larp"]
 
 # a place -> its songs
 define MUSIC_FOR = {
@@ -41,8 +43,9 @@ define MUSIC_FOR = {
     # away from the story
     "menu_shuffle": ["main_menu", "carriage_3"],
     "casino": ["main_menu", "carriage_3"],
-    "credits": ["main_menu"],
-    "credits_tickets": ["main_menu"],
+    # the credits: the larp song
+    "credits": ["larp"],
+    "credits_tickets": ["larp"],
 }
 
 # (id, name). The train's own stations, named after the people on board.

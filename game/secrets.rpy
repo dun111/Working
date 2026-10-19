@@ -228,7 +228,7 @@ screen pixel_parade():
 # ==============================================================================
 
 define ENDING_VIDEO = "movies/ending_video.webm"
-define CREDITS_MUSIC = "Songs/main_menu.mp3"   # the credits' song is MUSIC_FOR["credits"] (music.rpy)
+define CREDITS_MUSIC = "Songs/larp.opus"   # the larp song; the credits play MUSIC_FOR["credits"] (music.rpy)
 
 # the little text that pops up in the corner when you click someone in the
 # credits (placeholders for now - put your own text here)
