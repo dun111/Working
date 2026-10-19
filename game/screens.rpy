@@ -181,6 +181,22 @@ define KEY_SCALE = 2.35
 # TRANSFORMS
 # ==============================================================================
 
+# the light behind the key breathes slowly
+transform key_backlight:
+    alpha 0.12
+    block:
+        ease 3.0 alpha 0.22
+        ease 3.0 alpha 0.12
+        repeat
+
+init python:
+    import time as _btime
+
+    def _board_clock(st, at):
+        return Text(_btime.strftime("%H:%M"), size=18, color="#ffd76a", font=CREDIT_FONT), 1.0
+
+    BOARD_CLOCK = DynamicDisplayable(_board_clock)
+
 transform key_drop:
     transform_anchor True
     anchor (0.5, 0.0)
@@ -1870,8 +1886,10 @@ init python:
 screen cine_entry(i, label, act, primary=False):
     $ t = board_time(i)
     button:
-        padding (0, 3)
+        xsize (CINE_COL_W - 52)
+        padding (6, 3)
         background None
+        hover_background rbox("#ffffff0e", 8)
         action act
         tooltip MENU_HELP.get(label, "")
         at fade_slide_in(0.4 + i * 0.06, xoff=-30), cine_hover
@@ -1894,6 +1912,7 @@ screen cine_entry(i, label, act, primary=False):
                         color ("#e0521f" if primary else "#cfcac0")
                         hover_color ("#ff7a3d" if primary else "#ffffff")
                         font GFONT
+                        outlines ([(6, "#e0521f2e", 0, 0)] if primary else [])
                     if primary:
                         text _("BOARDING"):
                             yalign 0.5
@@ -2026,6 +2045,14 @@ screen main_menu():
                     xsize esz
                     ysize esz
                     at ember(edur, edelay, esway)
+
+        # a warm light glowing behind the key
+        if not menu_hides_key():
+            add Transform("gui/glow.png", matrixcolor=TintMatrix("#ffb060")):
+                xysize (1100, 1100)
+                xcenter 0.76
+                ycenter 0.36
+                at key_backlight
 
         # Key swinging from a string - scaled by KEY_SCALE. The string comes
         # down from the hook and is looped round the top bar of the key's ring.
@@ -2310,74 +2337,82 @@ screen main_menu():
 
             null height 22
 
-            # the departure board: the menu
+            # the departure board: the menu, in a thin gold frame
             frame:
                 xsize CINE_COL_W
-                padding (24, 16, 24, 14)
-                background rbox("#0a0a0ecc", 18)
+                padding (2, 2)
+                background rbox("#e6a81766", 20)
                 at fade_slide_in(0.35)
-                vbox:
-                    spacing 0
-                    # header (psst: click it)
-                    button:
-                        xfill True
-                        ysize 42
-                        padding (0, 0)
-                        background None
-                        action Function(casino_open)
-                        text _("DEPARTURES"):
-                            yalign 0.5
-                            size 24
-                            color "#e6a817"
-                            hover_color "#ffd76a"
-                            font CREDIT_FONT
-                        text _("GREKHOV EXPRESS"):
+                frame:
+                    xfill True
+                    padding (22, 14, 22, 12)
+                    background rbox("#0a0a0ef2", 18)
+                    vbox:
+                        spacing 0
+                        # header (psst: click it)
+                        button:
+                            xfill True
+                            ysize 42
+                            padding (0, 0)
+                            background None
+                            action Function(casino_open)
+                            text _("DEPARTURES"):
+                                yalign 0.5
+                                size 24
+                                color "#e6a817"
+                                hover_color "#ffd76a"
+                                font CREDIT_FONT
+                            hbox:
+                                xalign 1.0
+                                yalign 0.5
+                                spacing 14
+                                text _("GREKHOV EXPRESS"):
+                                    yalign 0.5
+                                    size 18
+                                    color "#55556a"
+                                    font CREDIT_FONT
+                                # the time right now, like a real station clock
+                                add BOARD_CLOCK:
+                                    yalign 0.5
+                        hbox:
+                            text _("TIME"):
+                                min_width CINE_TIME_W
+                                size 13
+                                color "#44445a"
+                                font GFONT
+                            text _("DESTINATION"):
+                                size 13
+                                color "#44445a"
+                                font GFONT
+                        null height 6
+                        add Solid("#2a2a35"):
+                            xysize (CINE_COL_W - 48, 2)
+                        null height 8
+                        for i, (lab, act, primary) in enumerate(rows):
+                            use cine_entry(i, lab, act, primary)
+                            if i < len(rows) - 1:
+                                add Solid("#ffffff0d"):
+                                    xysize (CINE_COL_W - 48, 1)
+                        null height 8
+                        add Solid("#2a2a35"):
+                            xysize (CINE_COL_W - 48, 2)
+                        null height 6
+                        # what the option you're pointing at does
+                        text (GetTooltip() or _("Point at an option to see what it does.")):
+                            size 15
+                            color ("#e6a817" if GetTooltip() else "#55556a")
+                            font GFONT
+                        null height 4
+                        # psst: click the version number five times
+                        textbutton (_("v4:00") if version_pokes >= 5 else "v[config.version]"):
                             xalign 1.0
-                            yalign 0.5
-                            size 18
-                            color "#55556a"
-                            hover_color "#8888a0"
-                            font CREDIT_FONT
-                    hbox:
-                        text _("TIME"):
-                            min_width CINE_TIME_W
-                            size 13
-                            color "#44445a"
-                            font GFONT
-                        text _("DESTINATION"):
-                            size 13
-                            color "#44445a"
-                            font GFONT
-                    null height 6
-                    add Solid("#2a2a35"):
-                        xysize (CINE_COL_W - 48, 2)
-                    null height 8
-                    for i, (lab, act, primary) in enumerate(rows):
-                        use cine_entry(i, lab, act, primary)
-                        if i < len(rows) - 1:
-                            add Solid("#ffffff0d"):
-                                xysize (CINE_COL_W - 48, 1)
-                    null height 8
-                    add Solid("#2a2a35"):
-                        xysize (CINE_COL_W - 48, 2)
-                    null height 6
-                    # what the option you're pointing at does
-                    text (GetTooltip() or _("Point at an option to see what it does.")):
-                        size 15
-                        color ("#e6a817" if GetTooltip() else "#55556a")
-                        font GFONT
-                    null height 4
-                    # psst: click the version number five times
-                    textbutton (_("v4:00") if version_pokes >= 5 else "v[config.version]"):
-                        xalign 1.0
-                        padding (0, 0)
-                        background None
-                        text_size 14
-                        text_color ("#e0521f" if version_pokes >= 5 else "#55556a")
-                        text_hover_color "#8888a0"
-                        text_font GFONT
-                        action Function(version_poke)
-
+                            padding (0, 0)
+                            background None
+                            text_size 14
+                            text_color ("#e0521f" if version_pokes >= 5 else "#55556a")
+                            text_hover_color "#8888a0"
+                            text_font GFONT
+                            action Function(version_poke)
 
     # ---- Tickets (EXTRAS > GAMEPASS) and coins (click: the casino) ---------------
     button:
