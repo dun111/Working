@@ -17,13 +17,14 @@ define SONGS = {
     "main_menu":            ("Songs/main_menu.mp3",               _("Grekhov Theme"),                    "Departure at 4:00"),
     "carriage_3":           ("Songs/carriage_3.opus",             "Rendezvous (Instrumental)",           "Carriage 3"),
     # the larp song (the credits thank "larp music" for it)
-    "larp":                 ("Songs/larp.opus",                   "We Do What We Want",                  "Alan Fitzpatrick"),
+    "larp":                 ("Songs/larp.opus",                   "We Do What We Want (Edit)",           "Alan Fitzpatrick"),
+    "the_days":             ("Songs/the_days.opus",               "The Days (NOTION Remix)",             "Chrystal"),
     # the SPOTLIGHT credits' song
     "flower_in_a_hurricane": ("Songs/flower_in_a_hurricane.opus", "Flower In A Hurricane",               "Justice ft. Tame Impala, SZA, King Gizzard & the Lizard Wizard (GTA VI)"),
 }
 
 # the order the jukebox lists them in
-define SONG_ORDER = ["main_menu", "carriage_3", "larp", "flower_in_a_hurricane"]
+define SONG_ORDER = ["main_menu", "carriage_3", "larp", "the_days", "flower_in_a_hurricane"]
 
 # a place -> its songs
 define MUSIC_FOR = {

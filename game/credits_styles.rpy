@@ -27,7 +27,9 @@ default persistent.credits_style = "scroll"
 define CREDIT_MUSIC = [
     ("Grekhov Theme", "Departure at 4:00"),
     ("Rendezvous (Instrumental)", "Carriage 3"),
+    ("We Do What We Want (Edit)", "Alan Fitzpatrick"),
     ("We Do What We Want", "Alan Fitzpatrick"),
+    ("The Days (NOTION Remix)", "Chrystal"),
     ("LARP Music", "larp music"),
     ("Stayin' Alive", "Bee Gees"),
     ("Slide", "Calvin Harris"),
