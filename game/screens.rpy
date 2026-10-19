@@ -3905,23 +3905,34 @@ screen history():
 # ==============================================================================
 
 # The crew. "key" is what you type on the main menu to find them (secrets.rpy).
+# the team (Group 7). Roles from the group's role sheet first, then the extra
+# ones each person already had in the credits.
 define CREW = [
-    {"key": "hannah", "name": "Hannah", "roles": [
-        "Lead graphic designer", "Lead designer", "Story writer",
-        "Character designer", "Map designer"]},
-    {"key": "aydin", "name": "Aydin", "roles": [
-        "Lead designer", "Lead graphic designer", "Character designer",
-        "Lead website developer / manager"]},
-    {"key": "hanyu", "name": "Hanyu", "roles": [
-        "Emotional support animal"]},
     {"key": "eric", "name": "Eric", "roles": [
+        "Story writer", "Generalist (fulfill needed roles)", "Game graphic design",
+        "Programming/game functionality", "General game design",
         "Head Chief Supreme Programmer", "Game UI manager and supervisor",
         "Commander General Generalist of generalism",
         "Executive director of developing and engineering",
         "Chief Financial Officer", "Head visionist", "R&D department lead"]},
+    {"key": "hannah", "name": "Hannah", "roles": [
+        "Game graphic design", "General graphic design", "Story writer",
+        "Generalist (fulfill needed roles)",
+        "Lead graphic designer", "Lead designer", "Character designer", "Map designer"]},
+    {"key": "aydin", "name": "Aydin", "roles": [
+        "Story writer", "General graphic design", "Game graphic design",
+        "Google Sites page/presentation", "Generalist (fulfill needed roles)",
+        "Lead designer", "Lead graphic designer", "Character designer",
+        "Lead website developer / manager"]},
     {"key": "ryan", "name": "Ryan", "roles": [
+        "Google Sites page/presentation", "Research/resource finder",
+        "General game design", "Programming/game functionality",
         "Programmer?", "Senior Junior Developer", "Probationary writer",
         "General Helper", "Probably a researcher"]},
+    {"key": "yejee", "name": "Yejee", "roles": [
+        "Game graphic design", "Story writer", "Google Sites page/presentation"]},
+    {"key": "hanyu", "name": "Hanyu", "roles": [
+        "Emotional support animal"]},
 ]
 
 init python:

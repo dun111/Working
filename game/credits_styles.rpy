@@ -42,20 +42,35 @@ init python:
         set_credits_style(ids[(k + d) % len(ids)])
 
     def credit_sections():
-        """The longer credits after the crew, all from what's in the game:
+        """The longer credits after the crew - everything in the game, by name,
+        taken from the game's own lists:
         [(heading, [(line, small line under it or ""), ...]), ...]"""
-        passengers = []
-        try:
-            passengers = [m[1] for m in MANIFEST]
-        except Exception:
-            pass
-        passengers += ["The Passenger", "The Gentleman", "The Conductor"]
-        music = [(SONGS[i][1], SONGS[i][2]) for i in SONG_ORDER if i in SONGS]
+        def safe(f):
+            try:
+                return f()
+            except Exception:
+                return []
+        passengers = safe(lambda: [m[1] for m in MANIFEST]) + ["The Passenger", "The Gentleman", "The Conductor"]
+        places = []
+        for t in safe(lambda: list(MAP_TITLES.values())):
+            line = "%s - %s" % (t[0], t[1])
+            if line not in places:
+                places.append(line)
+        places += ["CARRIAGE 6", "THE EMPTY TRAIN"]
         return [
             (_("The passengers"), [(n, "") for n in passengers]),
-            (_("Music"), music),
+            (_("The carriages"), [(n, "") for n in places]),
+            (_("Endings"), [("Wrong Guess", "Ending 1"), ("Partial Truth", "Ending 2"), ("The True Line", "Ending 3")]),
+            (_("Clues"), [(c[1], "") for c in safe(lambda: CLUE_LIST)]),
+            (_("Minigames"), [(g[1], "") for g in safe(lambda: MINIGAME_LIST)]),
+            (_("The 4:00 Casino"), [(g[1], "") for g in safe(lambda: CASINO_GAMES)]),
+            (_("Achievements"), [(x["title"], "") for x in safe(lambda: ACHIEVEMENTS)]),
+            (_("Gamepasses"), [(g[1], "") for g in safe(lambda: GAMEPASSES)]),
+            (_("Radio stations"), [(n, RADIO_FREQ.get(k, "")) for k, n in safe(lambda: RADIO_STATIONS)]),
+            (_("Music"), [(SONGS[i][1], SONGS[i][2]) for i in SONG_ORDER if i in SONGS]),
             (_("Fonts"), [("Graduate", ""), ("Telegraphem", ""), ("Reggae One", ""), ("DejaVu Sans", "")]),
             (_("Made with"), [("Ren'Py", renpy.version_only)]),
+            (_("Special thanks"), [("Mr Kromo", "")]),
         ]
 
     def credit_pairs():
@@ -581,8 +596,14 @@ init python:
         """The crew block shown with picture i (the logo comes first)."""
         blocks = list(credit_roles())
         for heading, lines in credit_sections():
-            for ln, sub in lines:
-                blocks.append(([heading] + ([sub] if sub else []), [{"key": None, "name": ln}]))
+            if len(lines) <= 4:
+                # small sections: a slide each, the small line flashing as a role
+                for ln, sub in lines:
+                    blocks.append(([heading] + ([sub] if sub else []), [{"key": None, "name": ln}]))
+            else:
+                # long lists: three names a slide
+                for k in range(0, len(lines), 3):
+                    blocks.append(([heading], [{"key": None, "name": ln} for ln, _s in lines[k:k + 3]]))
         blocks.append(([_("Special credits")], [{"key": None, "name": "larp music"}]))
         if i == 0:
             return None
