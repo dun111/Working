@@ -876,6 +876,9 @@ init python:
 label before_main_menu:
     $ menu_music_filter_on()
     $ _RADIOUI.booting = False      # the boot screen is over: show the radio
+    # start the menu's music (or the radio station that's on) - Ren'Py only
+    # starts config.main_menu_music by itself, which is empty for the stations
+    $ music_menu()
     return
 
 

@@ -113,22 +113,21 @@ init python:
         return radio_station_now() == "scene"
 
     def music_for(place, fade=2.0, carry=False):
-        """Switch to a place's songs. Already playing them: carry on.
-        carry: let the song that's playing finish first, then go on to these
-        (used when the story starts, so the menu song doesn't cut off)."""
+        """Switch to a place's songs. If the same song is already playing it just
+        carries on (so the Grekhov Theme runs straight on from the menu into the
+        story); a different song crossfades in right away.
+        (carry is no longer used - kept so older calls still work.)"""
         if not radio_scene():
             return          # a radio station is on: it keeps playing
+        # a pause from the radio must never leave a new scene silent
+        renpy.music.set_pause(False, channel="music")
         if place == _MUSIC.place and renpy.music.is_playing("music"):
             return
-        before = _MUSIC.place
         _MUSIC.place = place
         ids = MUSIC_FOR.get(place)
         files = song_files(ids) if ids else []
         if not files:
             renpy.music.stop(channel="music", fadeout=fade)
-            return
-        if carry and before in ("menu", "jukebox", None) and renpy.music.is_playing("music"):
-            renpy.music.queue(files, channel="music", loop=True, clear_queue=True)
             return
         renpy.music.play(files, channel="music", loop=True, fadein=fade, fadeout=fade, if_changed=True)
 
@@ -149,6 +148,7 @@ init python:
             radio_play_station(restart=False)
             return
         _MUSIC.place = "menu"
+        renpy.music.set_pause(False, channel="music")
         files = menu_music_files()
         if files:
             renpy.music.play(files, channel="music", loop=True, fadein=1.0, if_changed=True)
@@ -295,9 +295,15 @@ init python:
         _NP.last = cur
         if cur:
             _RADIO.history = (_RADIO.history + [cur])[-30:]
-        if cur in SONG_BY_FILE and persistent.song_popups:
+        if cur in SONG_BY_FILE and persistent.song_popups and not popup_blocked():
             sid, title, artist = SONG_BY_FILE[cur]
             renpy.show_screen("now_playing", title, artist)
+
+    def popup_blocked():
+        """No song card over the save/load/settings/credits menus: their tabs
+        sit in the top-right corner. (The main menu itself is fine.)"""
+        m = renpy.get_screen("menu")      # by tag: whichever menu screen is open
+        return bool(m) and not renpy.get_screen("main_menu")
 
     def now_playing_title():
         cur = renpy.music.get_playing("music")
@@ -320,9 +326,12 @@ screen now_playing_watch():
 
 screen now_playing(title, artist):
     zorder 1300
+    # top-right: the map's carriage plate is top-middle, the tickets/coins are
+    # top-right on the main menu (so it sits under them there)
     frame:
-        xalign 0.5
-        ypos 30
+        xalign 1.0
+        xoffset -40
+        ypos (110 if main_menu else 30)
         padding (22, 12)
         background rbox("#3a2412f0", 14)
         at np_slide
