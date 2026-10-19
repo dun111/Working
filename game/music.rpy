@@ -19,12 +19,19 @@ define SONGS = {
     # the larp song (the credits thank "larp music" for it)
     "larp":                 ("Songs/larp.opus",                   "We Do What We Want (Edit)",           "Alan Fitzpatrick"),
     "the_days":             ("Songs/the_days.opus",               "The Days (NOTION Remix)",             "Chrystal"),
+    "dreamin":              ("Songs/dreamin.opus",                "Dreamin",                             "PARTYNEXTDOOR"),
+    "make_it_to_the_morning": ("Songs/make_it_to_the_morning.opus", "MAKE IT TO THE MORNING",           "PARTYNEXTDOOR"),
+    # artist not known yet - add it after the title
+    "say_it":               ("Songs/say_it.opus",                 "Say It",                              ""),
+    "still_love_you":       ("Songs/still_love_you.opus",         "still love you (Slowed)",             ""),
+    "tbh":                  ("Songs/tbh.opus",                    "TBH",                                 ""),
     # the SPOTLIGHT credits' song
     "flower_in_a_hurricane": ("Songs/flower_in_a_hurricane.opus", "Flower In A Hurricane",               "Justice ft. Tame Impala, SZA, King Gizzard & the Lizard Wizard (GTA VI)"),
 }
 
 # the order the jukebox lists them in
-define SONG_ORDER = ["main_menu", "carriage_3", "larp", "the_days", "flower_in_a_hurricane"]
+define SONG_ORDER = ["main_menu", "carriage_3", "larp", "the_days", "flower_in_a_hurricane",
+                     "dreamin", "make_it_to_the_morning", "say_it", "still_love_you", "tbh"]
 
 # a place -> its songs
 define MUSIC_FOR = {
@@ -417,7 +424,9 @@ init python:
     def radio_song_text():
         cur = renpy.music.get_playing("music")
         song = SONG_BY_FILE.get(cur)
-        return ("%s - %s" % (song[1], song[2])) if song else _("Nothing on air")
+        if not song:
+            return _("Nothing on air")
+        return ("%s - %s" % (song[1], song[2])) if song[2] else song[1]
 
     def radio_overflow(t, size, width):
         """Roughly how far a line of text runs past the window (0 = it fits)."""
