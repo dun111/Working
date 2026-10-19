@@ -300,11 +300,12 @@ init python:
         before = None       # where the music was before the credits opened
 
     def credits_music_on():
-        """The credits' own songs, or larp music for the TICKETS style."""
-        if _MUSIC.place not in ("credits", "credits_tickets"):
+        """The credits' own song: Flower In A Hurricane for SPOTLIGHT, the larp song for the rest."""
+        if _MUSIC.place not in ("credits", "credits_tickets", "credits_spotlight"):
             _CREDMUS.before = _MUSIC.place
         menu_music_filter_off()
-        music_for("credits_tickets" if persistent.credits_style == "tickets" else "credits", fade=1.0)
+        st = credits_style_now()
+        music_for({"tickets": "credits_tickets", "spotlight": "credits_spotlight"}.get(st, "credits"), fade=1.0)
 
     def credits_music_off():
         if main_menu:

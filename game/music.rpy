@@ -18,10 +18,12 @@ define SONGS = {
     "carriage_3":           ("Songs/carriage_3.opus",             "Rendezvous (Instrumental)",           "Carriage 3"),
     # the larp song (the credits thank "larp music" for it)
     "larp":                 ("Songs/larp.opus",                   "We Do What We Want",                  "Alan Fitzpatrick"),
+    # the SPOTLIGHT credits' song
+    "flower_in_a_hurricane": ("Songs/flower_in_a_hurricane.opus", "Flower In A Hurricane",               "Justice ft. Tame Impala, SZA, King Gizzard & the Lizard Wizard (GTA VI)"),
 }
 
 # the order the jukebox lists them in
-define SONG_ORDER = ["main_menu", "carriage_3", "larp"]
+define SONG_ORDER = ["main_menu", "carriage_3", "larp", "flower_in_a_hurricane"]
 
 # a place -> its songs
 define MUSIC_FOR = {
@@ -46,6 +48,7 @@ define MUSIC_FOR = {
     # the credits: the larp song
     "credits": ["larp"],
     "credits_tickets": ["larp"],
+    "credits_spotlight": ["flower_in_a_hurricane"],
 }
 
 # (id, name). The train's own stations, named after the people on board.

@@ -591,8 +591,10 @@ define SPOT_RY = 1.25
 
 # (picture, "person" or "place"). People stand in the light; places are seen
 # through it while the camera moves across them.
+# "thing" = an object or a logo, shown whole in the middle of the light
 define SPOT_SLIDES = [
     ("images/Carriage_1_With_CharacterS.webp", "place"),
+    ("images/Game_Logo_Yellow.webp", "thing"),
     ("images/louis_neutral.png", "person"),
     ("images/dorothy_normal.png", "person"),
     ("images/fedora.png", "person"),
@@ -610,7 +612,15 @@ define SPOT_SLIDES = [
     ("pattison neutral", "person"),
     ("alexander neutral", "person"),
     ("images/dorothy_sad.png", "person"),
+    ("images/1st_carriage_Visualnovel_Background.webp", "place"),
+    ("images/Key.webp", "thing"),
+    ("shunyu_monster neutral", "person"),
+    ("himmel_monster neutral", "person"),
     ("conductor_monster neutral", "person"),
+    ("images/bg_carriage_1.webp", "place"),
+    ("images/cfr27dc3e0e7c6aws3.webp", "thing"),
+    ("images/Achievement_Unlock.webp", "thing"),
+    ("images/Blackberry_Studios_Full.webp", "thing"),
 ]
 
 init python:
@@ -619,6 +629,8 @@ init python:
         sw, sh = config.screen_width, config.screen_height
         if kind == "person":
             return Transform(img, fit="contain", ysize=int(sh * 0.92))
+        if kind == "thing":
+            return Transform(img, fit="contain", xysize=(int(sh * 0.62), int(sh * 0.62)))
         return Transform(img, fit="cover", xysize=(int(sw * 1.3), int(sh * 1.3)))
 
     def spot_credit(i):
@@ -931,8 +943,9 @@ screen credits_spotlight():
                         fit_first True
                         use spot_name(c, 0.35 + pi * 0.35)
                         if not still:
-                            add Solid("#ffffff"):
-                                xysize (40, 120)
+                            # a soft streak of light (a glow, so it has no hard edges)
+                            add Transform("gui/glow.png", xysize=(110, 150), alpha=0.6):
+                                yalign 0.5
                                 blend "add"
                                 at spot_sweep(1.0 + pi * 0.35)
                 add Solid(credit_accent()):
