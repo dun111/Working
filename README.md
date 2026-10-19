@@ -1,4 +1,4 @@
-# Departure at 4
+# every day changing it
 
 ![Status](https://img.shields.io/badge/Status-Release%20Coming%20Soon-yellow)
 ![Made with Ren'Py](https://img.shields.io/badge/Made%20with-Ren'Py-orange)
@@ -6,20 +6,20 @@
 ![Genre](https://img.shields.io/badge/Genre-Mystery%20%7C%20Visual%20Novel-purple)
 ![Resolution](https://img.shields.io/badge/Resolution-1920x1080-brightgreen)
 
-> *"Departure at 4, embark on an epic adventure on board the Grekhov Express. Find the killer and untangle the mystery of the Grekhov and the dark secrets it contains..."*
+> *"every day changing it: Embark on an epic adventure on board the Grekhov Express. Find the killer and untangle the mystery of the Grekhov and the dark secrets it contains..."*
 
 ---
 
 ## 📢 Release Announcement
 
 > **🚀 Release Coming Soon!**
-> *Departure at 4* is currently in active development by **Blackberry Studios** (Version 1.5 Alpha). Stay tuned for upcoming build releases and distribution updates!
+> *every day changing it* is currently in active development by **Blackberry Studios** (Version 2.0 Beta). Stay tuned for upcoming build releases and distribution updates!
 
 ---
 
 ## 📖 Overview & Synopsis
 
-**Departure at 4** is a story-rich, mystery visual novel developed in [Ren'Py](https://www.renpy.org/). Built for a native **1920 x 1080** display, the game combines interactive train carriage exploration, branching dialogue choices, clue gathering, and time-loop investigation mechanics.
+**every day changing it** is a story-rich, mystery visual novel developed in [Ren'Py](https://www.renpy.org/). Built for a native **1920 x 1080** display, the game combines interactive train carriage exploration, branching dialogue choices, clue gathering, and time-loop investigation mechanics.
 
 ### Storyline
 You play as **Louis**, a young man who awakens violently aboard the moving **Grekhov Express** with no memory of how he arrived. As Louis explores the train's carriages—from the dining cart to the luxury sleeper cabins, staff carts, and mail rooms—he meets an unusual cast of characters.
@@ -93,7 +93,7 @@ To play the standalone game:
 1. Navigate to the [Releases](../../releases) section of this repository.
 2. Download the latest build package corresponding to your operating system (**Windows**, **macOS**, or **Linux**).
 3. Extract the downloaded zip/archive.
-4. Launch the executable (`DepartureAt4.exe` on Windows, `DepartureAt4.app` on macOS, or `DepartureAt4.sh` on Linux).
+4. Launch the executable (`DepartureAt4.exe` / `Working.exe` on Windows, `DepartureAt4.app` / `Working.app` on macOS, or `DepartureAt4.sh` / `Working.sh` on Linux).
 
 ---
 
@@ -101,7 +101,7 @@ To play the standalone game:
 1. Download and install the [Ren'Py SDK](https://www.renpy.org/latest.html) (version 8.0 or newer).
 2. Clone or extract this repository into your Ren'Py projects directory.
 3. Launch the Ren'Py SDK and select **"Add Existing Project"**.
-4. Select **"Departure at 4"** (folder: `Working`) and click **"Launch Project"**.
+4. Select **"every day changing it"** (folder: `Working`) and click **"Launch Project"**.
 
 ---
 
