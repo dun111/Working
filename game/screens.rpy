@@ -2799,7 +2799,7 @@ screen quick_menu():
                     (_("Clues"), ShowMenu("clues")),
                     (_("People"), ShowMenu("manifest")),
                     (_("Prefs"), ShowMenu("preferences")),
-                ]:
+                ] + ([(_("Radio"), Function(radio_toggle))] if persistent.radio_bar else []):
                     button:
                         ysize 34
                         xminimum 74

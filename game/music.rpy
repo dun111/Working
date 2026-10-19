@@ -16,7 +16,7 @@
 define SONGS = {
     "main_menu":            ("Songs/main_menu.mp3",               _("Main Theme"),                       "Departure at 4:00"),
     "larp":                 ("Songs/larp.mp3",                    _("LARP Music"),                       "larp music"),
-    "carriage_3":           ("Songs/carriage_3.opus",             _("Carriage 3 Song"),                  "Departure at 4:00"),
+    "carriage_3":           ("Songs/carriage_3.opus",             "Rendezvous (Instrumental)",           "Carriage 3"),
     "end_of_beginning":     ("Songs/end_of_beginning.opus",       "End Of Beginning",                    "Djo"),
     "earrings":             ("Songs/earrings.opus",               "Earrings",                            "Malcolm Todd"),
     "music_sounds_better":  ("Songs/music_sounds_better.opus",    "Music Sounds Better With You",        "Stardust"),
@@ -391,6 +391,7 @@ define RADIO_WIN_W = 360        # the window the station and the song sit in
 define RADIO_RIGHT = 150        # gap from the right edge of the screen
 define RADIO_BOTTOM = 8         # gap from the bottom
 define RADIO_TAB_W = 92         # the folded tab
+define RADIO_ABOVE_SAY = 330    # in the story the radio opens this far up from the bottom (above the dialogue box)
 define RADIO_TAB_H = 30
 
 init python:
@@ -460,81 +461,112 @@ screen radio_key(label, act, w=74):
             hover_color "#2a1a0c"
             font GFONT
 
+init python:
+    # screens the radio must never cover (their buttons sit in the corners)
+    RADIO_AVOID = ["slot_machine", "roulette", "horses", "dev_console", "cheat_menu", "gallery_view"]
+
+    def radio_where():
+        """Where the radio lives right now:
+             None      - hidden (boot screen, minigames, turned off)
+             "corner"  - the tab in the bottom-right corner (main menu, settings...)
+             "game"    - a button in the quick menu; opens above the dialogue box"""
+        if not persistent.radio_bar or _RADIOUI.booting:
+            return None
+        names = RADIO_AVOID + [g[2] for g in getattr(store, "MINIGAME_LIST", [])] + ["mg_debug"]
+        for n in names:
+            if renpy.get_screen(n):
+                return None
+        if not main_menu and renpy.get_screen("quick_menu") and not renpy.context()._menu:
+            return "game"
+        return "corner"
+
+    def radio_toggle():
+        _RADIOUI.pinned = not _RADIOUI.pinned
+        renpy.restart_interaction()
+
+# the radio itself, with its top-left corner at (px, py)
+screen radio_panel(px, py):
+    $ cur = renpy.music.get_playing("music")
+    $ st = radio_station_now()
+    $ line = radio_song_text()
+    $ over = radio_overflow(line, 15, RADIO_WIN_W - 24)
+    frame:
+        pos (px, py)
+        xysize (RADIO_W, RADIO_H)
+        padding (14, 10)
+        background rbox("#6b4524", 14)
+        at radio_unfold
+        vbox:
+            spacing 8
+            # station: < name frequency >
+            hbox:
+                spacing 8
+                use radio_key("<", Function(radio_station_step, -1), w=32)
+                frame:
+                    xysize (RADIO_WIN_W - 80, 32)
+                    padding (12, 0)
+                    background rbox("#e8d9b0", 8)
+                    text radio_station_name():
+                        yalign 0.5
+                        size 14
+                        color "#7a1f12"
+                        font GFONT
+                    text RADIO_FREQ.get(st, ""):
+                        xalign 1.0
+                        yalign 0.5
+                        size 13
+                        color "#6b5534"
+                        font GFONT
+                use radio_key(">", Function(radio_station_step, 1), w=32)
+                null width 10
+                use radio_key(_("HIDE") if _RADIOUI.pinned else _("PIN"), Function(radio_pin, not _RADIOUI.pinned), w=62)
+            hbox:
+                spacing 8
+                # the song: clipped to its window, sliding if it's too long
+                fixed:
+                  xysize (RADIO_WIN_W, 32)
+                  add rbox("#1a0f06", 8):
+                      xysize (RADIO_WIN_W, 32)
+                  viewport:
+                    xysize (RADIO_WIN_W, 32)
+                    frame:
+                        xysize (max(RADIO_WIN_W, RADIO_WIN_W + over + 24), 32)
+                        padding (12, 0)
+                        background None
+                        text line:
+                            yalign 0.5
+                            size 15
+                            layout "nobreak"
+                            color ("#ffb84a" if cur else "#7a5a34")
+                            font GFONT
+                            at (radio_marquee(over + 24, line) if over else radio_still)
+                use radio_key(_("PREV"), Function(radio_prev))
+                use radio_key((_("PLAY") if (radio_paused() or not cur) else _("PAUSE")), Function(radio_toggle_pause))
+                use radio_key(_("NEXT"), Function(radio_next))
+
 screen radio_bar():
     zorder 1250
-    if persistent.radio_bar and not _RADIOUI.booting:
+    $ where = radio_where()
+    $ sw, sh = config.screen_width, config.screen_height
+
+    if where == "game":
+        # in the story it's opened from the quick menu's RADIO button, and sits
+        # above the dialogue box - over the scene, never over the text
+        if _RADIOUI.pinned:
+            use radio_panel(40, sh - RADIO_ABOVE_SAY - RADIO_H)
+
+    elif where == "corner":
         # folded: only the tab opens it. Open: pointing anywhere over the radio keeps it open
         if radio_open():
             mousearea:
-                area (config.screen_width - RADIO_RIGHT - RADIO_W, config.screen_height - RADIO_BOTTOM - RADIO_H, RADIO_W, RADIO_H)
+                area (sw - RADIO_RIGHT - RADIO_W, sh - RADIO_BOTTOM - RADIO_H, RADIO_W, RADIO_H)
                 hovered Function(radio_hover, True)
                 unhovered Function(radio_hover, False)
+            use radio_panel(sw - RADIO_RIGHT - RADIO_W, sh - RADIO_BOTTOM - RADIO_H)
         else:
             mousearea:
-                area (config.screen_width - RADIO_RIGHT - RADIO_TAB_W, config.screen_height - RADIO_BOTTOM - RADIO_TAB_H, RADIO_TAB_W, RADIO_TAB_H)
+                area (sw - RADIO_RIGHT - RADIO_TAB_W, sh - RADIO_BOTTOM - RADIO_TAB_H, RADIO_TAB_W, RADIO_TAB_H)
                 hovered Function(radio_hover, True)
-
-        if radio_open():
-            $ cur = renpy.music.get_playing("music")
-            $ st = radio_station_now()
-            $ line = radio_song_text()
-            $ over = radio_overflow(line, 15, RADIO_WIN_W - 24)
-            frame:
-                xalign 1.0
-                yalign 1.0
-                offset (-RADIO_RIGHT, -RADIO_BOTTOM)
-                xysize (RADIO_W, RADIO_H)
-                padding (14, 10)
-                background rbox("#6b4524", 14)
-                at radio_unfold
-                vbox:
-                    spacing 8
-                    # station: < name frequency >
-                    hbox:
-                        spacing 8
-                        use radio_key("<", Function(radio_station_step, -1), w=32)
-                        frame:
-                            xysize (RADIO_WIN_W - 80, 32)
-                            padding (12, 0)
-                            background rbox("#e8d9b0", 8)
-                            text radio_station_name():
-                                yalign 0.5
-                                size 14
-                                color "#7a1f12"
-                                font GFONT
-                            text RADIO_FREQ.get(st, ""):
-                                xalign 1.0
-                                yalign 0.5
-                                size 13
-                                color "#6b5534"
-                                font GFONT
-                        use radio_key(">", Function(radio_station_step, 1), w=32)
-                        null width 10
-                        use radio_key(_("HIDE") if _RADIOUI.pinned else _("PIN"), Function(radio_pin, not _RADIOUI.pinned), w=62)
-                    hbox:
-                        spacing 8
-                        # the song: clipped to its window, sliding if it's too long
-                        fixed:
-                          xysize (RADIO_WIN_W, 32)
-                          add rbox("#1a0f06", 8):
-                              xysize (RADIO_WIN_W, 32)
-                          viewport:
-                            xysize (RADIO_WIN_W, 32)
-                            frame:
-                                xysize (max(RADIO_WIN_W, RADIO_WIN_W + over + 24), 32)
-                                padding (12, 0)
-                                background None
-                                text line:
-                                    yalign 0.5
-                                    size 15
-                                    layout "nobreak"
-                                    color ("#ffb84a" if cur else "#7a5a34")
-                                    font GFONT
-                                    at (radio_marquee(over + 24, line) if over else radio_still)
-                        use radio_key(_("PREV"), Function(radio_prev))
-                        use radio_key((_("PLAY") if (radio_paused() or not cur) else _("PAUSE")), Function(radio_toggle_pause))
-                        use radio_key(_("NEXT"), Function(radio_next))
-        else:
             # folded away: just a little tab
             button:
                 xalign 1.0
