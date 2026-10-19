@@ -22,6 +22,35 @@ define CREDIT_STYLES = [
 
 default persistent.credits_style = "scroll"
 
+# every song file the game has had (game/Songs and music_source), for the credits:
+# (title, artist)
+define CREDIT_MUSIC = [
+    ("Grekhov Theme", "Departure at 4:00"),
+    ("Rendezvous (Instrumental)", "Carriage 3"),
+    ("We Do What We Want", "Alan Fitzpatrick"),
+    ("LARP Music", "larp music"),
+    ("Stayin' Alive", "Bee Gees"),
+    ("Slide", "Calvin Harris"),
+    ("End Of Beginning", "Djo"),
+    ("Walking On A Dream", "Empire Of The Sun"),
+    ("Pumped Up Kicks", "Foster The People"),
+    ("Grand Theft Auto VI Main Theme", "Rockstar Games"),
+    ("GTA VI: An Extended Look", "Rockstar Games"),
+    ("GTA VI Trailer Song (Edit)", "Rockstar Games"),
+    ("Flower In A Hurricane", "Justice ft. Tame Impala, SZA, King Gizzard & the Lizard Wizard"),
+    ("Earrings", "Malcolm Todd"),
+    ("Midnight City", "M83"),
+    ("Sunflower", "Post Malone, Swae Lee"),
+    ("Somebody's Watching Me", "Rockwell"),
+    ("STELLA", "SAINT PEPSI"),
+    ("Music Sounds Better With You", "Stardust"),
+    ("Loser", "Tame Impala"),
+    ("The Less I Know The Better", "Tame Impala"),
+    ("Everybody Wants To Rule The World", "Tears For Fears"),
+    ("Self Aware", "Temper City"),
+    ("RHYNO", "Travis Scott"),
+]
+
 init python:
     def credits_style_now():
         s = persistent.credits_style
@@ -67,7 +96,7 @@ init python:
             (_("Achievements"), [(x["title"], "") for x in safe(lambda: ACHIEVEMENTS)]),
             (_("Gamepasses"), [(g[1], "") for g in safe(lambda: GAMEPASSES)]),
             (_("Radio stations"), [(n, RADIO_FREQ.get(k, "")) for k, n in safe(lambda: RADIO_STATIONS)]),
-            (_("Music"), [(SONGS[i][1], SONGS[i][2]) for i in SONG_ORDER if i in SONGS]),
+            (_("Music"), CREDIT_MUSIC),
             (_("Fonts"), [("Graduate", ""), ("Telegraphem", ""), ("Reggae One", ""), ("DejaVu Sans", "")]),
             (_("Made with"), [("Ren'Py", renpy.version_only)]),
             (_("Special thanks"), [("Mr Kromo", "")]),
@@ -596,8 +625,9 @@ init python:
         """The crew block shown with picture i (the logo comes first)."""
         blocks = list(credit_roles())
         for heading, lines in credit_sections():
-            if len(lines) <= 4:
-                # small sections: a slide each, the small line flashing as a role
+            if len(lines) <= 4 or any(sub for _l, sub in lines):
+                # small sections, and anything with a small line (every song and its
+                # artist): a slide each, the small line flashing as a role
                 for ln, sub in lines:
                     blocks.append(([heading] + ([sub] if sub else []), [{"key": None, "name": ln}]))
             else:
