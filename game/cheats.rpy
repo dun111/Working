@@ -158,7 +158,6 @@ init python:
         persistent.secrets = set()
         persistent.crew_found = set()
         persistent.mg_won = set()
-        persistent.hanyu_pets = 0
         persistent.credits_clicked = set()
         persistent.tickets = 0
         persistent.coins = 50

@@ -200,7 +200,7 @@ screen credits_scroll():
 # ------------------------------------------------------------------------------
 
 # the little badge next to each name (what they did)
-define CREW_BADGES = {"eric": "</>", "hannah": "✎", "aydin": "www", "ryan": "☕", "hanyu": "♥"}
+define CREW_BADGES = {"eric": "</>", "hannah": "✎", "aydin": "www", "ryan": "☕"}
 
 # one ticket card in the credits: number stub, name, every role they took on
 screen crew_card(ci, c):

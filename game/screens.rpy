@@ -3905,8 +3905,8 @@ screen history():
 # ==============================================================================
 
 # The crew. "key" is what you type on the main menu to find them (secrets.rpy).
-# the team (Group 7). Roles from the group's role sheet first, then the extra
-# ones each person already had in the credits.
+# the team: Eric, Hannah, Aydin and Ryan. Roles from the group's role sheet
+# first, then the extra ones each person already had in the credits.
 define CREW = [
     {"key": "eric", "name": "Eric", "roles": [
         "Story writer", "Generalist (fulfill needed roles)", "Game graphic design",
@@ -3929,10 +3929,6 @@ define CREW = [
         "General game design", "Programming/game functionality",
         "Programmer?", "Senior Junior Developer", "Probationary writer",
         "General Helper", "Probably a researcher"]},
-    {"key": "yejee", "name": "Yejee", "roles": [
-        "Game graphic design", "Story writer", "Google Sites page/presentation"]},
-    {"key": "hanyu", "name": "Hanyu", "roles": [
-        "Emotional support animal"]},
 ]
 
 init python:

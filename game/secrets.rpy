@@ -3,7 +3,6 @@
 # Secret stuff (spoilers!!)
 #
 #   type a crew member's name on the main menu
-#   click Hanyu in the credits
 #   keep clicking the Blackberry logo after it tells you to stop
 #   be on the main menu at 4:00 (am or pm)
 #   + the MORE SECRETS section at the bottom of this file
@@ -13,11 +12,9 @@
 # ==============================================================================
 
 default persistent.crew_found = set()
-default persistent.hanyu_pets = 0
 
 define SECRET_ACHIEVEMENTS = [
-    {"id": "whole_crew", "title": _("You Will Before the End"), "description": _("Type all five crew names on the main menu."), "hidden": True},
-    {"id": "good_boy", "title": _("Attaboy!"), "description": _("Pet Hanyu 10 times."), "hidden": True},
+    {"id": "whole_crew", "title": _("You Will Before the End"), "description": _("Type all four crew names on the main menu."), "hidden": True},
     {"id": "pixel_parade", "title": _("They Always Come Back"), "description": _("Keep clicking the Blackberry logo after it tells you to stop."), "hidden": True},
     {"id": "right_on_time", "title": _("Departure at 4:00"), "description": _("Open the main menu at exactly 4:00."), "hidden": True},
 ]
@@ -28,7 +25,6 @@ define SECRET_NOTES = [
     ("konami", _("\"This goes to the clock, while this goes to the end. This goes to the fake ones and this goes to the friend.\"")),
     ("key_cut", _("\"Sometimes, life gets hard, and a door is presented to escape. But we're too scared to use the key. Don't hesitate.\"")),
     ("crew", _("\"It's okay, you will before the end.\"")),
-    ("good_boy", _("\"Awh, they're so cute.\"")),
     ("parade", _("\"He'll come back though. They always come back. Don't they?\"")),
     ("on_time", _("\"Thank you for boarding the Grekhov Express.\"")),
     (None, _("THANKS FOR PLAYING!")),
@@ -69,8 +65,6 @@ init python:
     def _crew_reveal(c):
         sfx("win")
         renpy.show_screen("map_stamp", c["name"].upper(), _random.choice(c["roles"]).upper())
-        if c["key"] == "hanyu":
-            show_hearts()
         persistent.crew_found = set(persistent.crew_found) | set([c["key"]])
         if len(persistent.crew_found) >= len(CREW):
             secret_found("crew", "whole_crew")
@@ -101,42 +95,6 @@ init python:
     # crew names, "b a" for the Konami code, "debug" for the cheat menu
     SECRET_LETTERS = sorted(set("".join(c["key"] for c in CREW)) | set("ba") | set("debug"))
 
-    # -------------------------------------------------------- emotional support
-    _HEART_N = [0]
-
-    def show_hearts():
-        x, y = renpy.get_mouse_pos()
-        _HEART_N[0] = (_HEART_N[0] + 1) % 6
-        tag = "hearts%d" % _HEART_N[0]
-        renpy.show_screen("hearts", x, y, tag, _tag=tag)
-
-    def pet_hanyu():
-        persistent.hanyu_pets = (persistent.hanyu_pets or 0) + 1
-        n = persistent.hanyu_pets
-        sfx("ui_click")
-        show_hearts()
-        if n == 1:
-            renpy.notify(_("\"Awh, they're so cute.\""))
-        elif n == 5:
-            renpy.notify(_("\"Don't worry Sugar, he's not dangerous… I think.\""))
-        elif n == 10:
-            secret_found("good_boy", "good_boy")
-            renpy.notify(_("\"Attaboy!\""))
-        elif n == 40:
-            renpy.notify(_("\"First one is free, next one is 2000 perkels.\""))
-        elif n % 25 == 0:
-            renpy.notify(_("\"Holy moly, what's that guy's problem…\""))
-
-    # --------------------------------------------------------- small passengers
-    # clicking the Blackberry logo after "Stop clicking it. Please."
-    BERRY_LINES = {
-        1: _("You already found the secret. Stop clicking it. Please."),
-        4: _("\"Now leave me alone!\""),
-        7: _("\"Can yer shut up?\""),
-        10: _("\"WATCH OUT.\""),
-        13: _("\"Fine.\""),
-    }
-
     def blackberry_click():
         _SECRET.berry_clicks += 1
         n = _SECRET.berry_clicks
@@ -163,31 +121,6 @@ init python:
 # ------------------------------------------------------------------------------
 # HEARTS
 # ------------------------------------------------------------------------------
-
-transform heart_float(dx=0, delay=0.0):
-    anchor (0.5, 0.5)
-    alpha 0.0
-    zoom 0.6
-    pause delay
-    parallel:
-        easeout 0.15 alpha 1.0 zoom 1.0
-        pause 0.6
-        linear 0.5 alpha 0.0
-    parallel:
-        easeout 1.25 yoffset -150 xoffset dx
-
-screen hearts(hx, hy, htag):
-    zorder 200
-    for i, (dx, sz, col) in enumerate([(-50, 34, "#ff6b8a"), (0, 46, "#ff3d6e"), (48, 30, "#ffa0b8"),
-                                       (-22, 26, "#ff85a2"), (26, 38, "#ff4f7b")]):
-        text "♥":
-            font "DejaVuSans.ttf"
-            size sz
-            color col
-            pos (hx, hy)
-            at heart_float(dx, i * 0.07)
-    timer 1.5 action Hide(htag)
-
 
 # ------------------------------------------------------------------------------
 # PIXEL PARADE  (the pixel passengers, see PIXEL_CROPS in characters.rpy)
@@ -220,7 +153,7 @@ screen pixel_parade():
 # ==============================================================================
 # MORE SECRETS
 #
-#   click each name in the credits (Eric and Hanyu keep going if you keep clicking)
+#   click each name in the credits (Eric's keeps going if you keep clicking)
 #   type any passenger's name on the main menu
 #   type "kanye" on the main menu
 #   look out of the Carriage 2 window five times
@@ -342,9 +275,7 @@ init python:
     def credits_click(key):
         persistent.credits_clicked = set(persistent.credits_clicked) | set([key])
         c = [x for x in CREW if x["key"] == key][0]
-        if key == "hanyu":
-            pet_hanyu()
-        elif key == "eric":
+        if key == "eric":
             persistent.eric_clicks = (persistent.eric_clicks or 0) + 1
             sfx("win")
             renpy.show_screen("eric_surprise")
