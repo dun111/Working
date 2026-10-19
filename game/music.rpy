@@ -14,83 +14,48 @@
 # ==============================================================================
 
 define SONGS = {
-    "main_menu":            ("Songs/main_menu.mp3",               _("Main Theme"),                       "Departure at 4:00"),
-    "larp":                 ("Songs/larp.mp3",                    _("LARP Music"),                       "larp music"),
+    "main_menu":            ("Songs/main_menu.mp3",               _("Grekhov Theme"),                    "Departure at 4:00"),
     "carriage_3":           ("Songs/carriage_3.opus",             "Rendezvous (Instrumental)",           "Carriage 3"),
-    "end_of_beginning":     ("Songs/end_of_beginning.opus",       "End Of Beginning",                    "Djo"),
-    "earrings":             ("Songs/earrings.opus",               "Earrings",                            "Malcolm Todd"),
-    "music_sounds_better":  ("Songs/music_sounds_better.opus",    "Music Sounds Better With You",        "Stardust"),
-    "stayin_alive":         ("Songs/stayin_alive.opus",           "Stayin' Alive",                       "Bee Gees"),
-    "everybody_wants_to_rule": ("Songs/everybody_wants_to_rule.opus", "Everybody Wants To Rule The World", "Tears For Fears"),
-    "slide":                ("Songs/slide.opus",                  "Slide",                               "Calvin Harris"),
-    "the_less_i_know":      ("Songs/the_less_i_know.opus",        "The Less I Know The Better",          "Tame Impala"),
-    "somebodys_watching_me": ("Songs/somebodys_watching_me.opus", "Somebody's Watching Me",              "Rockwell"),
-    "self_aware":           ("Songs/self_aware.opus",             "Self Aware",                          "Temper City"),
-    "loser":                ("Songs/loser.opus",                  "Loser",                               "Tame Impala"),
-    "walking_on_a_dream":   ("Songs/walking_on_a_dream.opus",     "Walking On A Dream",                  "Empire Of The Sun"),
-    "sunflower":            ("Songs/sunflower.opus",              "Sunflower",                           "Post Malone, Swae Lee"),
-    "stella":               ("Songs/stella.opus",                 "STELLA",                              "SAINT PEPSI"),
-    "pumped_up_kicks":      ("Songs/pumped_up_kicks.opus",        "Pumped Up Kicks",                     "Foster The People"),
-    "flower_in_a_hurricane": ("Songs/flower_in_a_hurricane.opus", "Flower In A Hurricane",               "Justice ft. Tame Impala, SZA, King Gizzard & the Lizard Wizard (GTA VI)"),
-    "rhyno":                ("Songs/rhyno.opus",                  "RHYNO",                               "Travis Scott"),
-    "gta6_main_theme":      ("Songs/gta6_main_theme.opus",        "Grand Theft Auto VI Main Theme",      "Rockstar Games"),
-    "gta6_trailer_song":    ("Songs/gta6_trailer_song.opus",      "GTA VI Trailer Song (Edit)",          "Rockstar Games"),
-    "gta6_extended_look":   ("Songs/gta6_extended_look.opus",     "GTA VI: An Extended Look",            "Rockstar Games"),
-    "midnight_city":        ("Songs/midnight_city.opus",          "Midnight City",                       "M83"),
 }
 
 # the order the jukebox lists them in
-define SONG_ORDER = [
-    "main_menu", "larp", "carriage_3", "end_of_beginning", "earrings", "music_sounds_better", "stayin_alive",
-    "everybody_wants_to_rule", "slide", "the_less_i_know", "somebodys_watching_me", "self_aware",
-    "loser", "walking_on_a_dream", "sunflower", "stella", "pumped_up_kicks",
-    "flower_in_a_hurricane", "gta6_main_theme", "gta6_trailer_song", "rhyno", "midnight_city",
-    "gta6_extended_look",
-]
+define SONG_ORDER = ["main_menu", "carriage_3"]
 
 # a place -> its songs
 define MUSIC_FOR = {
-    # Part 1: an ordinary (ish) train ride
-    "c1": ["end_of_beginning", "earrings"],                 # waking up, confused
-    "c2": ["music_sounds_better", "stayin_alive"],          # the bar and the gambler
-    "c3": ["carriage_3"],                                   # the expensive cabin
-    "c4": ["slide"],                                        # the engine
-    "c5": ["the_less_i_know"],                              # Alexander's corner
+    # Part 1
+    "c1": ["main_menu"],
+    "c2": ["main_menu"],
+    "c3": ["carriage_3"],                                   # Rendezvous in Carriage 3
+    "c4": ["main_menu"],
+    "c5": ["main_menu"],
     # Part 2: someone's dead and the train keeps looping
-    "part2": ["somebodys_watching_me"],
-    "part2_c3": ["self_aware"],
-    "part2_c5": ["loser"],
+    "part2": ["main_menu"],
+    "part2_c3": ["carriage_3"],
+    "part2_c5": ["main_menu"],
     # nothing while it matters most
     "silence": None,
     # the way out
-    "escape": ["sunflower"],
-    "true": ["walking_on_a_dream"],
+    "escape": ["main_menu"],
+    "true": ["main_menu"],
     # away from the story
-    "menu_shuffle": ["main_menu", "walking_on_a_dream", "stella", "end_of_beginning", "sunflower"],
-    "casino": ["stella", "stayin_alive", "pumped_up_kicks", "music_sounds_better"],
-    # the credits: Flower In A Hurricane (from the GTA VI soundtrack), on repeat
-    "credits": ["flower_in_a_hurricane"],
-    "credits_tickets": ["larp"],
-    # radio stations (the radio bar at the bottom)
-    "station_rush": ["flower_in_a_hurricane", "gta6_main_theme", "rhyno", "gta6_trailer_song", "midnight_city", "gta6_extended_look"],
-    "station_chill": ["walking_on_a_dream", "stella", "end_of_beginning", "sunflower", "earrings", "the_less_i_know", "slide"],
-    "station_ryan": ["stayin_alive", "music_sounds_better", "slide", "sunflower", "pumped_up_kicks"],
+    "menu_shuffle": ["main_menu", "carriage_3"],
+    "casino": ["main_menu", "carriage_3"],
+    "credits": ["main_menu"],
+    "credits_tickets": ["main_menu"],
 }
 
 # (id, name). The train's own stations, named after the people on board.
 # GREKHOV FM = the songs that fit where you are (MUSIC_FOR); the others play
 # their own list everywhere until you change station.
 define RADIO_STATIONS = [
-    ("scene", _("GREKHOV FM")),          # the train itself
+    ("scene", _("GREKHOV FM")),          # the train itself: the song for where you are
     ("all",   _("EDUARD'S JUKEBOX")),    # the bar plays everything
-    ("rush",  _("SUGAR RUSH FM")),       # Alexander's maple sugar
-    ("chill", _("KIMMY'S CABIN")),       # the expensive cabin, slow songs
-    ("ryan",  _("RYAN'S SNACK RADIO")),  # music to eat to
     ("off",   _("OFF AIR")),
 ]
 
 # what's printed next to each station
-define RADIO_FREQ = {"scene": "88.0", "all": "91.4", "rush": "96.0", "chill": "101.3", "ryan": "104.7", "off": "--.-"}
+define RADIO_FREQ = {"scene": "88.0", "all": "91.4", "off": "--.-"}
 
 # story label -> place. (label, place, place while in the loop)
 define LABEL_MUSIC = {
