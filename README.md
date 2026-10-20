@@ -5,15 +5,30 @@
 ![Python](https://img.shields.io/badge/Python-3.x-blue)
 ![Genre](https://img.shields.io/badge/Genre-Mystery%20%7C%20Visual%20Novel-purple)
 ![Resolution](https://img.shields.io/badge/Resolution-1920x1080-brightgreen)
+![Daily Update](https://img.shields.io/badge/Daily%20Update-Tuesday%2C%20Oct%2020%2C%202026-blueviolet)
 
 > *"Departure at 4, embark on an epic adventure on board the Grekhov Express. Find the killer and untangle the mystery of the Grekhov and the dark secrets it contains..."*
+
+---
+
+## 📅 Daily Update & Dev Log (Tuesday, Oct 20, 2026)
+
+> **🚂 Daily Status:** Active Development (Version 2.0 Beta)
+> ** spotlight of the Day:** **Carriage 2 — The Lounge**
+> ** Featured Character of the Day:** **Dorothy** — *"Conductor on the Grekhov Express checking tickets."*
+> ** Daily Quote:** *"Thank you for boarding the Grekhov Express."*
+
+### 💡 Daily Dev Note
+Every day brings new developments to the Grekhov Express! Today's focus is on optimizing interactive minigame transitions and loop investigation mechanics. Check back daily as the mystery unfolds and daily bonuses unlock!
+
+*Note: Daily casino coin bonuses reset every calendar day in-game!*
 
 ---
 
 ## 📢 Release Announcement
 
 > **🚀 Release Coming Soon!**
-> *Departure at 4* is currently in active development by **Blackberry Studios** (Version 1.5 Alpha). Stay tuned for upcoming build releases and distribution updates!
+> *Departure at 4* (Version 2.0 Beta) is currently in active development by **Blackberry Studios**. Stay tuned for upcoming build releases and distribution updates!
 
 ---
 
@@ -30,13 +45,16 @@ Louis must re-interview passengers, uncover hidden clues (such as contraband ban
 
 ---
 
-## 🎮 How to Play
+## 🎮 How to Play & Daily Features
+
+### Daily In-Game Bonuses
+* **Daily Casino Claim:** Players can claim free casino coins once every day (`CASINO_DAILY`) to play minigames and unlock special rewards!
 
 ### Gameplay Flow
 1. **Explore Carriages:** Use interactive point-and-click hotspots on each carriage map to inspect objects, open doors, and examine crime scene details.
 2. **Talk to Passengers:** Interrogate the passengers and train staff to learn about their background, motives, and alibis.
 3. **Make Choices:** Select dialogue choices during interactions. Certain choices will branch dialogue or grant specific clues.
-4. **Play Minigames:** Participate in interactive minigames such as the Mahjong tile-matching minigame in Carriage 2.
+4. **Play Minigames:** Participate in interactive minigames such as the Mahjong tile-matching minigame in Carriage 2, lockpicking, door forcing, and mail sorting.
 5. **Investigate the Loop:** After the time loop triggers, re-examine previously visited carriages for altered conditions, missing evidence, and hidden clues.
 6. **Accuse the Killer:** At the climax, evaluate all collected clues and choose who committed the murder. An incorrect accusation results in immediate death, while the correct choice unlocks Carriage 6 for the final confrontation.
 
@@ -93,7 +111,7 @@ To play the standalone game:
 1. Navigate to the [Releases](../../releases) section of this repository.
 2. Download the latest build package corresponding to your operating system (**Windows**, **macOS**, or **Linux**).
 3. Extract the downloaded zip/archive.
-4. Launch the executable (`DepartureAt4.exe` on Windows, `DepartureAt4.app` on macOS, or `DepartureAt4.sh` on Linux).
+4. Launch the executable (`Working.exe` on Windows, `Working.app` on macOS, or `Working.sh` on Linux).
 
 ---
 
@@ -102,6 +120,15 @@ To play the standalone game:
 2. Clone or extract this repository into your Ren'Py projects directory.
 3. Launch the Ren'Py SDK and select **"Add Existing Project"**.
 4. Select **"Departure at 4"** (folder: `Working`) and click **"Launch Project"**.
+
+---
+
+## 🔄 Daily README Update Script
+
+To update the daily status, spotlight, featured character, and dev log automatically based on the current date, run:
+```bash
+python3 tools/update_readme_daily.py
+```
 
 ---
 
