@@ -1,6 +1,7 @@
 # Departure at 4
 
 ![Status](https://img.shields.io/badge/Status-Release%20Coming%20Soon-yellow)
+![Last Updated](https://img.shields.io/badge/Last%20Updated-2026--10--21-blue)
 ![Made with Ren'Py](https://img.shields.io/badge/Made%20with-Ren'Py-orange)
 ![Python](https://img.shields.io/badge/Python-3.x-blue)
 ![Genre](https://img.shields.io/badge/Genre-Mystery%20%7C%20Visual%20Novel-purple)
