@@ -1,19 +1,4 @@
-# ==============================================================================
-# DEPARTURE AT 4:00  -  effects.rpy (display)
 # Fit the game to the player's monitor instead of letterboxing it.
-#
-# The game is designed at 1920x1080. On a wider monitor (21:9, 32:9) the game
-# gets wider instead (1080 tall, extra width); on a taller one (16:10, 4:3) it
-# gets taller (1920 wide, extra height). So there are never black bars.
-#
-#   GAME_W, GAME_H     the real game size, picked once at startup
-#   MAP_X0, MAP_Y0     where the 1920x1080 design area sits inside it
-#   map_xy(x, y)       where a point on a carriage map's art is on screen
-#                      (the maps are scaled up to fill wide screens: MAP_K)
-#   wide_bg(path)      a 1920x1080 background that fills any screen shape
-#
-# Settings > Display > FILL WIDE SCREENS turns it off (needs a restart).
-# ==============================================================================
 
 init -100 python:
     DESIGN_W, DESIGN_H = 1920, 1080
@@ -42,16 +27,11 @@ init -100 python:
     MAP_X0 = (GAME_W - DESIGN_W) // 2
     MAP_Y0 = (GAME_H - DESIGN_H) // 2
 
-    # Carriage maps on a wider screen: the art is scaled up to fill the width
-    # (only the dark band above and below the carriage gets cropped). Capped at
-    # 1.5x so very wide (32:9) screens don't lose the top/bottom of the carriage.
-    # Taller screens keep the art at 1x so the edge doors stay on screen.
     MAP_K = min(1.5, max(1.0, GAME_W / float(DESIGN_W)))
     MAP_OX = int((GAME_W - DESIGN_W * MAP_K) / 2)
     MAP_OY = int((GAME_H - DESIGN_H * MAP_K) / 2)
 
     def map_xy(x, y):
-        """A point in the 1920x1080 map art -> where it is on screen."""
         return (int(MAP_OX + x * MAP_K), int(MAP_OY + y * MAP_K))
 
     def map_wh(w, h):
@@ -61,13 +41,8 @@ default persistent.fill_screen = True
 
 init -2 python:
     def wide_bg(path):
-        """
-        A 1920x1080 background for any screen shape: the art stays sharp and
-        centred, and a blurred, darkened copy fills the space around it.
-        """
         if (GAME_W, GAME_H) == (DESIGN_W, DESIGN_H):
             return path
-        # render the art tiny, then stretch it back up: a cheap, smooth blur
         tiny = Flatten(Transform(path, xysize=(64, 36)))
         back = Transform(tiny, fit="cover", xysize=(GAME_W, GAME_H),
                          matrixcolor=BrightnessMatrix(-0.22))
@@ -75,41 +50,19 @@ init -2 python:
         return Fixed(back, front, xysize=(GAME_W, GAME_H))
 
     def full_cover(path, **kwargs):
-        """An image cropped to fill the whole screen whatever its shape."""
         return Transform(path, fit="cover", xysize=(GAME_W, GAME_H), **kwargs)
 
-
-# ==============================================================================
-# DEPARTURE AT 4:00  -  effects.rpy (horror)
-# Jumpscares and the creepy stuff.
-#
-#   $ jumpscare("passenger")   a face lunges at the screen (or "conductor")
-#   $ jumpscare("crawler")     other kinds: flicker, crawler, claws, glitch,
-#                              window, eyes  (see JUMPSCARE_KINDS)
-#   $ random_scare()           small chance of a scare (Part 2 maps)
-#   show screen dark_eyes      eyes watching from the dark
-#   $ ticket_flash()           "DO OR DIE" burns onto the screen
-#   $ shadow_flash()           a figure flickers at the edge of the screen
-#
-# Everything here can be turned off with Settings > Accessibility > JUMPSCARES.
-# Sounds and the vignette are made by tools/gen_horror_assets.py.
-# ==============================================================================
 
 default persistent.jumpscares = True
 
 
-# ------------------------------------------------------------------------------
 # JUMPSCARE FACES
-# ------------------------------------------------------------------------------
-# A shadow cut from a character's head with glowing eyes. The passenger uses
-# Louis's outline, the conductor uses Dorothy's (it took her voice, so...).
 
 init python:
     def _pill(color, w, h):
         return Transform(rbox(color, h // 2), xysize=(int(w), int(h)))
 
     def _eye(x, y, w=34, h=12):
-        """A glowing slit: stacked pills fading outwards, hot core in the middle."""
         layers = [
             ("#ff1a0a", 3.4, 4.2, 0.10),
             ("#ff1a0a", 2.4, 2.8, 0.18),
@@ -127,7 +80,6 @@ init python:
         shadow = Transform(path, crop=crop, matrixcolor=flat_color("#120206"))
         return Fixed(shadow, *[_eye(x, y) for x, y in eyes], xysize=crop[2:], fit_first=False)
 
-    # crop (x, y, w, h) of the head in the png, eye centres inside that crop
     SCARE_FACES = {
         "passenger": scare_face("images/louis_neutral.png", (150, 0, 480, 560), [(205, 232), (310, 232)]),
         "conductor": scare_face("images/dorothy_normal.png", (90, 0, 400, 540), [(133, 220), (238, 220)]),
@@ -163,8 +115,6 @@ transform scare_red:
     linear 0.04 alpha 0.55
     linear 0.25 alpha 0.15
 
-# modal so clicks can't skip it; it ends itself with its own timer (a modal
-# screen would block an ordinary pause underneath it)
 screen jumpscare(face, hold=0.85):
     zorder 300
     modal True
@@ -178,7 +128,6 @@ screen jumpscare(face, hold=0.85):
         xysize (config.screen_width, config.screen_height)
 
 init python:
-    # kind -> (sound, how long it holds)
     JUMPSCARE_KINDS = {
         "passenger": ("sting", 0.85),
         "conductor": ("sting", 0.85),
@@ -191,7 +140,6 @@ init python:
     }
 
     def jumpscare(kind="passenger", hold=None):
-        """$ jumpscare("crawler")  - does nothing if jumpscares are turned off."""
         if not persistent.jumpscares:
             return
         snd, default_hold = JUMPSCARE_KINDS.get(kind, JUMPSCARE_KINDS["passenger"])
@@ -204,7 +152,6 @@ init python:
         renpy.with_statement(Dissolve(0.25))
 
     class _SCARE(object):
-        """Random scares on the Part 2 maps: rare, spaced out, capped per session."""
         last = 0.0
         count = 0
 
@@ -220,11 +167,8 @@ init python:
             jumpscare(renpy.random.choice(["flicker", "glitch", "eyes", "crawler"]))
 
 
-# ------------------------------------------------------------------------------
 # MORE KINDS OF SCARE
-# ------------------------------------------------------------------------------
 
-# FLICKER - the lights stutter and a face is there between flashes
 transform flicker_face:
     alpha 0.0
     pause 0.12
@@ -239,7 +183,6 @@ transform flicker_face:
     alpha 1.0
     linear 0.3 zoom 3.2
 
-# FLASHING LIGHTS: SOFTER - the face just fades in, no strobing
 transform flicker_face_soft:
     alpha 0.0
     ease 0.5 alpha 1.0
@@ -258,7 +201,6 @@ screen scare_flicker(hold=1.0):
         zoom 2.4
         at (flicker_face_soft if persistent.reduce_flashes else flicker_face)
 
-# CRAWLER - something low and fast drags itself across the floor
 transform crawl_across:
     xpos 1.15
     ypos 1.02
@@ -276,7 +218,6 @@ screen scare_crawler(hold=1.0):
     zorder 300
     modal True
     timer hold action Return()
-    # a dim red backdrop so the black shape reads against it
     add Solid("#2a0606")
     add Transform("images/louis_neutral.png", matrixcolor=flat_color("#050002"), zoom=0.9, xzoom=1.6):
         transform_anchor True
@@ -284,7 +225,6 @@ screen scare_crawler(hold=1.0):
     add "gui/vignette.png":
         xysize (config.screen_width, config.screen_height)
 
-# CLAWS - three red slashes rip across the screen
 transform claw_rip(delay=0.0):
     transform_anchor True
     rotate -32
@@ -311,7 +251,6 @@ screen scare_claws(hold=0.9):
         blend "add"
         at scare_red
 
-# GLITCH - the picture tears into bands and a face shows through
 init python:
     def _glitch_bands(n=14):
         r = renpy.random
@@ -345,7 +284,6 @@ screen scare_glitch(hold=0.8):
             alpha 0.85
             at glitch_band(bdx)
 
-# WINDOW - a face slams against the glass
 transform window_slam:
     zoom 0.3
     alpha 0.0
@@ -387,7 +325,6 @@ screen scare_window(hold=1.1):
             ypos 0.5
             at crack_in(0.37 + i * 0.02, a)
 
-# EYES - the dark is full of them, then they all come for you
 init python:
     def _eye_field(n=16):
         r = renpy.random
@@ -415,9 +352,7 @@ screen scare_eyes(hold=1.5):
             add _eye(30, 0, 24, 9)
 
 
-# ------------------------------------------------------------------------------
 # EYES IN THE DARK
-# ------------------------------------------------------------------------------
 
 transform eyes_blink(delay=0.0):
     alpha 0.0
@@ -441,9 +376,7 @@ screen dark_eyes(pairs=((0.3, 0.38, 0.0), (0.68, 0.46, 0.9))):
             add _eye(34, 0, 26, 9)
 
 
-# ------------------------------------------------------------------------------
 # DO OR DIE
-# ------------------------------------------------------------------------------
 
 transform ticket_burn:
     alpha 0.0
@@ -473,11 +406,7 @@ init python:
         renpy.call_screen("ticket_flash")
 
 
-# ------------------------------------------------------------------------------
 # SHADOWS ON THE MAP  (Part 2 only)
-# ------------------------------------------------------------------------------
-# While you're looking at a carriage map in the loop, every so often a figure
-# flickers at the edge of the screen for a split second, with a crackle.
 
 transform shadow_blip:
     alpha 0.0
@@ -502,12 +431,10 @@ init python:
     import random as _hrandom
 
     def _edge_x():
-        """Somewhere near the left or right edge of the screen."""
         w = config.screen_width
         return _hrandom.choice((90, 160, w - 90, w - 160))
 
     def shadow_flash(x=None):
-        """$ shadow_flash()  - one figure flickers at the edge of the screen."""
         if not persistent.jumpscares:
             return
         sfx("static")
@@ -529,25 +456,6 @@ init python:
     config.overlay_screens.append("loop_haunt")
 
 
-# ==============================================================================
-# DEPARTURE AT 4:00  -  effects.rpy (text fx)
-# Effects for dialogue, used inside a line in script.rpy:
-#
-#   l "{shake}Shunyu? Shunyu!!{/shake} Hey, wake up."     shock
-#   h "{tremble}O-oh my god dear!{/tremble}"               fear / stammering
-#   s "{wave}JACKKKPOTTTTTTT!{/wave}"                       sing-song, creepy voices
-#   l "is that {scream}GLASS{/scream}"                      big, red, shaking
-#   d "{whisper}Thank you for boarding...{/whisper}"        faint, quiet
-#   u "{glitch}Not me. Him.{/glitch}"                       the voice in the dark
-#   l "{big}It was you.{/big}"                              bigger, for a reveal
-#
-# Only the look changes - the words stay as written. Everything that moves is
-# switched off with Settings > Accessibility > REDUCE MOTION.
-# Settings > Text > TEXT EFFECTS: FULL / STILL (colour and size, no movement) / OFF.
-# ==============================================================================
-
-# Shader tags (shake, wave...) need text shaders switched on. "typewriter"
-# shows text the same way Ren'Py normally does.
 define config.default_textshader = "typewriter"
 
 init python:

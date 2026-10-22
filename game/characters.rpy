@@ -1,15 +1,6 @@
-﻿# ==============================================================================
-# DEPARTURE AT 4:00  -  characters.rpy
 # Character sprites, talk backgrounds, story animations, hotspot markers,
-# clue/item pop-ups and the Passenger Manifest.
-# ==============================================================================
 
-# ------------------------------------------------------------------------------
 # SPRITE HELPERS
-# ------------------------------------------------------------------------------
-# Every sprite is scaled to the same on-screen height so the cast lines up, then
-# wrapped in an idle animation: a slow breath, plus a light bob while that
-# character's line is still typing out (see TALK in screens.rpy).
 
 define SPRITE_H = 960
 
@@ -17,11 +8,6 @@ init -2 python:
     import math
 
     class IdleAnim(object):
-        """
-        Transform function for a sprite: slow breathing, plus a bob while
-        `tag`'s line is typing. A class (not a closure) so saves can pickle
-        sprites that are on screen.
-        """
         def __init__(self, tag):
             self.tag = tag
 
@@ -30,9 +16,7 @@ init -2 python:
                 trans.yzoom = 1.0
                 trans.yoffset = 0
                 return None
-            # ~4 second breath, half a percent of stretch from the feet up
             trans.yzoom = 1.0 + 0.005 * math.sin(st * math.pi / 2.0)
-            # talking bob while the text types out
             if TALK.typing == self.tag:
                 trans.yoffset = -abs(math.sin(st * 9.0)) * 6.0
             else:
@@ -43,11 +27,9 @@ init -2 python:
         return Transform(path, zoom=SPRITE_H * scale / float(src_h))
 
     def sprite(tag, path, src_h, scale=1.0):
-        """A cut-out PNG scaled to SPRITE_H (times scale), with idle animation."""
         return Transform(_scaled(path, src_h, scale), function=IdleAnim(tag))
 
     def flat_color(color):
-        """matrixcolor that paints every visible pixel one flat colour."""
         r, g, b = Color(color).rgb
         return Matrix([0, 0, 0, r,
                        0, 0, 0, g,
@@ -55,11 +37,6 @@ init -2 python:
                        0, 0, 0, 1])
 
     def silhouette(tag, name, path, src_h, color, scale=1.0, label=True):
-        """
-        Placeholder for characters whose art isn't drawn yet: a flat shadow
-        figure cut from an existing sprite, with the name printed on it.
-        Swap it for  sprite(tag, "images/<file>.png", <height>)  once the art exists.
-        """
         shadow = Transform(_scaled(path, src_h, scale), matrixcolor=flat_color(color))
         if label:
             shadow = Fixed(
@@ -69,18 +46,14 @@ init -2 python:
                 fit_first=True)
         return Transform(shadow, function=IdleAnim(tag))
 
-# Source art (path, height in px) - used to scale everything to SPRITE_H.
 define LOUIS_PNG       = ("images/louis_neutral.png", 1323)
 define FEDORA_PNG      = ("images/fedora.png", 1314)
 define DOROTHY_PNG     = ("images/dorothy_normal.png", 1305)
 define DOROTHY_SAD_PNG = ("images/dorothy_sad.png", 1298)
 
 
-# ------------------------------------------------------------------------------
 # DRAWN CHARACTERS
-# ------------------------------------------------------------------------------
 
-# Louis - only one expression drawn so far, so every mood uses it.
 image louis neutral        = sprite("louis", *LOUIS_PNG)
 image louis confused       = sprite("louis", *LOUIS_PNG)
 image louis looking_around = sprite("louis", *LOUIS_PNG)
@@ -94,11 +67,7 @@ image dorothy surprised = sprite("dorothy", *DOROTHY_PNG)
 image dorothy sad       = sprite("dorothy", *DOROTHY_SAD_PNG)
 
 
-# ------------------------------------------------------------------------------
 # PLACEHOLDER SILHOUETTES  (art not drawn yet)
-# ------------------------------------------------------------------------------
-# Kimmy_Idle.png has a solid grey background (no transparency), so it can't be
-# used as a sprite until it's re-exported as a cut-out PNG.
 
 image eduard neutral    = silhouette("eduard", "Eduard", *LOUIS_PNG, color="#3b2a20")
 image shunyu neutral    = silhouette("shunyu", "Shunyu", *LOUIS_PNG, color="#2e2a40")
@@ -113,25 +82,18 @@ image ichora neutral    = silhouette("ichora", "Ichora", *LOUIS_PNG, color="#3a3
 image pattison neutral  = silhouette("pattison", "Pattison", *LOUIS_PNG, color="#30283a")
 image alexander neutral = silhouette("alexander", "Alexander", *LOUIS_PNG, color="#3a3a1e")
 
-# Carriage 6 monsters: warped shadows that never stop moving.
 image shunyu_monster neutral = At(
     silhouette("shunyu_monster", "", *LOUIS_PNG, color="#2a0c18", scale=1.08, label=False),
     monster_shudder, monster_glow)
 image himmel_monster neutral = At(
     silhouette("himmel_monster", "", *LOUIS_PNG, color="#0c1e24", scale=1.04, label=False),
     monster_shudder, monster_glow)
-# The Conductor wears Dorothy's shape - it speaks with her stolen voice.
 image conductor_monster neutral = At(
     silhouette("conductor_monster", "", *DOROTHY_PNG, color="#1a0606", scale=1.18, label=False),
     distortion_warp, monster_glow)
 
 
-# ------------------------------------------------------------------------------
 # CONVERSATION BACKGROUND
-# ------------------------------------------------------------------------------
-# Every "scene talk to <name>" uses the blurred mosaic of the carriage, filled to
-# the screen with a slow drift and darkened so the sprites read clearly. During
-# the loop (Part 2) it turns blood red.
 
 define talk_in = Dissolve(0.35)
 
@@ -172,18 +134,14 @@ image talk to alexander = "talk_bg"
 image engine room       = "bg carriage_4"
 
 
-# ------------------------------------------------------------------------------
 # STORY ANIMATIONS
-# ------------------------------------------------------------------------------
 
 init python:
     def jolt(kind="v"):
-        """with jolt()  - a screen punch that obeys SCREEN SHAKE / REDUCE MOTION."""
         if persistent.reduce_motion or not persistent.screen_shake_enabled:
             return None
         return hpunch if kind == "h" else vpunch
 
-# Lights stuttering and dying (wrong accusation)
 image lights_dying:
     Solid("#000000")
     alpha 0.0
@@ -198,7 +156,6 @@ image lights_dying:
     pause 0.1
     linear 0.4 alpha 1.0
 
-# Cold light spilling from the opened Carriage 6 door
 image door_light:
     Solid("#cfe3ff")
     alpha 0.0
@@ -208,9 +165,7 @@ image door_light:
 define red_flash = FlashTr("#7a0a0a", 0.06, 0.5)
 
 
-# ------------------------------------------------------------------------------
 # CLUE / ITEM POP-UP
-# ------------------------------------------------------------------------------
 
 transform clue_card_in:
     yoffset -40
@@ -261,7 +216,6 @@ init python:
         return None, ""
 
     def found_clue(var):
-        """$ found_clue("clue_body_moved") - sets the flag and shows the card once."""
         already = bool(getattr(store, var, False))
         setattr(store, var, True)
         if already:
@@ -275,18 +229,11 @@ init python:
         renpy.show_screen("clue_popup", _("GOT ITEM"), name, desc)
 
 
-# ------------------------------------------------------------------------------
 # MAP HOTSPOTS
-# ------------------------------------------------------------------------------
-# Every clickable spot on a carriage map gets a pulsing marker and a label, so
-# the player can actually see what can be clicked:
-#     use hs((x, y, w, h), Call("label"), "Fedora", "talk")
-# kinds: talk, look, door (forward), back, decide
 
-define HS_CHECKED = "#7a7a88"     # the colour of a hotspot you've already checked
-define HS_NUDGE = 20.0             # seconds in a carriage before unchecked hotspots glow brighter
+define HS_CHECKED = "#7a7a88"
+define HS_NUDGE = 20.0
 
-# the story labels of everything you've checked so far (cleared for Part 2)
 default hs_done = set()
 
 init python:
@@ -294,7 +241,6 @@ init python:
         lab = getattr(act, "label", None)
         return bool(lab) and lab in store.hs_done
 
-# init 3: chains onto the other label callbacks (screens.rpy, gamepass.rpy, music.rpy)
 init 3 python:
     _old_label_cb_hs = config.label_callback
 
@@ -302,7 +248,7 @@ init 3 python:
         try:
             if isinstance(name, (type(u""), type(""))):
                 if name == "part2_start":
-                    store.hs_done = set()       # the loop: the same places can say new things
+                    store.hs_done = set()
                 elif not main_menu:
                     store.hs_done.add(name)
         except Exception:
@@ -320,10 +266,7 @@ define HS_STYLE = {
     "decide": ("#a8281a", _("ACCUSE")),
 }
 
-# Little pixel versions of the cast (images/cfr27dc3e0e7c6aws3.webp) - they
-# march in the Blackberry secret (secrets.rpy).
 define PIXEL_SHEET = "images/cfr27dc3e0e7c6aws3.webp"
-# (x, y, w, h) on the sheet
 define PIXEL_CROPS = [
     (141, 45, 96, 134), (301, 51, 96, 128), (429, 38, 102, 141),
     (141, 198, 96, 154), (301, 218, 96, 128), (429, 205, 102, 141),
@@ -353,13 +296,11 @@ transform hs_ring:
         pause 0.4
         repeat
 
-# a checked hotspot: a small, still, grey diamond
 transform hs_quiet:
     transform_anchor True
     rotate 45
     alpha 0.75
 
-# the nudge: nothing for HS_NUDGE seconds, then a soft glow that swells
 transform hs_nudge:
     transform_anchor True
     rotate 45
@@ -377,11 +318,9 @@ transform hs_in(delay=0.0):
     pause anim_t(delay)
     ease anim_t(0.3) alpha 1.0
 
-# the doors sit on the screen edges: next carriage on the right, back on the left
 define DOOR_RIGHT = (1820, 340, 100, 400)
 define DOOR_LEFT = (0, 340, 100, 400)
 
-# the arrow on a door nudges toward the edge it leads to
 transform door_nudge(dx):
     xoffset 0
     block:
@@ -401,26 +340,18 @@ transform hs_tag_hover:
 screen hs(rect, act, label="", kind="look", delay=0.0):
     $ hx, hy, hw, hh = rect
     $ hcol, hkind = HS_STYLE.get(kind, HS_STYLE["look"])
-    # something you've already checked this part of the story goes quiet (grey,
-    # no pulse); still clickable. Doors never do.
     $ checked = kind not in ("door", "back") and hs_checked(act)
     if checked:
         $ hcol = HS_CHECKED
     button:
-        # map coordinates are in the 1920x1080 design area, centred on screen
         pos map_xy(hx, hy)
         xysize map_wh(hw, hh)
         action act
-        # cheat menu > UNLOCKS > Show hotspot outlines
         background (rbox("#ff00ff40", 6) if persistent.cheat_hotspots else None)
         hover_background rbox(hcol + "26", 22)
         alt (hkind + " " + label)
         at hs_in(delay)
 
-        # characters: the marker and tag float just above their head, so they
-        # don't cover the art. Doors: a big arrow pointing off the edge.
-        # Everything else: marker in the middle, tag below.
-        # (only if there's room above it on screen; otherwise it sits inside)
         $ on_head = (kind == "talk") and map_xy(hx, hy)[1] > 110
         $ edge = kind in ("door", "back")
         fixed:
@@ -446,7 +377,6 @@ screen hs(rect, act, label="", kind="look", delay=0.0):
                     yoffset (-14 if on_head else 0)
                     at hs_quiet
             elif not edge:
-                # stuck? after a while the things you haven't checked glow brighter
                 add Solid(hcol):
                     xysize (30, 30)
                     xalign 0.5
@@ -466,10 +396,8 @@ screen hs(rect, act, label="", kind="look", delay=0.0):
                     yoffset (-15 if on_head else 0)
                     at hs_pulse
 
-            # one small tag:  TALK  Fedora  (Settings > HOTSPOT LABELS can hide it till hover)
             frame:
                 at (hs_tag_hover if persistent.hotspot_labels == "hover" else hs_tag_always)
-                # door tags hug the edge so they stay on screen
                 xalign ((1.0 if kind == "door" else 0.0) if edge else 0.5)
                 xoffset ((-8 if kind == "door" else 8) if edge else 0)
                 yalign (0.0 if on_head else 0.5)
@@ -496,13 +424,7 @@ screen hs(rect, act, label="", kind="look", delay=0.0):
                             hover_color "#0a0a0e"
 
 
-# ------------------------------------------------------------------------------
 # PASSENGER MANIFEST  (M key, PASSENGERS in the pause menu, People in quick menu)
-# ------------------------------------------------------------------------------
-# One entry per passenger:
-#   (sprite, name, role, met_flag, [(flag, note), ...])
-# A passenger stays a black "???" silhouette until met_flag is True; each note
-# appears once its flag is True (None = always shown once met).
 
 define MANIFEST = [
     ("louis neutral", "Louis", "\"I was tryna go home…\"", None, [
@@ -589,7 +511,6 @@ transform manifest_portrait(known=True):
     matrixcolor (IdentityMatrix() if known else flat_color("#000000"))
 
 transform manifest_thumb(known=True):
-    # head and shoulders only
     crop (0, 0, 900, 560)
     zoom 0.15
     matrixcolor (IdentityMatrix() if known else flat_color("#1a1a22"))
@@ -632,7 +553,7 @@ screen manifest():
         color "#e6a817"
         font GFONT
 
-    # ---- list of passengers (left) ----
+    # list of passengers (left)
     $ grid_rows = (len(rows) + 1) // 2
     grid 2 grid_rows:
         xpos 80
@@ -670,11 +591,10 @@ screen manifest():
                             color "#8888a0"
                             xmaximum 250
 
-        # grid cells must all be filled
         if len(rows) % 2:
             null
 
-    # ---- selected passenger (right) ----
+    # selected passenger (right)
     frame:
         xpos 880
         ypos 180

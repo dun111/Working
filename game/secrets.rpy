@@ -1,23 +1,10 @@
-# ==============================================================================
-# DEPARTURE AT 4:00  -  secrets.rpy (cheats)
 # Testing tools. Press F9 in game or on the main menu.
-#
-# Always on when the game runs from the Ren'Py SDK (config.developer). In a
-# built copy, type "debug" on the main menu to switch them on (or off).
-#
-#   JUMP       go to any chapter, with the story state set up for it
-#   FLAGS      flip story flags, hand out clues
-#   SCARES     fire any jumpscare
-#   MINIGAMES  play any minigame, or make them all win themselves
-#   UNLOCKS    achievements, endings, secrets, hotspot outlines
-# ==============================================================================
 
 default persistent.cheats_on = False
 default persistent.cheat_autowin = False
 default persistent.cheat_hotspots = False
 
 init 1 python:
-    # every minigame: (key, name, screen, reset function, where it is)
     MINIGAME_LIST = [
         ("ticket",     _("Find your ticket"),          "mg_ticket",         ticket_reset,     _("Start")),
         ("door",       _("Open the door"),             "mg_door",           door_reset,       _("Carriage doors")),
@@ -36,7 +23,6 @@ init 1 python:
     ]
 
     def arcade_play(scr, reset):
-        """Play one minigame on its own (EXTRAS > ARCADE, or the cheat menu)."""
         store.mg_required = False
         reset()
         renpy.call_screen(scr)
@@ -56,7 +42,6 @@ init python:
         sfx("win")
         renpy.notify(_("Cheats ON (F9)") if persistent.cheats_on else _("Cheats OFF"))
 
-    # ----------------------------------------------------------------- chapters
     P1_TALKS = [
         ["c1_talked_fedora", "door_c2_open"],
         ["c2_talked_eduard", "c2_talked_shunyu"],
@@ -73,7 +58,6 @@ init python:
         ["alexander_reinterviewed", "pattison_reinterviewed", "clue_alexander_alibi"],
     ]
 
-    # (button, label to jump to, stage)  stage: how much of the story is done
     CHEAT_CHAPTERS = [
         (_("Start: the ticket"), "start", 0),
         (_("Carriage 1"), "carriage_1_start", 0),
@@ -103,7 +87,6 @@ init python:
         CHEAT.stage = stage
 
     def cheat_apply():
-        """Set up the story as if everything before CHEAT.stage had been played."""
         stage = CHEAT.stage
         for i, flags in enumerate(P1_TALKS):
             for f in flags:
@@ -133,7 +116,6 @@ init python:
     def cheat_talk_part2():
         cheat_set([f for flags in P2_STEPS for f in flags])
 
-    # ------------------------------------------------------------------ unlocks
     def cheat_unlock_achievements():
         for a in ACHIEVEMENTS:
             try:
@@ -174,11 +156,8 @@ label cheat_warp:
     $ renpy.jump(CHEAT.target)
 
 
-# ------------------------------------------------------------------------------
 # SCREENS
-# ------------------------------------------------------------------------------
 
-# F9 opens the menu (in game this rides along as an overlay screen)
 screen cheat_hotkey():
     if cheats_allowed():
         key "K_F9" action ToggleScreen("cheat_menu")
@@ -330,12 +309,9 @@ screen cheat_menu():
                 use cheat_btn(_("CLOSE  (F9)"), Hide("cheat_menu"), w=220)
 
 
-# ------------------------------------------------------------------------------
 # EXTRAS > ARCADE
-# ------------------------------------------------------------------------------
 
 screen arcade_list(w):
-    # ERIC PASS: Eric's DEBUG game (credits_fx.rpy)
     if has_pass("eric"):
         frame:
             xfill True
@@ -388,27 +364,9 @@ screen arcade_list(w):
                     use rbtn(_("PLAY"), Function(play_minigame, gscr, greset), w=170, h=50, r=16, size=22, bg="#8a4a22", hov="#b8631f", col="#f2e6d8", hcol="#ffffff")
 
 
-# ==============================================================================
-# DEPARTURE AT 4:00  -  secrets.rpy (empty train)
-# SECRET: the empty train  (spoilers!!)
-#
-# How to get here: click the big faded "4:00" on the main menu four times.
-# (Once you've finished it, the 4:01 gamepass lets you board it from EXTRAS.)
-#
-# Every carriage is empty, apart from Louis - blacked out, too tall, red eyes.
-#   1  it's standing at the end of the carriage. Look at it and it's gone
-#   2  it's sitting there, and it talks with his voice
-#   3  four cabin doors. Only one goes on. The others aren't empty
-#   4  pitch dark. Your light finds the door... and the things standing in the dark
-#   5  it only moves when you're not looking at it. The door is stuck
-#   6  it's waiting for you
-#
-# All the lines are from script.rpy.
-# ==============================================================================
-
 default persistent.empty_train_done = False
 
-define lv = C("???", plate="#1a0a0a", creepy=True)       # the thing that looks like you
+define lv = C("???", plate="#1a0a0a", creepy=True)
 
 default et_c1_gone = False
 default et_room_door = 0
@@ -420,17 +378,12 @@ default et_step = 0
 default et_watching = False
 default et_push = 0
 
-# runs after horror.rpy (it needs _eye from there)
 init 1 python:
-    # ---------------------------------------------------- the figure
-    # Louis, blacked out: pitch-black, stretched a little too tall, with
-    # glowing red eyes. Its natural size is 394 x 780.
     ET_SHADE = Fixed(
         Transform("images/louis_neutral.png", matrixcolor=flat_color("#030103"), zoom=0.53, yzoom=1.11),
         At(_eye(188, 137, 22, 8), Transform()),
         At(_eye(244, 137, 22, 8), Transform()),
         xysize=(394, 780))
-    # what you keep seeing: the same thing, see-through, eyes still burning
     ET_PALE = ET_SHADE
 
     def et_vision(h=480, alpha=0.75):
@@ -440,19 +393,15 @@ init 1 python:
         return Transform(ET_SHADE, fit="contain", ysize=h)
 
     def et_scare(hold=0.7):
-        """The figure rushes at the screen (instead of the usual jumpscare faces)."""
         if persistent.jumpscares:
             sfx("sting")
             renpy.invoke_in_new_context(renpy.call_screen, "et_lunge", hold)
 
     def et_flash():
-        """A figure flickers at the edge of your eye."""
         if persistent.jumpscares:
             renpy.show_screen("et_edge", renpy.random.choice((0.06, 0.12, 0.88, 0.94)))
 
-    # -------------------------------------------------- darkness and a torch
     class ETDark(renpy.Displayable):
-        """Black over everything except a soft circle around the mouse."""
 
         def __init__(self, **kwargs):
             super(ETDark, self).__init__(**kwargs)
@@ -465,7 +414,6 @@ init 1 python:
             hs = 400
             hx, hy = int(x - hs // 2), int(y - hs // 2)
 
-            # black above, below, left and right of the hole
             for px, py, w, h in [(0, 0, width, hy), (0, hy + hs, width, height - hy - hs),
                                  (0, hy, hx, hs), (hx + hs, hy, width - hx - hs, hs)]:
                 if w > 0 and h > 0:
@@ -479,7 +427,7 @@ init 1 python:
                 renpy.redraw(self, 0)
             return None
 
-        # Ren'Py calls this itself, to load the flashlight picture ahead of time
+        # Ren'Py calls this
         def visit(self):
             return [self.hole]
 
@@ -488,7 +436,6 @@ init 1 python:
 
     ET_DARK = ETDark()
 
-    # ------------------------------------------------------ the main menu clock
     class ET_CLOCK(object):
         n = 0
 
@@ -504,7 +451,6 @@ init 1 python:
     def clock_color():
         return "#ffffff%02x" % (8 + ET_CLOCK.n * 12)
 
-    # ---------------------------------------------------------------- carriage 4
     def et_c4_setup():
         store.et_door_xy = (renpy.random.choice([220, 1500]), 280)
         spots = [(renpy.random.randint(200, 1700), renpy.random.randint(260, 640)) for _i in range(7)]
@@ -522,7 +468,7 @@ init 1 python:
             else:
                 t = max(0.0, t - 0.05)
             if t >= 0.8 and not caught:
-                caught = True          # it saw you looking
+                caught = True
             else:
                 keep.append([x, y, t])
         store.et_shades = keep
@@ -530,7 +476,6 @@ init 1 python:
             et_scare(0.6)
         renpy.restart_interaction()
 
-    # ---------------------------------------------------------------- carriage 5
     ET_STEPS = 8
 
     def et_c5_tick():
@@ -548,9 +493,7 @@ init 1 python:
         renpy.restart_interaction()
 
 
-# ------------------------------------------------------------------------------
 # LOOK AND FEEL
-# ------------------------------------------------------------------------------
 
 image et c1 = Transform("bg carriage_1_empty", matrixcolor=SaturationMatrix(0.0) * BrightnessMatrix(-0.32) * TintMatrix("#a8b4c4"))
 image et c2 = Solid("#0d0b10")
@@ -558,7 +501,6 @@ image et c3 = Solid("#0b0d10")
 image et c4 = Solid("#0a0b09")
 image et c5 = Transform("bg carriage_5", matrixcolor=SaturationMatrix(0.0) * BrightnessMatrix(-0.42) * TintMatrix("#a8b4c4"))
 
-# it never stands quite still
 transform et_jitter:
     block:
         xoffset 0
@@ -580,7 +522,6 @@ transform et_vanish:
     on hide:
         linear 0.12 alpha 0.0
 
-# FLASHING LIGHTS: SOFTER - the lights just dim and come back, slowly
 transform et_lights_soft:
     alpha 0.0
     block:
@@ -590,7 +531,6 @@ transform et_lights_soft:
         pause 3.0
         repeat
 
-# the lights can't decide whether to stay on
 transform et_lights:
     alpha 0.0
     block:
@@ -608,9 +548,6 @@ transform et_lights:
         pause 3.0
         repeat
 
-# dark edges, failing lights, film grain, a red heartbeat at the edges of the
-# screen that gets faster carriage by carriage (et_level), and something at
-# the edge of your eye
 default et_level = 1
 
 transform grain_jitter:
@@ -640,7 +577,6 @@ transform et_heartbeat(rest):
         pause rest
         repeat
 
-# the camera can't keep still either
 transform et_breathe:
     xalign 0.5
     yalign 0.5
@@ -664,7 +600,6 @@ screen et_atmos():
     add Solid("#000000") at (et_lights_soft if persistent.reduce_flashes else et_lights)
     timer max(2.5, 8.0 - et_level) repeat True action Function(et_flash)
 
-# a hard cut: static, and for a moment it's right in front of you
 transform cut_static:
     alpha 0.9
     linear 0.35 alpha 0.0
@@ -691,7 +626,6 @@ label et_hard_cut:
     hide screen et_cut
     return
 
-# the last thing you see (the finale): eyes far away in the dark, then it lunges
 screen et_finale():
     zorder 300
     add Solid("#000000")
@@ -707,13 +641,11 @@ screen et_finale():
             xysize (config.screen_width, 40 + k * 9)
             at es_band(y, dx, k * 0.04)
 
-# the crowd steps closer, all at once
 transform crowd_step(near):
     xalign 0.5
     yalign 1.0
     ease 0.18 zoom (1.0 + near * 0.28)
 
-# it rushes at you
 transform et_rush:
     xanchor 0.5
     yanchor 0.15
@@ -755,9 +687,7 @@ screen et_edge(x):
     timer 0.5 action Hide("et_edge")
 
 
-# ------------------------------------------------------------------------------
 # THE CARRIAGES
-# ------------------------------------------------------------------------------
 
 screen et_c1():
     add "et c1"
@@ -766,7 +696,6 @@ screen et_c1():
         xysize (DESIGN_W, DESIGN_H)
         at Transform(zoom=MAP_K)
         showif not et_c1_gone:
-            # look straight at it and it isn't there any more
             button:
                 pos (1250, 330)
                 xysize (200, 420)
@@ -787,7 +716,6 @@ screen et_c3():
     for i in range(4):
         $ rx = 200 + i * 400
         if i in et_rooms_open:
-            # an open room: the dark inside, and whoever's in it
             fixed:
                 pos map_xy(rx, 240)
                 xysize (300, 560)
@@ -799,7 +727,6 @@ screen et_c3():
                         yalign 1.0
                         at et_jitter
         else:
-            # a closed cabin door, slightly ajar
             fixed:
                 pos map_xy(rx, 240)
                 xysize (300, 560)
@@ -843,7 +770,6 @@ transform et_closeness_shake(amount):
 screen et_c5():
     add "et c5"
     timer 0.5 repeat True action Function(et_c5_tick)
-    # the closer it gets, the redder it goes
     add Solid("#5a0000"):
         xysize (config.screen_width, config.screen_height)
         alpha (et_step / float(ET_STEPS) * 0.45)
@@ -851,7 +777,6 @@ screen et_c5():
         pos map_xy(0, 0)
         xysize (DESIGN_W, DESIGN_H)
         at Transform(zoom=MAP_K)
-        # it only moves while you're not looking at it
         $ z = 0.45 + et_step * 0.16
         button:
             xcenter 760
@@ -867,14 +792,12 @@ screen et_c5():
                 xalign 0.5
                 yalign 1.0
                 at et_jitter, et_closeness_shake(et_step * 2)
-    # the door won't open first time
     use hs(DOOR_RIGHT, Function(et_c5_push), "Carriage 6", "door")
 
 default et_near = 0
 
 screen et_c6_crowd():
     zorder 5
-    # all of them step closer at once whenever et_near goes up
     fixed:
         xysize (config.screen_width, config.screen_height)
         at crowd_step(et_near)
@@ -891,12 +814,10 @@ screen et_c6_crowd():
                     at et_jitter
 
 
-# ------------------------------------------------------------------------------
 # THE STORY
-# ------------------------------------------------------------------------------
 
 label empty_train:
-    $ in_secret_game = True        # saves made in here don't count for CONTINUE
+    $ in_secret_game = True
     $ renpy.block_rollback()
     stop music fadeout 2.0
     hide screen loop_overlay
@@ -920,11 +841,9 @@ label empty_train:
     "{whisper}{i}No one is there.{/i}{/whisper}"
     l "{tremble}...It's quiet. Way too quiet.{/tremble}"
 
-    # 1 ------------------------------------------------------------------------
     call screen et_c1
     call et_hard_cut from _call_et_hard_cut
 
-    # 2 ------------------------------------------------------------------------
     $ et_level = 2
     scene et c2
     "{i}Louis enters. The lights feel dimmer, creepier than before.{/i}"
@@ -941,7 +860,6 @@ label empty_train:
     call screen et_c2
     call et_hard_cut from _call_et_hard_cut_1
 
-    # 3 ------------------------------------------------------------------------
     $ et_level = 3
     scene et c3
     "{i}The sleeper cabin is colder than before. The four rooms all sit slightly ajar, as if something moved through recently and didn't bother closing doors behind it.{/i}"
@@ -961,7 +879,6 @@ label et_c3_loop:
         mi "{wave}He'll come back though. They always come back. Don't they?{/wave}"
     jump et_c3_loop
 
-    # 4 ------------------------------------------------------------------------
 label et_c4_start:
     $ et_level = 4
     scene et c4
@@ -970,7 +887,6 @@ label et_c4_start:
     call screen et_c4
     call et_hard_cut from _call_et_hard_cut_3
 
-    # 5 ------------------------------------------------------------------------
 label et_c5_start:
     $ et_level = 5
     $ et_step = 0
@@ -985,7 +901,6 @@ label et_c5_start:
         jump et_c5_start
     call et_hard_cut from _call_et_hard_cut_4
 
-    # 6 ------------------------------------------------------------------------
     $ et_level = 6
     scene carriage_6 with fade
     show carriage_6_fog
@@ -993,7 +908,6 @@ label et_c5_start:
     "{i}You step through. The temperature drops.{/i}"
     show screen dark_eyes(((0.18, 0.22, 0.0), (0.82, 0.26, 0.4), (0.3, 0.55, 0.9), (0.7, 0.6, 1.3), (0.5, 0.15, 1.8)))
     l "{tremble}...It's so quiet. Why is it so quiet.{/tremble}"
-    # they all step closer
     $ et_near = 1
     $ renpy.pause(0.6, hard=True)
     "{i}Two pairs of eyes glint in the blackness, watching.{/i}"
@@ -1002,7 +916,6 @@ label et_c5_start:
     l "{shake}What do you want from me?{/shake}"
     u "{glitch}Not me. Him.{/glitch}"
     hide screen dark_eyes
-    # the lights die
     show black as lights_out
     with Dissolve(0.15)
     $ renpy.pause(0.5, hard=True)
@@ -1015,7 +928,6 @@ label et_c5_start:
     with Dissolve(1.2)
     lv "{glitch}Man… This seems familiar…{/glitch}"
     lv "{glitch}“Here again?”{/glitch}"
-    # and then it comes for you
     if persistent.jumpscares:
         show screen et_finale
         $ renpy.pause(ES_DARK + ES_HOLD, hard=True)
@@ -1028,7 +940,6 @@ label et_c5_start:
     pause 2.5
     "{i}Louis wakes up violently to the sound of train tracks.{/i}"
     l "{tremble}I'm… back at the start?{/tremble}"
-    # one last look
     call et_hard_cut from _call_et_hard_cut_5
 
     $ persistent.empty_train_done = True
@@ -1036,19 +947,6 @@ label et_c5_start:
     $ MainMenu(confirm=False)()
     return
 
-
-# ==============================================================================
-# DEPARTURE AT 4:00  -  secrets.rpy
-# Secret stuff (spoilers!!)
-#
-#   type a crew member's name on the main menu
-#   keep clicking the Blackberry logo after it tells you to stop
-#   be on the main menu at 4:00 (am or pm)
-#   + the MORE SECRETS section at the bottom of this file
-#   + konami code and poking the key (in screens.rpy)
-#
-# Finding one unlocks a note in EXTRAS > 4:01
-# ==============================================================================
 
 default persistent.crew_found = set()
 
@@ -1058,7 +956,6 @@ define SECRET_ACHIEVEMENTS = [
     {"id": "right_on_time", "title": _("Departure at 4:00"), "description": _("Open the main menu at exactly 4:00."), "hidden": True},
 ]
 
-# (secret id, note) - shows up in EXTRAS > 4:01 once you find that secret
 define SECRET_NOTES = [
     ("konami", _("\"Every departure on it is printed the same way: 4:00.\"")),
     ("konami", _("\"This goes to the clock, while this goes to the end. This goes to the fake ones and this goes to the friend.\"")),
@@ -1080,7 +977,6 @@ init python:
             achievement.register(_sa["id"])
 
     def secret_found(sid, ach=None):
-        """Remember a secret (unlocks its EXTRAS note) and grant its achievement."""
         if sid not in persistent.secrets:
             give_tickets(TICKETS_FOR["secret"])
         persistent.secrets = set(persistent.secrets) | set([sid])
@@ -1095,12 +991,10 @@ init python:
         return [note for sid, note in SECRET_NOTES if sid is None or sid in found]
 
     class _SECRET(object):
-        """Per-session state (never saved)."""
         typed = ""
         berry_clicks = 0
         departed = False
 
-    # ---------------------------------------------------------------- roll call
     def _crew_reveal(c):
         sfx("win")
         renpy.show_screen("map_stamp", c["name"].upper(), _random.choice(c["roles"]).upper())
@@ -1112,7 +1006,6 @@ init python:
             renpy.notify("%d / %d" % (len(persistent.crew_found), len(CREW)))
 
     def secret_key(tok):
-        """Every key the main menu listens for goes through here."""
         konami_feed(tok)
         if len(tok) != 1:
             _SECRET.typed = ""
@@ -1130,8 +1023,6 @@ init python:
         if more_secret_word(_SECRET.typed):
             _SECRET.typed = ""
 
-    # letters the listener needs: every crew name, plus "b a" for the Konami code
-    # crew names, "b a" for the Konami code, "debug" for the cheat menu
     SECRET_LETTERS = sorted(set("".join(c["key"] for c in CREW)) | set("ba") | set("debug"))
 
     def blackberry_click():
@@ -1145,7 +1036,6 @@ init python:
             renpy.show_screen("pixel_parade")
             secret_found("parade", "pixel_parade")
 
-    # ------------------------------------------------------------ right on time
     def check_departure():
         if _SECRET.departed:
             return
@@ -1157,13 +1047,9 @@ init python:
             secret_found("on_time", "right_on_time")
 
 
-# ------------------------------------------------------------------------------
 # HEARTS
-# ------------------------------------------------------------------------------
 
-# ------------------------------------------------------------------------------
 # PIXEL PARADE  (the pixel passengers, see PIXEL_CROPS in characters.rpy)
-# ------------------------------------------------------------------------------
 
 transform parade_walk(delay=0.0):
     yanchor 1.0
@@ -1189,20 +1075,8 @@ screen pixel_parade():
     timer (10.0 + len(PIXEL_PASSENGERS) * 0.85 + 0.5) action Hide("pixel_parade")
 
 
-# ==============================================================================
-# MORE SECRETS
-#
-#   click each name in the credits (Eric's keeps going if you keep clicking)
-#   type any passenger's name on the main menu
-#   type "kanye" on the main menu
-#   look out of the Carriage 2 window five times
-#   open the game on Halloween
-# ==============================================================================
-
 define ENDING_VIDEO = "movies/ending_video.webm"
 
-# the little text that pops up in the corner when you click someone in the
-# credits (placeholders for now - put your own text here)
 define CREDITS_CORNER_TEXT = {
     "eric": "PLACEHOLDER",
     "hannah": "PLACEHOLDER",
@@ -1225,7 +1099,6 @@ define MORE_SECRET_ACHIEVEMENTS = [
     {"id": "window", "title": _("What a beautiful sight outside!"), "description": _("Look out of the Carriage 2 window five times."), "hidden": True},
 ]
 
-# (secret id, note) - added to EXTRAS > 4:01, just before THANKS FOR PLAYING!
 define MORE_SECRET_NOTES = [
     ("empty_train", _("\"Not me. Him.\"")),
     ("credits_all", _("\"I don't even know anybody on this express.\"")),
@@ -1242,7 +1115,6 @@ define MORE_SECRET_NOTES = [
     ("idle", _("\"Two pairs of eyes glint in the blackness, watching.\"")),
 ]
 
-# type their name on the main menu: (name, picture, their line from the script)
 define CAST_CALLS = [
     ("louis", "louis neutral", _("I'm gonna look around.")),
     ("dorothy", "dorothy neutral", _("Excuse me sir, tickets please.")),
@@ -1265,16 +1137,12 @@ init python:
             ACHIEVEMENTS.append(_sa)
             achievement.register(_sa["id"])
 
-    # slot the new notes in before the last one (THANKS FOR PLAYING!)
     SECRET_NOTES = SECRET_NOTES[:-1] + MORE_SECRET_NOTES + SECRET_NOTES[-1:]
 
-    # the main menu also listens for passenger names, "kanye" and "400"
     SECRET_LETTERS = sorted(set(SECRET_LETTERS) | set("".join(n for n, _i, _l in CAST_CALLS)) | set("kanye") | set("40"))
 
     def more_secret_word(typed):
-        """Called by secret_key with what's been typed so far. True if it matched."""
         if typed.endswith("400"):
-            # every departure on the board, back to 4:00
             store.board_times = []
             sfx("win")
             renpy.show_screen("map_stamp", "4:00", _("GREKHOV EXPRESS"))
@@ -1300,7 +1168,6 @@ init python:
                 music_menu()
             renpy.restart_interaction()
 
-    # ------------------------------------------------------------ passengers
     def cast_call(name, img, line):
         sfx("ui_click")
         renpy.show_screen("cast_peek", img)
@@ -1309,7 +1176,6 @@ init python:
         if len(persistent.cast_called) >= len(CAST_CALLS):
             secret_found("cast_call", "cast_call")
 
-    # --------------------------------------------------------------- credits
     def credits_click(key):
         persistent.credits_clicked = set(persistent.credits_clicked) | set([key])
         c = [x for x in CREW if x["key"] == key][0]
@@ -1333,12 +1199,10 @@ init python:
         if len(persistent.credits_clicked) >= len(CREW):
             secret_found("credits_all", "credits_all")
 
-    # ------------------------------------------------------------ credits music
     class _CREDMUS(object):
-        before = None       # where the music was before the credits opened
+        before = None
 
     def credits_music_on():
-        """The credits' own song: Flower In A Hurricane for SPOTLIGHT, the larp song for the rest."""
         if _MUSIC.place not in ("credits", "credits_tickets", "credits_spotlight"):
             _CREDMUS.before = _MUSIC.place
         menu_music_filter_off()
@@ -1357,7 +1221,6 @@ init python:
             else:
                 renpy.music.stop(channel="music", fadeout=1.0)
 
-    # -------------------------------------------------------------- halloween
     def check_halloween():
         if getattr(_SECRET, "spooked", False):
             return
@@ -1368,9 +1231,7 @@ init python:
             renpy.invoke_in_new_context(jumpscare, "eyes")
 
 
-# ------------------------------------------------------------------------------
 # A PASSENGER PEEKS IN  (type their name on the main menu)
-# ------------------------------------------------------------------------------
 
 transform peek_in:
     xanchor 0.5
@@ -1386,18 +1247,6 @@ screen cast_peek(img):
     add img at peek_in
     timer 3.2 action Hide("cast_peek")
 
-# The credits surprises (each person's name scene) live in credits_fx.rpy
-
-
-# ------------------------------------------------------------------------------
-# MAIN MENU SECRETS
-#   click the logo three times     - it glitches into the old purple logo
-#   click the train drawing        - it fades away (and comes back)
-#   click the version five times   - v4:00
-#   type 400                       - every departure goes back to 4:00
-#   leave the menu alone a minute  - something walks through the carriage
-#   click DEPARTURES on the board  - a slot machine (slots.rpy)
-# ------------------------------------------------------------------------------
 
 default logo_glitched = False
 default train_gone = False
@@ -1442,7 +1291,6 @@ init python:
             secret_found("idle")
             renpy.restart_interaction()
 
-# the purple logo, glitching
 transform logo_glitch:
     alpha 1.0
     block:
@@ -1457,8 +1305,6 @@ transform logo_glitch:
         pause 0.4
         repeat
 
-# the train fades away into the dark (and comes back a few seconds later)
-# clicked: the train fades away, then pulls back in from the left
 transform train_leave(trip):
     alpha 1.0
     xoffset 0
@@ -1475,7 +1321,6 @@ transform train_leave(trip):
     parallel:
         ease 1.4 alpha 1.0 blur 0
 
-# something walks slowly past, far away in the carriage
 transform idle_walker:
     xanchor 0.5
     yanchor 1.0
@@ -1492,14 +1337,6 @@ transform idle_walker:
             ease 0.6 yoffset 0
             repeat
 
-
-# ------------------------------------------------------------------------------
-# GOLDEN TICKETS
-# A tiny golden ticket is hidden on each carriage map (Part 1 and Part 2). It
-# glints every few seconds. Each one is worth coins and a ticket; find them all
-# for an achievement. They stay found across playthroughs.
-#   use golden_ticket("c1", x, y)    in a map screen (x, y in the 1920x1080 map)
-# ------------------------------------------------------------------------------
 
 default persistent.golden_found = set()
 
@@ -1521,7 +1358,6 @@ init python:
             renpy.notify(_("\"Uh… uh… yes, the ticket. I think it's somewhere here…\""))
         renpy.restart_interaction()
 
-# mostly hard to see; every few seconds it catches the light
 transform golden_glint(d=0.0):
     alpha 0.22
     pause d

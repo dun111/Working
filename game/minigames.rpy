@@ -1,23 +1,9 @@
-# ==============================================================================
-# DEPARTURE AT 4:00  -  minigames.rpy
 # Every minigame happens inside its carriage instead of a pop-up box.
-#
-#   A  lock       Carriage 1 cupboard   turn the key when it lines up
-#   B  glass      Carriage 2 floor      sweep up the shards
-#   C  mahjong    Carriage 2 table      mahjong solitaire with Shunyu
-#   D  blocks     Carriage 3 rug        repeat Misha's pattern
-#   E  engine     Carriage 4            keep the gauge in the green
-#   F  mail       Carriage 5 desk       sort letters into pigeonholes
-#
-# Each one returns "win" or "lose" to the script (call screen mg_...).
-# Layouts use the 1920x1080 design area, centred on any screen (display.rpy).
-# ==============================================================================
 
 init python:
     import math as _mgmath
 
     def _ring_points(cx, cy, radius, angles):
-        """(angle, x, y) for marks placed round a dial; 0 degrees is straight up."""
         pts = []
         for a in angles:
             r = _mgmath.radians(a)
@@ -25,9 +11,7 @@ init python:
         return pts
 
 
-# ------------------------------------------------------------------------------
 # SHARED SCENE
-# ------------------------------------------------------------------------------
 
 transform mg_npc(x=0.86):
     xanchor 0.5
@@ -49,7 +33,6 @@ transform mg_pop:
     zoom 0.92
     easein 0.25 alpha 1.0 zoom 1.0
 
-# the carriage behind, the character watching, the game in the middle
 screen mg_scene(title, hint="", bg="black", who=None, who_x=0.86, skippable=True):
     modal True
     zorder 300
@@ -67,7 +50,6 @@ screen mg_scene(title, hint="", bg="black", who=None, who_x=0.86, skippable=True
         xysize (DESIGN_W, DESIGN_H)
         transclude
 
-    # cheat: every minigame wins itself
     if persistent.cheat_autowin:
         timer 0.05 action Return("win")
 
@@ -97,7 +79,6 @@ screen mg_scene(title, hint="", bg="black", who=None, who_x=0.86, skippable=True
             ysize 48
             use rbtn(_("SKIP"), Return("win"), w=160, h=48, r=14, size=20)
 
-# counters in the top-right corner
 screen mg_stats(items):
     frame:
         xalign 1.0
@@ -115,13 +96,11 @@ screen mg_stats(items):
                     font GFONT
 
 screen mg_continue(result):
-    # a game the story is waiting on can't be lost: it offers another go
     $ again = (result == "lose" and mg_required)
     hbox:
         xalign 0.5
         use rbtn((_("TRY AGAIN") if again else _("CONTINUE")), Return(result), w=260, h=58, r=22, size=24, bg="#8a4a22", hov="#b8631f", col="#f2e6d8", hcol="#ffffff")
 
-# the result card in the middle of the scene
 screen mg_end(msg, result):
     add Solid("#0000006a")
     frame:
@@ -139,9 +118,6 @@ screen mg_end(msg, result):
             use mg_continue(result)
 
 
-# ---- simple pieces used by the newer minigames (minigames2.rpy / minigames3.rpy)
-
-# the dark box in the middle that a game sits in
 screen mg_box(w=1100, h=620):
     frame:
         xalign 0.5
@@ -152,7 +128,6 @@ screen mg_box(w=1100, h=620):
         fixed:
             transclude
 
-# a plain bar:  use mg_meter(how_full, out_of)
 screen mg_meter(v, vmax, w=600, h=26, col="#6dffa5"):
     fixed:
         xysize (w, h)
@@ -160,7 +135,6 @@ screen mg_meter(v, vmax, w=600, h=26, col="#6dffa5"):
         add rbox(col, h // 2):
             xsize max(h, min(w, int(w * v / float(vmax))))
 
-# a big orange button
 screen mg_btn(label, act, w=260, h=70, size=26):
     use rbtn(label, act, w=w, h=h, r=22, size=size, bg="#8a4a22", hov="#b8631f", col="#f2e6d8", hcol="#ffffff")
 
@@ -177,15 +151,10 @@ style mg_small is text:
     font GFONT
 
 
-# ==============================================================================
 # A  -  THE LOCK  (Carriage 1 cupboard)
-# ==============================================================================
-# The key sits in the keyhole and swings back and forth. Turn it while it's
-# inside the green marks on the dial to set a pin. 3 pins opens it, 3 slips
-# and the lock jams.
 
-define LP_SWING = 70          # how far the key swings each way (degrees)
-define LP_CX = 960            # keyhole centre (design area)
+define LP_SWING = 70
+define LP_CX = 960
 define LP_CY = 520
 
 default lp_pos = 0.0
@@ -198,7 +167,6 @@ default lp_speed = 0.9
 default lp_result = None
 
 init python:
-    # the key from the main menu, standing in the keyhole by the tip of its blade
     LP_KEY = Transform(Transform("images/Key.webp", crop=KEY_CROP), zoom=0.3)
     LP_KEY_TIP = (307.0 / KEY_CROP[2], 0.97)
     LP_TICKS = _ring_points(LP_CX, LP_CY, 150, range(-LP_SWING, LP_SWING + 1, 7))
@@ -263,7 +231,6 @@ screen mg_lockpick():
 
         use mg_stats([_("Pins: %d / 3") % lp_pins, _("Slips: %d / 3") % lp_fails])
 
-        # the cupboard door
         add rbox("#2e1a0e", 40):
             pos (548, 118)
             xysize (824, 884)
@@ -277,7 +244,6 @@ screen mg_lockpick():
             pos (600, 690)
             xysize (720, 260)
 
-        # brass lock plate, keyhole, pins
         add rbox("#7a5518", 50):
             pos (LP_CX - 180, 330)
             xysize (360, 460)
@@ -288,7 +254,6 @@ screen mg_lockpick():
             add rbox("#ffd76a" if i < lp_pins else "#6a5228", 10):
                 pos (LP_CX - 70 + i * 60 - 13, (382 if i < lp_pins else 400))
                 xysize (26, 60)
-        # dial marks round the keyhole (on the plate): green where the key will turn
         $ z0 = lp_angle(lp_zone)
         $ z1 = lp_angle(lp_zone + lp_w)
         for a, tx, ty in LP_TICKS:
@@ -306,7 +271,6 @@ screen mg_lockpick():
             pos (LP_CX - 11, LP_CY)
             xysize (22, 74)
 
-        # the key
         if lp_result == "win":
             add LP_KEY:
                 anchor LP_KEY_TIP
@@ -331,9 +295,7 @@ screen mg_lockpick():
             use mg_end(_("The lock jams."), "lose")
 
 
-# ==============================================================================
 # B  -  SWEEP THE GLASS  (Carriage 2 floor)
-# ==============================================================================
 
 define SH_COUNT = 6
 
@@ -387,7 +349,6 @@ screen mg_shards():
             $ stats.append(_("Time: %d") % sh_time)
         use mg_stats(stats)
 
-        # floorboards
         add rbox("#2a1a10", 30):
             pos (240, 640)
             xysize (1440, 340)
@@ -415,22 +376,16 @@ screen mg_shards():
             use mg_end(_("Out of time!"), "lose")
 
 
-# ==============================================================================
 # C  -  MAHJONG  (Carriage 2, Shunyu's table)
-# ==============================================================================
-# Mahjong solitaire: 36 tiles in three layers. Click two matching tiles that
-# are free (nothing on top of them, and open on the left or right) to take
-# them off the table. Clear it to win. Every deal is solvable.
 
 define MJ_FONT = "gui/ReggaeOne-Regular.ttf"
-define MJ_TW = 78               # tile size as drawn
+define MJ_TW = 78
 define MJ_TH = 100
-define MJ_ZOOM = 1.25           # tiles are shown this much bigger
-define MJ_X0 = 594              # top-left of the bottom layer (design area)
+define MJ_ZOOM = 1.25
+define MJ_X0 = 594
 define MJ_Y0 = 290
-define MJ_LIFT = 10             # how far each layer is raised
+define MJ_LIFT = 10
 
-# (column, row, layer)
 define MJ_LAYOUT = (
     [(c, r, 0) for r in range(4) for c in range(6)] +
     [(c, r, 1) for r in (1, 2) for c in (1, 2, 3, 4)] +
@@ -525,7 +480,6 @@ init python:
             At(_mj_face(kind), Transform(xpos=3, ypos=3)),
             xysize=(MJ_TW + 6, MJ_TH + 7))
 
-    # one picture per kind, built once
     MJ_TILE = dict((k, Transform(_mj_tile(k), zoom=MJ_ZOOM)) for k in MJ_KINDS)
     MJ_W, MJ_H = int(MJ_TW * MJ_ZOOM), int(MJ_TH * MJ_ZOOM)
 
@@ -551,7 +505,6 @@ init python:
         return not (left and right)
 
     def mahjong_reset():
-        """Deal by taking pairs off a full table in a legal order, so it's always solvable."""
         n = len(MJ_LAYOUT)
         kinds = renpy.random.sample(MJ_KINDS, n // 2)
         faces = None
@@ -628,7 +581,6 @@ screen mahjong_minigame():
             $ stats.append(_("Time: %d") % mj_time_left)
         use mg_stats(stats)
 
-        # the table
         add rbox("#3e2412", 48):
             pos (440, 190)
             xysize (900, 700)
@@ -636,7 +588,6 @@ screen mahjong_minigame():
             pos (462, 212)
             xysize (856, 656)
 
-        # tiles, bottom layer first
         for layer in range(3):
             for i, (c, r, l) in enumerate(MJ_LAYOUT):
                 if l == layer and not mj_gone[i]:
@@ -665,9 +616,7 @@ screen mahjong_minigame():
             use mg_end(mj_end_msg, mj_result)
 
 
-# ==============================================================================
 # D  -  MISHA'S BLOCKS  (Carriage 3 rug)
-# ==============================================================================
 
 define MS_COLORS = ["#a83a2e", "#2c6a9c", "#2c8a4f", "#c9a21a"]
 define MS_LIT    = ["#ff8a7a", "#7fcaff", "#7dffb0", "#fff08a"]
@@ -752,7 +701,6 @@ screen mg_blocks():
                       _("Mistakes: %d / %d") % (ms_strikes, ms_max),
                       (_("WATCH") if ms_phase == "show" else _("YOUR TURN"))])
 
-        # the rug
         add rbox("#4a1e1e", 120):
             pos (300, 560)
             xysize (1200, 380)
@@ -774,7 +722,6 @@ screen mg_blocks():
                 background None
                 action Function(blocks_pick, i)
                 at button_hover_anim
-                # top face, then the front
                 add rbox(MS_LIT[i] if lit else MS_LIT[i] + "aa", 14):
                     xysize (180, 60)
                 add rbox(MS_LIT[i] if lit else MS_COLORS[i], 14):
@@ -793,12 +740,10 @@ screen mg_blocks():
             use mg_end(_("Misha knocks the tower over."), "lose")
 
 
-# ==============================================================================
 # E  -  ENGINE PRESSURE  (Carriage 4, with Ichora the engineer)
-# ==============================================================================
 
 define EP_GOAL = 12.0
-define EP_CX = 960              # gauge centre (design area)
+define EP_CX = 960
 define EP_CY = 470
 
 default ep_p = 50.0
@@ -809,7 +754,6 @@ default ep_result = None
 
 init python:
     def ep_angle(p):
-        """Pressure 0-100 on a dial from -120 to +120 degrees."""
         return -120 + p * 2.4
 
     EP_TICKS = [(v,) + _ring_points(EP_CX, EP_CY, 196, [ep_angle(v)])[0] for v in range(0, 101, 5)]
@@ -861,7 +805,6 @@ screen mg_engine():
             $ stats.append(_("Time: %d") % max(0, ep_t))
         use mg_stats(stats)
 
-        # iron panel and the gauge
         add rbox("#1c1916", 44):
             pos (EP_CX - 430, 160)
             xysize (860, 800)
@@ -896,7 +839,6 @@ screen mg_engine():
             pos (EP_CX - 22, EP_CY - 22)
             xysize (44, 44)
 
-        # how long it's been steady
         add rbox("#0a0a0e", 10):
             pos (EP_CX - 300, 760)
             xysize (600, 20)
@@ -919,9 +861,7 @@ screen mg_engine():
             use mg_end(_("The boiler shrieks."), "lose")
 
 
-# ==============================================================================
 # F  -  SORT THE MAIL  (Carriage 5, Pattison's desk)
-# ==============================================================================
 
 define ML_LETTERS = [
     ("Pendulum order #44 - rush", "clock"),
@@ -941,7 +881,6 @@ define ML_LETTERS = [
     ("Letter from an old pal", "friend"),
     ("Thank-you note from a friend", "friend"),
 ]
-# (pile, name on the pile, what goes in it)
 define ML_BINS = [
     ("clock", _("CLOCK"), _("Clock parts\nand orders")),
     ("end", _("END"), _("The last stop\nand endings")),
@@ -1027,7 +966,6 @@ screen mg_mail():
             $ stats.append("%.1f" % ml_t)
         use mg_stats(stats)
 
-        # pigeonholes
         for bi, (bkey, blabel, bdesc) in enumerate(ML_BINS):
             $ px = 330 + bi * 300
             button:
@@ -1059,7 +997,6 @@ screen mg_mail():
                     color "#2a1f10"
                     font GFONT
 
-        # the desk and the letter on it
         add rbox("#3e2614", 30):
             pos (260, 640)
             xysize (1340, 360)
@@ -1097,20 +1034,6 @@ screen mg_mail():
             use mg_end(_("The mail pile collapses."), "lose")
 
 
-# ==============================================================================
-# DEPARTURE AT 4:00  -  minigames.rpy (minigames2)
-# Minigames the story waits on. Lose and you try again.
-#
-#   G  ticket      start              shell game with your ticket
-#   H  door        carriage doors     press LEFT, RIGHT, LEFT, RIGHT to open it
-#   I  flashlight  crime scene        shine the light on squares to find the evidence
-#   J  combo       Himmel's luggage   crack the 3-digit lock
-#   K  pry         Misha's carpet     pull it up without tearing it
-#   L  survive     Carriage 6         click the shadows before they reach you
-#
-#   call play_required("mg_door", door_reset)   - loops until the player wins
-# ==============================================================================
-
 default mg_required = False
 
 label play_required(scr, reset):
@@ -1124,14 +1047,11 @@ label play_required(scr, reset):
             return
 
 
-# ==============================================================================
 # G  -  FIND YOUR TICKET
-# ==============================================================================
-# You see which card is the ticket, the cards swap around, then you pick one.
 
-define TK_X = [190, 510, 830]         # where the three cards sit (inside the box)
+define TK_X = [190, 510, 830]
 
-default tk_slot = [0, 1, 2]           # card i sits in slot tk_slot[i]
+default tk_slot = [0, 1, 2]
 default tk_ticket = 0
 default tk_phase = "show"
 default tk_swaps = 6
@@ -1172,7 +1092,6 @@ init python:
             store.tk_result = "lose"
         renpy.restart_interaction()
 
-# cards glide to their new spot whenever they're swapped
 transform tk_slide(x):
     ease 0.3 xcenter x
 
@@ -1208,11 +1127,7 @@ screen mg_ticket():
             use mg_end(_("Are you fine… sir?"), "lose")
 
 
-# ==============================================================================
 # H  -  OPEN THE DOOR  (valve wheel between carriages)
-# ==============================================================================
-# Press LEFT then RIGHT then LEFT... Each swap turns the wheel a bit. It slips
-# back if you stop.
 
 default dr_prog = 0.0
 default dr_last = None
@@ -1289,19 +1204,15 @@ screen mg_door():
             use mg_end(_("LOCKED"), "lose")
 
 
-# ==============================================================================
 # I  -  SEARCH IN THE DARK  (crime scene)
-# ==============================================================================
-# A grid of dark squares. Click one to shine your light on it. Three of them
-# hide the evidence. One hides something else. The battery doesn't last.
 
 define FL_COLS = 6
 define FL_ROWS = 3
 define FL_ITEMS = [_("TILE"), _("GLASS"), _("BLOOD")]
 
-default fl_items = {}           # square number -> what's there
-default fl_ghost = 0            # the square with the thing in it
-default fl_lit = []             # squares you've already looked at
+default fl_items = {}
+default fl_ghost = 0
+default fl_lit = []
 default fl_battery = 12
 default fl_t = 40.0
 default fl_result = None
@@ -1380,10 +1291,7 @@ screen mg_flashlight():
             use mg_end(_("Huh… It's dark.."), "lose")
 
 
-# ==============================================================================
 # J  -  THE LUGGAGE LOCK  (3-digit combination)
-# ==============================================================================
-# The code is 4-0-0. If you opened the cupboard in Carriage 1 you saw it.
 
 define CB_CODE = [4, 0, 0]
 
@@ -1460,11 +1368,7 @@ screen mg_combo():
             use mg_end(_("LOCKED"), "lose")
 
 
-# ==============================================================================
 # K  -  PULL UP THE CARPET
-# ==============================================================================
-# Every PULL lifts the carpet but adds tension. Tension goes down by itself
-# if you wait. Let it fill up and the carpet tears.
 
 default pr_tension = 0.0
 default pr_prog = 0.0
@@ -1536,15 +1440,11 @@ screen mg_pry():
             use mg_end(_("This again..."), "lose")
 
 
-# ==============================================================================
 # L  -  DON'T LET THEM REACH YOU  (Carriage 6)
-# ==============================================================================
-# Three doors. A shadow comes down one of them, its bar filling as it gets
-# closer. Click that door (or press 1, 2, 3) to send it back. Hold on.
 
 define SV_TIME = 20.0
 
-default sv_lanes = [0.0, 0.0, 0.0]    # how close each door's shadow is (0 = no shadow, 1 = reached you)
+default sv_lanes = [0.0, 0.0, 0.0]
 default sv_spawn = 0.0
 default sv_hp = 3
 default sv_t = 20.0
@@ -1565,14 +1465,12 @@ init python:
             return
         dt = 0.05
         lanes = list(store.sv_lanes)
-        # a new shadow at an empty door
         store.sv_spawn -= dt
         if store.sv_spawn <= 0:
             store.sv_spawn = [1.5, 1.15, 0.85][persistent.mg_difficulty]
             empty = [i for i in range(3) if lanes[i] == 0.0]
             if empty:
                 lanes[renpy.random.choice(empty)] = 0.01
-        # shadows get closer
         for i in range(3):
             if lanes[i] > 0.0:
                 lanes[i] += dt * 0.28 * mg_mult()
@@ -1623,7 +1521,6 @@ screen mg_survive():
                         background rbox("#14141a", 20)
                         hover_background rbox("#24242e", 20)
                         action Function(survive_banish, i)
-                        # the shadow's bar grows up from the bottom as it gets closer
                         if near > 0.0:
                             add rbox("#8a0000", 20):
                                 xsize 300
@@ -1648,27 +1545,9 @@ screen mg_survive():
             use mg_end(_("You'll see."), "lose")
 
 
-# ==============================================================================
-# DEPARTURE AT 4:00  -  minigames.rpy (minigames3)
-# More minigames:
-#
-#   N  evidence  Part 2       present the clue that proves them wrong
-#   O  reveal    Carriage 6   wipe the shadow off each monster
-#
-#   $ evidence_setup("sebastian neutral", "Sebastian", "...line...", "clue_hidden_tile")
-#   call play_required("mg_evidence", evidence_reset)
-#
-#   $ reveal_setup("The Passenger", "shunyu_monster neutral", "shunyu neutral", "Shunyu")
-#   call play_required("mg_reveal", reveal_reset)
-# ==============================================================================
-
-
-# ==============================================================================
 # N  -  PRESENT THE EVIDENCE
-# ==============================================================================
-# Someone says something your clues disprove. Pick the right one.
 
-default ev_cfg = ("", "", "", "clue_hidden_tile", "black")   # image, name, line, answer, bg
+default ev_cfg = ("", "", "", "clue_hidden_tile", "black")
 default ev_result = None
 default ev_pick = None
 
@@ -1706,7 +1585,6 @@ screen mg_evidence():
     $ ev_img, ev_name, ev_line, ev_answer, ev_bg = ev_cfg
     use mg_scene(_("PRESENT THE EVIDENCE"), _("Pick the clue that proves this wrong."), ev_bg, (ev_img or None), 0.86):
 
-        # what they just said
         frame:
             xalign 0.5
             xoffset -150
@@ -1726,7 +1604,6 @@ screen mg_evidence():
                     color "#e8e4dc"
                     font say_font()
 
-        # the clue cards
         hbox:
             xalign 0.5
             xoffset -150
@@ -1759,20 +1636,15 @@ screen mg_evidence():
             use mg_end(_("WRONG"), "lose")
 
 
-# ==============================================================================
 # O  -  REVEAL  (Carriage 6)
-# ==============================================================================
-# Each monster is covered by a grid of shadow squares. Move the mouse over a
-# square to wipe it away and see who it really was. Every so often it thrashes
-# and some of the shadow comes back.
 
 define RV_COLS = 6
 define RV_ROWS = 8
-define RV_CW = 87             # square size
+define RV_CW = 87
 define RV_CH = 70
 
 default rv_cfg = ("The Conductor", "conductor_monster neutral", "conductor_monster neutral", "The Conductor")
-default rv_dark = []          # True = still shadow
+default rv_dark = []
 default rv_t = 25.0
 default rv_thrash = 2.0
 default rv_shake = 0
@@ -1780,7 +1652,6 @@ default rv_result = None
 
 init python:
     def reveal_setup(name, monster_img, true_img, true_name):
-        """name / monster image (what you fight), true image / name (what's under it)"""
         store.rv_cfg = (name, monster_img, true_img, true_name)
 
     def reveal_reset():
@@ -1808,7 +1679,6 @@ init python:
         if store.rv_result is not None:
             return
         dt = 0.05
-        # it fights back: a shudder, and the shadow grows back in places
         store.rv_thrash -= dt
         if store.rv_thrash <= 0:
             store.rv_thrash = renpy.random.uniform(1.6, 2.6) / mg_mult()
@@ -1842,11 +1712,9 @@ screen mg_reveal():
             xalign 0.5
             yalign 0.62
             xoffset (((rv_shake % 2) * 2 - 1) * rv_shake * 3)
-            # who it really was, underneath
             add rv_true:
                 fit "contain"
                 xysize (RV_COLS * RV_CW, RV_ROWS * RV_CH)
-            # the shadow squares
             grid RV_COLS RV_ROWS:
                 for i in range(RV_COLS * RV_ROWS):
                     button:

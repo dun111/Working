@@ -1,77 +1,48 @@
-# ==============================================================================
-# DEPARTURE AT 4:00  -  music.rpy
 # Every song lives in game/Songs/. This file says which ones play where.
-#
-#   SONGS          id -> (file, title, artist)      add a song here
-#   MUSIC_FOR      a place in the game -> the songs that play there (in order,
-#                  then round again). None = silence.
-#   LABEL_MUSIC    which place each story label belongs to
-#
-#   $ music_for("casino")      switch to a place's songs (fades)
-#   $ music_menu()             back to the main menu music
-#
-# Settings > AUDIO: IN-GAME MUSIC, MAIN MENU MUSIC (theme / shuffle), SONG POPUPS
-# ==============================================================================
 
 define SONGS = {
     "main_menu":            ("Songs/main_menu.mp3",               _("Grekhov Theme"),                    "Departure at 4:00"),
     "carriage_3":           ("Songs/carriage_3.opus",             "Rendezvous (Instrumental)",           "Carriage 3"),
-    # the larp song (the credits thank "larp music" for it)
     "larp":                 ("Songs/larp.opus",                   "We Do What We Want (Edit)",           "Alan Fitzpatrick"),
     "the_days":             ("Songs/the_days.opus",               "The Days (NOTION Remix)",             "Chrystal"),
     "dreamin":              ("Songs/dreamin.opus",                "Dreamin",                             "PARTYNEXTDOOR"),
     "make_it_to_the_morning": ("Songs/make_it_to_the_morning.opus", "MAKE IT TO THE MORNING",           "PARTYNEXTDOOR"),
-    # artist not known yet - add it after the title
     "say_it":               ("Songs/say_it.opus",                 "Say It",                              ""),
     "still_love_you":       ("Songs/still_love_you.opus",         "still love you (Slowed)",             ""),
     "tbh":                  ("Songs/tbh.opus",                    "TBH",                                 ""),
-    # the SPOTLIGHT credits' song
     "flower_in_a_hurricane": ("Songs/flower_in_a_hurricane.opus", "Flower In A Hurricane",               "Justice ft. Tame Impala, SZA, King Gizzard & the Lizard Wizard (GTA VI)"),
 }
 
-# the order the jukebox lists them in
 define SONG_ORDER = ["main_menu", "carriage_3", "larp", "the_days", "flower_in_a_hurricane",
                      "dreamin", "make_it_to_the_morning", "say_it", "still_love_you", "tbh"]
 
-# a place -> its songs
 define MUSIC_FOR = {
-    # Part 1
     "c1": ["main_menu"],
     "c2": ["main_menu"],
-    "c3": ["carriage_3"],                                   # Rendezvous in Carriage 3
+    "c3": ["carriage_3"],
     "c4": ["main_menu"],
     "c5": ["main_menu"],
-    # Part 2: someone's dead and the train keeps looping
     "part2": ["main_menu"],
     "part2_c3": ["carriage_3"],
     "part2_c5": ["main_menu"],
-    # nothing while it matters most
     "silence": None,
-    # the way out
     "escape": ["main_menu"],
     "true": ["main_menu"],
-    # away from the story
     "menu_shuffle": ["main_menu", "carriage_3"],
     "casino": ["main_menu", "carriage_3"],
-    # the credits: the larp song
     "credits": ["larp"],
     "credits_tickets": ["larp"],
     "credits_spotlight": ["flower_in_a_hurricane"],
 }
 
-# (id, name). The train's own stations, named after the people on board.
-# GREKHOV FM = the songs that fit where you are (MUSIC_FOR); the others play
-# their own list everywhere until you change station.
 define RADIO_STATIONS = [
-    ("scene", _("GREKHOV FM")),          # the train itself: the song for where you are
-    ("all",   _("EDUARD'S JUKEBOX")),    # the bar plays everything
+    ("scene", _("GREKHOV FM")),
+    ("all",   _("EDUARD'S JUKEBOX")),
     ("off",   _("OFF AIR")),
 ]
 
-# what's printed next to each station
 define RADIO_FREQ = {"scene": "88.0", "all": "91.4", "off": "--.-"}
 
-# story label -> place. (label, place, place while in the loop)
 define LABEL_MUSIC = {
     "carriage_1_start":        ("c1", "part2"),
     "carriage_1_hub":          ("c1", "part2"),
@@ -101,13 +72,12 @@ define LABEL_MUSIC = {
 }
 
 default persistent.ingame_music = True
-default persistent.menu_music = "theme"        # "theme" or "shuffle"
+default persistent.menu_music = "theme"
 default persistent.song_popups = True
 default persistent.radio_station = "scene"
 default persistent.radio_bar = True
 
 init python:
-    # file -> (id, title, artist)
     SONG_BY_FILE = {}
     for _sid, (_f, _title, _artist) in SONGS.items():
         SONG_BY_FILE[_f] = (_sid, _title, _artist)
@@ -116,20 +86,15 @@ init python:
         return [SONGS[i][0] for i in ids if i in SONGS and renpy.loadable(SONGS[i][0])]
 
     class _MUSIC(object):
-        place = None        # what's playing now: a MUSIC_FOR place, "menu", "jukebox", a station
-        scene = None        # the story place we're in (for SCENE MUSIC)
+        place = None
+        scene = None
 
     def radio_scene():
         return radio_station_now() == "scene"
 
     def music_for(place, fade=2.0, carry=False):
-        """Switch to a place's songs. If the same song is already playing it just
-        carries on (so the Grekhov Theme runs straight on from the menu into the
-        story); a different song crossfades in right away.
-        (carry is no longer used - kept so older calls still work.)"""
         if not radio_scene():
-            return          # a radio station is on: it keeps playing
-        # a pause from the radio must never leave a new scene silent
+            return
         renpy.music.set_pause(False, channel="music")
         if place == _MUSIC.place and renpy.music.is_playing("music"):
             return
@@ -148,12 +113,9 @@ init python:
         return song_files(ids)
 
     def _menu_music_config():
-        # Ren'Py starts config.main_menu_music by itself on the main menu, so
-        # only set it while SCENE MUSIC is the station
         config.main_menu_music = (menu_music_files() or None) if radio_scene() else None
 
     def music_menu():
-        """Back to the main menu's music (or whatever station is on)."""
         if not radio_scene():
             radio_play_station(restart=False)
             return
@@ -173,7 +135,6 @@ init python:
         renpy.restart_interaction()
 
     def music_skip():
-        """NEXT: on to the next song in what's playing."""
         q = renpy.music.get_playing("music")
         files = renpy.music.get_loop("music") or []
         if q in files and len(files) > 1:
@@ -183,12 +144,11 @@ init python:
         elif q:
             renpy.music.stop(channel="music", fadeout=0.5)
 
-    # ---- the radio ------------------------------------------------------------
+    # the radio
     class _RADIO(object):
-        history = []        # songs played, newest last (for PREVIOUS)
+        history = []
 
     def radio_station_now():
-        """The station that's on (a station that's been renamed/removed -> GREKHOV FM)."""
         st = persistent.radio_station
         return st if st in dict(RADIO_STATIONS) else "scene"
 
@@ -249,7 +209,6 @@ init python:
         renpy.restart_interaction()
 
     def radio_prev():
-        """Back to the song before this one (or the start of this one)."""
         h = _RADIO.history
         cur = renpy.music.get_playing("music")
         files = renpy.music.get_loop("music") or []
@@ -264,9 +223,7 @@ init python:
 
     _menu_music_config()
 
-# init 2: after every other label callback is set up, chaining onto them
 init 2 python:
-    # every story label: switch to the music for where we are
     _old_label_cb_music = config.label_callback
 
     def _music_label_cb(name, abnormal=False):
@@ -291,7 +248,7 @@ init python:
             renpy.music.stop(channel="music", fadeout=1.0)
         renpy.restart_interaction()
 
-    # ---- "now playing" popup, like a radio station changing song -----------
+    # "now playing" popup, like a radio station changing song
     class _NP(object):
         last = None
 
@@ -310,9 +267,7 @@ init python:
             renpy.show_screen("now_playing", title, artist)
 
     def popup_blocked():
-        """No song card over the save/load/settings/credits menus: their tabs
-        sit in the top-right corner. (The main menu itself is fine.)"""
-        m = renpy.get_screen("menu")      # by tag: whichever menu screen is open
+        m = renpy.get_screen("menu")
         return bool(m) and not renpy.get_screen("main_menu")
 
     def now_playing_title():
@@ -336,8 +291,6 @@ screen now_playing_watch():
 
 screen now_playing(title, artist):
     zorder 1300
-    # top-right: the map's carriage plate is top-middle, the tickets/coins are
-    # top-right on the main menu (so it sits under them there)
     frame:
         xalign 1.0
         xoffset -40
@@ -368,28 +321,20 @@ screen now_playing(title, artist):
     timer 5.2 action Hide("now_playing")
 
 
-# ------------------------------------------------------------------------------
-# THE RADIO  (bottom right, on every screen; Settings > Audio > RADIO BAR)
-# Folded away as a little RADIO tab. Point at it to open the radio; click it
-# to keep the radio open (HIDE folds it away again).
-# The radio: a wooden box with the station (< > to tune), the song that's on
-# (long names slide across), and PREV / PAUSE / NEXT.
-# ------------------------------------------------------------------------------
-
 define RADIO_W = 640
 define RADIO_H = 96
-define RADIO_WIN_W = 360        # the window the station and the song sit in
-define RADIO_RIGHT = 150        # gap from the right edge of the screen
-define RADIO_BOTTOM = 8         # gap from the bottom
-define RADIO_TAB_W = 92         # the folded tab
-define RADIO_ABOVE_SAY = 330    # in the story the radio opens this far up from the bottom (above the dialogue box)
+define RADIO_WIN_W = 360
+define RADIO_RIGHT = 150
+define RADIO_BOTTOM = 8
+define RADIO_TAB_W = 92
+define RADIO_ABOVE_SAY = 330
 define RADIO_TAB_H = 30
 
 init python:
     class _RADIOUI(object):
         hover = False
         pinned = False
-        booting = True      # hidden on the boot screen; the main menu turns it on
+        booting = True
 
     def radio_hover(on):
         if _RADIOUI.hover != on:
@@ -408,7 +353,6 @@ transform radio_unfold:
     yoffset 20
     easein 0.15 alpha 1.0 yoffset 0
 
-# the song in the window: long names slide across instead of running out of it
 transform radio_marquee(dist, key):
     xoffset 0
     pause 2.0
@@ -419,7 +363,6 @@ transform radio_marquee(dist, key):
         pause 2.0
         repeat
 
-# a name that fits stays put (and drops any slide left over from a long one)
 transform radio_still:
     xoffset 0
 
@@ -432,14 +375,12 @@ init python:
         return ("%s - %s" % (song[1], song[2])) if song[2] else song[1]
 
     def radio_overflow(t, size, width):
-        """Roughly how far a line of text runs past the window (0 = it fits)."""
         try:
             w = renpy.render(Text(t, size=size, font=GFONT), 4000, 100, 0, 0).width
         except Exception:
             w = len(t) * size * 0.62
         return max(0, int(w - width))
 
-# a small wooden button
 screen radio_key(label, act, w=74):
     button:
         xysize (w, 32)
@@ -455,14 +396,9 @@ screen radio_key(label, act, w=74):
             font GFONT
 
 init python:
-    # screens the radio must never cover (their buttons sit in the corners)
     RADIO_AVOID = ["slot_machine", "roulette", "horses", "dev_console", "cheat_menu", "gallery_view"]
 
     def radio_where():
-        """Where the radio lives right now:
-             None      - hidden (boot screen, minigames, turned off)
-             "corner"  - the tab in the bottom-right corner (main menu, settings...)
-             "game"    - a button in the quick menu; opens above the dialogue box"""
         if not persistent.radio_bar or _RADIOUI.booting:
             return None
         names = RADIO_AVOID + [g[2] for g in getattr(store, "MINIGAME_LIST", [])] + ["mg_debug"]
@@ -477,7 +413,6 @@ init python:
         _RADIOUI.pinned = not _RADIOUI.pinned
         renpy.restart_interaction()
 
-# the radio itself, with its top-left corner at (px, py)
 screen radio_panel(px, py):
     $ cur = renpy.music.get_playing("music")
     $ st = radio_station_now()
@@ -491,7 +426,6 @@ screen radio_panel(px, py):
         at radio_unfold
         vbox:
             spacing 8
-            # station: < name frequency >
             hbox:
                 spacing 8
                 use radio_key("<", Function(radio_station_step, -1), w=32)
@@ -515,7 +449,6 @@ screen radio_panel(px, py):
                 use radio_key(_("HIDE") if _RADIOUI.pinned else _("PIN"), Function(radio_pin, not _RADIOUI.pinned), w=62)
             hbox:
                 spacing 8
-                # the song: clipped to its window, sliding if it's too long
                 fixed:
                   xysize (RADIO_WIN_W, 32)
                   add rbox("#1a0f06", 8):
@@ -543,13 +476,10 @@ screen radio_bar():
     $ sw, sh = config.screen_width, config.screen_height
 
     if where == "game":
-        # in the story it's opened from the quick menu's RADIO button, and sits
-        # above the dialogue box - over the scene, never over the text
         if _RADIOUI.pinned:
             use radio_panel(40, sh - RADIO_ABOVE_SAY - RADIO_H)
 
     elif where == "corner":
-        # folded: only the tab opens it. Open: pointing anywhere over the radio keeps it open
         if radio_open():
             mousearea:
                 area (sw - RADIO_RIGHT - RADIO_W, sh - RADIO_BOTTOM - RADIO_H, RADIO_W, RADIO_H)
@@ -560,7 +490,6 @@ screen radio_bar():
             mousearea:
                 area (sw - RADIO_RIGHT - RADIO_TAB_W, sh - RADIO_BOTTOM - RADIO_TAB_H, RADIO_TAB_W, RADIO_TAB_H)
                 hovered Function(radio_hover, True)
-            # folded away: just a little tab
             button:
                 xalign 1.0
                 yalign 1.0
