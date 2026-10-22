@@ -107,7 +107,10 @@ default persistent.radio_station = "scene"
 default persistent.radio_bar = True
 
 init python:
-    SONG_BY_FILE = dict((f, (sid, title, artist)) for sid, (f, title, artist) in SONGS.items())
+    # file -> (id, title, artist)
+    SONG_BY_FILE = {}
+    for _sid, (_f, _title, _artist) in SONGS.items():
+        SONG_BY_FILE[_f] = (_sid, _title, _artist)
 
     def song_files(ids):
         return [SONGS[i][0] for i in ids if i in SONGS and renpy.loadable(SONGS[i][0])]

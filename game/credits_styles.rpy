@@ -81,14 +81,9 @@ init python:
         """The longer credits after the crew - everything in the game, by name,
         taken from the game's own lists:
         [(heading, [(line, small line under it or ""), ...]), ...]"""
-        def safe(f):
-            try:
-                return f()
-            except Exception:
-                return []
-        passengers = safe(lambda: [m[1] for m in MANIFEST]) + ["The Passenger", "The Gentleman", "The Conductor"]
+        passengers = [m[1] for m in MANIFEST] + ["The Passenger", "The Gentleman", "The Conductor"]
         places = []
-        for t in safe(lambda: list(MAP_TITLES.values())):
+        for t in MAP_TITLES.values():
             line = "%s - %s" % (t[0], t[1])
             if line not in places:
                 places.append(line)
@@ -97,26 +92,17 @@ init python:
             (_("The passengers"), [(n, "") for n in passengers]),
             (_("The carriages"), [(n, "") for n in places]),
             (_("Endings"), [("Wrong Guess", "Ending 1"), ("Partial Truth", "Ending 2"), ("The True Line", "Ending 3")]),
-            (_("Clues"), [(c[1], "") for c in safe(lambda: CLUE_LIST)]),
-            (_("Minigames"), [(g[1], "") for g in safe(lambda: MINIGAME_LIST)]),
-            (_("The 4:00 Casino"), [(g[1], "") for g in safe(lambda: CASINO_GAMES)]),
-            (_("Achievements"), [(x["title"], "") for x in safe(lambda: ACHIEVEMENTS)]),
-            (_("Gamepasses"), [(g[1], "") for g in safe(lambda: GAMEPASSES)]),
-            (_("Radio stations"), [(n, RADIO_FREQ.get(k, "")) for k, n in safe(lambda: RADIO_STATIONS)]),
+            (_("Clues"), [(c[1], "") for c in CLUE_LIST]),
+            (_("Minigames"), [(g[1], "") for g in MINIGAME_LIST]),
+            (_("The 4:00 Casino"), [(g[1], "") for g in CASINO_GAMES]),
+            (_("Achievements"), [(x["title"], "") for x in ACHIEVEMENTS]),
+            (_("Gamepasses"), [(g[1], "") for g in GAMEPASSES]),
+            (_("Radio stations"), [(n, RADIO_FREQ.get(k, "")) for k, n in RADIO_STATIONS]),
             (_("Music"), CREDIT_MUSIC),
             (_("Fonts"), [("Graduate", ""), ("Telegraphem", ""), ("Reggae One", ""), ("DejaVu Sans", "")]),
             (_("Made with"), [("Ren'Py", renpy.version_only)]),
             (_("Special thanks"), [("Mr Kromo", "")]),
         ]
-
-    def credit_pairs():
-        """Every (role, person) - one line each."""
-        out = []
-        for roles, people in credit_roles():
-            for r in roles:
-                for c in people:
-                    out.append((r, c))
-        return out
 
 
 # ------------------------------------------------------------------------------

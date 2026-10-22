@@ -14,7 +14,6 @@
 
 default persistent.coins = 50
 
-define SLOT_BET = 5            # the smallest bet
 define SLOT_PAIR = 2            # two the same pays your bet x this
 define COINS_PER_TICKET = 100
 

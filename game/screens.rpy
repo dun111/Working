@@ -34,7 +34,11 @@ init -5 python:
             if r <= 0:
                 d = Solid(c)
             else:
-                rr = min(ROUND_RADII, key=lambda v: abs(v - r))
+                # the closest radius we have a picture for
+                rr = ROUND_RADII[0]
+                for v in ROUND_RADII:
+                    if abs(v - r) < abs(rr - r):
+                        rr = v
                 d = Transform(Frame("gui/round/r%d.png" % rr, rr, rr),
                               matrixcolor=TintMatrix(c.replace_opacity(1.0)),
                               alpha=c.alpha)
@@ -293,20 +297,6 @@ transform confirm_pop:
     alpha 0.0 zoom 0.9
     ease anim_t(0.3) alpha 1.0 zoom 1.0
 
-transform train_shake:
-    xoffset 0
-    yoffset 0
-    block:
-        linear 0.06 xoffset -2 yoffset 2
-        linear 0.06 xoffset 2 yoffset -2
-        linear 0.06 xoffset -2 yoffset 1
-        linear 0.06 xoffset 2 yoffset 2
-        linear 0.06 xoffset -1 yoffset -2
-        linear 0.06 xoffset -1 yoffset 0
-        repeat 15
-    pause 8.0
-    repeat
-
 transform no_shake:
     pass
 
@@ -422,11 +412,6 @@ transform button_hover_anim:
     on selected_idle:
         easeout anim_t(0.22) yoffset 0
 
-transform blackberry_click_pulse:
-    zoom 1.0
-    ease 0.15 zoom 1.3
-    ease 0.25 zoom 1.0
-
 transform qm_shown:
     alpha 0.0
     ease 0.25 alpha 1.0
@@ -434,13 +419,6 @@ transform qm_shown:
 transform qm_hidden:
     alpha 1.0
     ease 0.25 alpha 0.0
-
-transform underline_grow:
-    xzoom 0.001
-    on hover:
-        ease 0.25 xzoom 1.0
-    on idle:
-        ease 0.2 xzoom 0.001
 
 transform entry_bar:
     transform_anchor True
@@ -613,17 +591,18 @@ init python:
 
     _sp_pending = {}
 
-    def _make_speaker_transform(base, state):
-        def make(xalign=0.5):
-            t = base(xalign=xalign)
-            _sp_pending["obj"] = t
-            _sp_pending["val"] = (float(xalign), state)
-            return t
-        return make
+    def _speaker_transform(base, state, xalign):
+        t = base(xalign=xalign)
+        _sp_pending["obj"] = t
+        _sp_pending["val"] = (float(xalign), state)
+        return t
 
     # Used all over script.rpy as  "at speaker_focus(xalign=..)"
-    speaker_focus = _make_speaker_transform(_sp_focus, "f")
-    speaker_background = _make_speaker_transform(_sp_bg, "b")
+    def speaker_focus(xalign=0.5):
+        return _speaker_transform(_sp_focus, "f", xalign)
+
+    def speaker_background(xalign=0.5):
+        return _speaker_transform(_sp_bg, "b", xalign)
 
     # remember where every sprite was placed
     _orig_show = config.show
@@ -849,8 +828,6 @@ define config.say_attribute_transition_layer = "master"
 # MENU MUSIC
 # ==============================================================================
 
-define audio.menu_theme = "Songs/main_menu.mp3"
-
 # config.main_menu_music is set in music.rpy (MAIN MENU MUSIC: theme / shuffle)
 init python:
 
@@ -963,10 +940,11 @@ init python:
         slots, saves made in the secret empty-train game, and saves from before
         saves were tagged."""
         try:
-            slots = renpy.list_slots(r"^(?!_)")
-            slots.sort(key=lambda s: renpy.slot_mtime(s) or 0, reverse=True)
+            # newest first, without Ren'Py's own slots (they start with _)
+            slots = [(renpy.slot_mtime(s) or 0, s) for s in renpy.list_slots() if not s.startswith("_")]
+            slots.sort(reverse=True)
             broken = set(persistent.broken_saves or ())
-            for slot in slots:
+            for mtime, slot in slots:
                 info = renpy.slot_json(slot) or {}
                 if (slot, renpy.slot_mtime(slot)) in broken:
                     continue        # tried before: made by an older version of the game
@@ -1064,12 +1042,6 @@ default persistent.mg_won = set()
 define DIALOGUE_SIZES = [(22, "S"), (26, "M"), (30, "L"), (34, "XL")]
 
 init python:
-    FONT_SIZE_STEPS = [22, 26, 30, 34]
-
-    def cycle_font_size():
-        cur = persistent.dialogue_font_size
-        idx = FONT_SIZE_STEPS.index(cur) if cur in FONT_SIZE_STEPS else 1
-        persistent.dialogue_font_size = FONT_SIZE_STEPS[(idx + 1) % len(FONT_SIZE_STEPS)]
 
     def erase_everything():
         """Delete every save, achievement and persistent unlock, then restart."""
@@ -1165,9 +1137,6 @@ init python:
 
     def say_font():
         return "DejaVuSans.ttf" if persistent.readable_font else "gui/Graduate-Regular.ttf"
-
-    def motion_ok():
-        return not persistent.reduce_motion
 
 
 # ==============================================================================
@@ -1629,16 +1598,6 @@ screen achievements():
 # BACKGROUNDS
 # ==============================================================================
 
-image main_menu_bg_rotation:
-    Solid("#0c0c12")
-    pause 6.0
-    Solid("#140c10") with Dissolve(3.0)
-    pause 6.0
-    Solid("#0c1412") with Dissolve(3.0)
-    pause 6.0
-    Solid("#0c0c12") with Dissolve(3.0)
-    repeat
-
 # Game_Logo_Purple.webp also exists in game/images if you want a third colour.
 # the main menu logo: yellow, and red while the carriage rumbles (_menu_logo)
 image game_logo_rumble = DynamicDisplayable(_menu_logo)
@@ -1796,7 +1755,6 @@ screen menu_tagline(xa=0.5, size=16):
 # Everything lines up on CINE_X.
 
 define CINE_X = 110                         # the left edge everything starts on
-define CINE_EDGE = 50                       # gap at the top and bottom of the screen
 define CINE_COL_W = 600                     # how wide the whole left column is
 define CINE_LOGO_W = 420                    # how wide the logo is
 define CINE_RAIL_H = 120                    # how tall the train-and-rail strip is
@@ -3070,12 +3028,6 @@ screen pref_toggle(label, act, selected=None, w=170):
     $ t_edge = "#e6a817" if sel else "#33334a"
     $ t_col = "#ffffff" if sel else "#8888a0"
     use rbtn(label, act, w=w, h=44, r=14, size=18, bg=t_bg, edge=t_edge, col=t_col, sel=sel)
-
-screen pref_section(title):
-    text title:
-        size 18
-        color "#e6a817"
-        font GFONT
 
 screen pref_row(title, desc="", delay=0.0):
     frame:
@@ -4663,31 +4615,33 @@ init python:
         ]
 
     # ------------------------------------------------------------------ objective / hint
+    def _flag_on(n):
+        return bool(getattr(store, n, False))
+
     def current_objective():
-        g = lambda n: bool(getattr(store, n, False))
-        if not g("in_loop"):
-            if not g("c1_talked_fedora"):
+        if not _flag_on("in_loop"):
+            if not _flag_on("c1_talked_fedora"):
                 return "Carriage 1: talk to Fedora."
-            if not (g("c2_talked_eduard") and g("c2_talked_shunyu")):
+            if not (_flag_on("c2_talked_eduard") and _flag_on("c2_talked_shunyu")):
                 return "Carriage 2: talk to Eduard and Shunyu."
-            if not (g("c3_talked_kimmy") and g("c3_talked_himmel") and g("c3_talked_sebastian") and g("c3_talked_misha")):
+            if not (_flag_on("c3_talked_kimmy") and _flag_on("c3_talked_himmel") and _flag_on("c3_talked_sebastian") and _flag_on("c3_talked_misha")):
                 return "Carriage 3: speak to everyone in the cabins."
-            if not (g("c4_talked_agatha") and g("c4_talked_ichora")):
+            if not (_flag_on("c4_talked_agatha") and _flag_on("c4_talked_ichora")):
                 return "Carriage 4: meet the staff."
-            if not (g("c5_talked_pattison") and g("c5_talked_alexander")):
+            if not (_flag_on("c5_talked_pattison") and _flag_on("c5_talked_alexander")):
                 return "Carriage 5: talk to Pattison and Alexander."
             return "Go through the door at the end of Carriage 5."
-        if not g("c2_p2_found_body"):
+        if not _flag_on("c2_p2_found_body"):
             return "Search Carriage 2. Something is wrong at the second table."
-        if not (g("c2_p2_reinterviewed_eduard") and g("c2_p2_reinterviewed_agatha")):
+        if not (_flag_on("c2_p2_reinterviewed_eduard") and _flag_on("c2_p2_reinterviewed_agatha")):
             return "Carriage 2: question Eduard and Agatha."
-        if not g("clue_drug_wrapper"):
+        if not _flag_on("clue_drug_wrapper"):
             return "Carriage 3: something is hidden in the luggage."
-        if not g("clue_hidden_tile"):
+        if not _flag_on("clue_hidden_tile"):
             return "Carriage 3: that carpet has been sticking up all along."
-        if not (g("kimmy_reinterviewed") and g("himmel_reinterviewed") and g("sebastian_reinterviewed") and g("misha_reinterviewed")):
+        if not (_flag_on("kimmy_reinterviewed") and _flag_on("himmel_reinterviewed") and _flag_on("sebastian_reinterviewed") and _flag_on("misha_reinterviewed")):
             return "Carriage 3: question everyone again."
-        if not (g("alexander_reinterviewed") and g("pattison_reinterviewed")):
+        if not (_flag_on("alexander_reinterviewed") and _flag_on("pattison_reinterviewed")):
             return "Carriage 5: question Alexander, then Pattison."
         return "You have everything. Decide who did it."
 

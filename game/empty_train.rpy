@@ -75,14 +75,11 @@ init 1 python:
             hs = 400
             hx, hy = int(x - hs // 2), int(y - hs // 2)
 
-            def blk(px, py, w, h):
+            # black above, below, left and right of the hole
+            for px, py, w, h in [(0, 0, width, hy), (0, hy + hs, width, height - hy - hs),
+                                 (0, hy, hx, hs), (hx + hs, hy, width - hx - hs, hs)]:
                 if w > 0 and h > 0:
                     rv.blit(renpy.render(self.black, w, h, st, at), (px, py))
-
-            blk(0, 0, width, max(0, hy))
-            blk(0, hy + hs, width, height - hy - hs)
-            blk(0, hy, max(0, hx), hs)
-            blk(hx + hs, hy, width - hx - hs, hs)
             rv.blit(renpy.render(self.hole, hs, hs, st, at), (hx, hy))
             return rv
 
@@ -92,6 +89,7 @@ init 1 python:
                 renpy.redraw(self, 0)
             return None
 
+        # Ren'Py calls this itself, to load the flashlight picture ahead of time
         def visit(self):
             return [self.hole]
 
@@ -365,10 +363,6 @@ screen et_edge(x):
         ypos 1.05
         at et_edge_blip
     timer 0.5 action Hide("et_edge")
-
-# the vision stepping closer (carriage 5)
-transform et_step_to(z):
-    ease 0.12 zoom z
 
 
 # ------------------------------------------------------------------------------

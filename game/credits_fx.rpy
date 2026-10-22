@@ -86,11 +86,6 @@ transform cam(z0, x0, y0, z1, x1, y1, dur, r0=0, r1=0):
         ease dur zoom z1 xoffset x1 yoffset y1 rotate r1
     easeout 0.5 alpha 0.0
 
-transform credit_in(d):
-    alpha 0.0
-    pause d
-    easein 0.4 alpha 1.0
-
 transform credit_grow(d, dur=0.8):
     xzoom 0.0
     pause d
@@ -107,15 +102,6 @@ transform letter_sketch(d):
     crop (0.0, 0.0, 0.0, 1.0)
     pause d
     linear 0.4 crop (0.0, 0.0, 1.0, 1.0)
-
-transform letter_drop(d):
-    alpha 0.0
-    yoffset -420
-    pause d
-    parallel:
-        easein 0.2 alpha 1.0
-    parallel:
-        easein_bounce 0.75 yoffset 0
 
 # a full-screen layer for the camera to move
 screen credit_cam(z0, x0, y0, z1, x1, y1, dur, r0=0, r1=0):
