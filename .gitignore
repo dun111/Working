@@ -8,6 +8,10 @@ video_source/
 *.rpyb
 game/cache/
 
+# === Python Cache ===
+__pycache__/
+*.pyc
+
 # === Ren'Py Logs & Crash Reports ===
 errors.txt
 files.txt
