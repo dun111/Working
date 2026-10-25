@@ -1,5 +1,6 @@
 # Departure at 4
 
+![Daily Update](https://img.shields.io/badge/Daily%20Update-2026-10-25-blue)
 ![Status](https://img.shields.io/badge/Status-Release%20Coming%20Soon-yellow)
 ![Made with Ren'Py](https://img.shields.io/badge/Made%20with-Ren'Py-orange)
 ![Python](https://img.shields.io/badge/Python-3.x-blue)
@@ -7,6 +8,17 @@
 ![Resolution](https://img.shields.io/badge/Resolution-1920x1080-brightgreen)
 
 > *"Departure at 4, embark on an epic adventure on board the Grekhov Express. Find the killer and untangle the mystery of the Grekhov and the dark secrets it contains..."*
+
+---
+
+## 📅 Daily Grekhov Express Log (October 25, 2026)
+
+> **Current Train Log:** *"The train passes through misty snow covered tracks as passenger whispers echo through Carriage 2."*
+
+### 🔍 Daily Passenger Spotlight: Louis
+- **Role:** Protagonist & Investigator
+- **Passenger Quote:** *"I woke up on this train with no memory, but I won't stop until I find the truth."*
+- **Investigation Tip:** Check Carriage 1 for initial clues before the time loop resets your progress.
 
 ---
 
