@@ -163,7 +163,7 @@ screen cheat_hotkey():
         key "K_F9" action ToggleScreen("cheat_menu")
 
 init python:
-    config.overlay_screens.append("cheat_hotkey")
+    config.always_shown_screens.append("cheat_hotkey")
 
 define CHEAT_TABS = [("jump", _("JUMP")), ("flags", _("FLAGS")), ("scares", _("SCARES")),
                      ("games", _("MINIGAMES")), ("unlocks", _("UNLOCKS")), ("tools", _("TOOLS"))]
