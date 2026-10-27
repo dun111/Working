@@ -1661,6 +1661,8 @@ screen cine_entry(i, label, act, primary=False):
         xsize (CINE_COL_W - 52)
         padding (6, 3)
         background None
+        hover_background rbox("#ffffff0e", 8)
+        hover_foreground Transform(Solid("#e0521f"), xsize=4)
         action act
         tooltip MENU_HELP.get(label, "")
         at fade_slide_in(0.4 + i * 0.06, xoff=-30)
@@ -1668,14 +1670,6 @@ screen cine_entry(i, label, act, primary=False):
             at cine_hover
             fixed:
                 xysize (CINE_TIME_W, (56 if primary else 42))
-                text "▸":
-                    xpos -24
-                    yalign 0.5
-                    yoffset -2
-                    size (26 if primary else 20)
-                    color "#e6a817"
-                    font "DejaVuSans.ttf"
-                    at cine_arrow
                 text t:
                     yalign 0.5
                     size (30 if primary else 24)
@@ -1699,19 +1693,22 @@ screen cine_entry(i, label, act, primary=False):
                             color "#e0521f"
                             font CREDIT_FONT
                             at board_blink
+                add Solid("#e0521f"):
+                    xysize (int(len(label) * (26 if primary else 18)), 3)
+                    at cine_line
 
 transform cine_hover:
     on idle:
         ease 0.2 xoffset 0
     on hover:
-        ease 0.2 xoffset 8
+        ease 0.2 xoffset 16
 
-transform cine_arrow:
-    alpha 0.0
+transform cine_line:
+    xzoom 0.0
     on idle:
-        ease 0.15 alpha 0.0
+        ease 0.2 xzoom 0.0
     on hover:
-        ease 0.15 alpha 1.0
+        ease 0.3 xzoom 1.0
 
 # the little train on its rail (left column)
 
