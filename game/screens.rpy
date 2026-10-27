@@ -682,7 +682,6 @@ image bg carriage_1 = themed(ConditionSwitch(
     "in_loop", wide_bg(carriage_art("images/PT2_Carriage_1_With_CharacterS.webp")),
     "True", wide_bg(carriage_art("images/Carriage_1_With_CharacterS.webp"))))
 
-image bg carriage_1_empty = wide_bg("images/bg_carriage_1.webp")
 image bg carriage_5 = themed(wide_bg("images/bg_carriage_5.webp"))
 
 image bg carriage_2 = themed(Solid("#2a2430"))
