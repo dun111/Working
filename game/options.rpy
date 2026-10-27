@@ -7,7 +7,7 @@ define config.name = _("Working")
 define gui.show_name = True
 
 
-define config.version = "2.0 Beta"
+define config.version = "2.1 Beta"
 
 
 define gui.about = _p("""
@@ -16,7 +16,7 @@ define gui.about = _p("""
 
 define build.name = "Working"
 
-define build.version = "2.0-beta"
+define build.version = "2.1-beta"
 
 
 define config.has_sound = True
