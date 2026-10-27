@@ -690,7 +690,7 @@ init python:
             (_("Minigames"), [(g[1], "") for g in MINIGAME_LIST]),
             (_("The 4:00 Casino"), [(g[1], "") for g in CASINO_GAMES]),
             (_("Achievements"), [(x["title"], "") for x in ACHIEVEMENTS]),
-            (_("Gamepasses"), [(g[1], "") for g in GAMEPASSES]),
+            (_("Gamepasses"), [(g[1], "") for g in shown_passes()]),
             (_("Radio stations"), [(n, RADIO_FREQ.get(k, "")) for k, n in RADIO_STATIONS]),
             (_("Music"), CREDIT_MUSIC),
             (_("Fonts"), [("Graduate", ""), ("Telegraphem", ""), ("Reggae One", ""), ("DejaVu Sans", "")]),
@@ -737,7 +737,7 @@ screen credits_scroll():
                     text role.upper():
                         xalign 0.5
                         size 26
-                        color credit_accent()
+                        color "#e0521f"
                         font GFONT
                 null height 8
                 for c in people:
@@ -748,7 +748,7 @@ screen credits_scroll():
                         action Function(credits_click, c["key"])
                         text_size 72
                         text_color "#f2ead8"
-                        text_hover_color credit_accent()
+                        text_hover_color "#e0521f"
                         text_font CREDIT_FONT
                         text_outlines [(0, "#00000099", 3, 4)]
                 null height 90
@@ -757,7 +757,7 @@ screen credits_scroll():
                 text heading.upper():
                     xalign 0.5
                     size 26
-                    color credit_accent()
+                    color "#e0521f"
                     font GFONT
                 null height 12
                 for ln, sub in lines:
@@ -779,7 +779,7 @@ screen credits_scroll():
             text _("SPECIAL CREDITS"):
                 xalign 0.5
                 size 26
-                color credit_accent()
+                color "#e0521f"
                 font GFONT
             null height 8
             text _("larp music"):
@@ -816,7 +816,7 @@ screen crew_card(ci, c):
         frame:
             xsize 150
             ysize card_h
-            background rbox(credit_accent(), 26)
+            background rbox("#e0521f", 26)
             text ("%02d" % (ci + 1)):
                 align (0.5, 0.5)
                 size 54
@@ -842,7 +842,7 @@ screen crew_card(ci, c):
                 text c["name"]:
                     size 60
                     color "#f2ead8"
-                    hover_color credit_accent()
+                    hover_color "#e0521f"
                     font CREDIT_FONT
                     outlines [(0, "#00000080", 2, 3)]
                 if c["key"] in CREW_BADGES:
@@ -859,7 +859,7 @@ screen crew_card(ci, c):
             for role in c["roles"]:
                 hbox:
                     spacing 12
-                    add rbox(credit_accent(), 2):
+                    add rbox("#e0521f", 2):
                         xysize (8, 8)
                         yalign 0.5
                     text role:
@@ -1092,7 +1092,7 @@ screen credits_film():
                                 action Function(credits_click, c["key"])
                                 text_size 46
                                 text_color "#ededed"
-                                text_hover_color credit_accent()
+                                text_hover_color "#e0521f"
                                 text_font CREDIT_FONT
                 null height 70
             null height 60
@@ -1352,9 +1352,9 @@ screen spot_name(c, start):
                 text ch:
                     size nsz
                     color "#f2ead8"
-                    hover_color credit_accent()
+                    hover_color "#e0521f"
                     font CREDIT_FONT
-                    outlines [(6, credit_accent() + "38", 0, 0), (2, "#00000099", 0, 0)]
+                    outlines [(6, "#e0521f38", 0, 0), (2, "#00000099", 0, 0)]
                     at spot_letter(start + li * 0.07)
 
 screen credits_spotlight():
@@ -1455,7 +1455,7 @@ screen credits_spotlight():
                         text role.upper():
                             yalign 0.5
                             size 26
-                            color credit_accent()
+                            color "#e0521f"
                             font GFONT
                             outlines [(3, "#00000099", 0, 0)]
                             at (spot_role_last(1.4 + j * SPOT_ROLE) if j == n - 1 else spot_role(1.4 + j * SPOT_ROLE, SPOT_ROLE))
@@ -1475,6 +1475,6 @@ screen credits_spotlight():
                                 yalign 0.5
                                 blend "add"
                                 at spot_sweep(1.0 + pi * 0.35)
-                add Solid(credit_accent()):
+                add Solid("#e0521f"):
                     xysize (360, 3)
                     at spot_underline(0.9)

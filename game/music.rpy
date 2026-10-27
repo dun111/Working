@@ -399,7 +399,7 @@ screen radio_key(label, act, w=74):
             font GFONT
 
 init python:
-    RADIO_AVOID = ["slot_machine", "roulette", "horses", "dev_console", "cheat_menu", "gallery_view"]
+    RADIO_AVOID = ["slot_machine", "roulette", "horses", "cheat_menu", "gallery_view"]
 
     def radio_where():
         if not persistent.radio_bar or _RADIOUI.booting:

@@ -1858,7 +1858,7 @@ screen main_menu():
                     xoffset KEY_IMG_X
                     ypos KEY_HANG
                     action Function(key_poke)
-                    add (KEY_IMAGE_GOLD if has_pass("gold_key") else KEY_IMAGE)
+                    add KEY_IMAGE
 
                 add KEY_LOOP_FRONT:
                     xalign 0.5
@@ -2178,12 +2178,6 @@ screen main_menu():
         at fade_slide_in(1.0, xoff=40)
         hbox:
             spacing 12
-            if has_pass("eric"):
-                text _("DEV"):
-                    yalign 0.5
-                    size 18
-                    color "#61afef"
-                    font CREDIT_FONT
             add rbox("#e6a817", 5):
                 yalign 0.5
                 xysize (30, 20)
@@ -2799,7 +2793,7 @@ screen pref_row(title, desc="", delay=0.0):
 
         hbox:
             vbox:
-                xsize 540
+                xsize 600
                 yalign 0.5
                 spacing 4
                 text title:
@@ -2811,10 +2805,10 @@ screen pref_row(title, desc="", delay=0.0):
                         size 15
                         color "#666677"
                         font GFONT
-                        xsize 520
+                        xsize 580
 
             fixed:
-                xsize 780
+                xsize (PREF_PANEL_W - 56 - 600)
                 ysize 48
                 hbox:
                     xalign 1.0
@@ -3293,6 +3287,7 @@ screen file_slots(title):
                             selected_color "#0a0a0e"
                             font GFONT
 
+            $ slot_w = (config.screen_width - 160 - 44) // 3
             grid 3 2:
                 spacing 22
 
@@ -3300,7 +3295,7 @@ screen file_slots(title):
                     $ slot = i + 1
 
                     fixed:
-                        xsize 540
+                        xsize slot_w
                         ysize 200
                         at fade_slide_in(i * 0.05, xoff=-30)
 
@@ -3318,7 +3313,7 @@ screen file_slots(title):
                                 xoffset 16
                                 yalign 0.5
 
-                                add FileScreenshot(slot):
+                                add FileScreenshot(slot, empty=rbox("#0a0a0e", 12)):
                                     xysize (270, 152)
                                     fit "cover"
                                     yalign 0.5
@@ -4197,7 +4192,6 @@ init python:
 default persistent.endings_seen = set()
 default persistent.chapters_seen = set()
 default persistent.replay_to = None
-default persistent.replay_loop = False
 
 # CHAPTERS (EXTRAS, main menu only): replay any carriage you've reached
 define CHAPTERS = [
@@ -4209,6 +4203,13 @@ define CHAPTERS = [
     ("part2_start",            _("CARRIAGE 1"), _("HERE AGAIN?"),     True),
     ("carriage_2_part2_start", _("CARRIAGE 2"), _("THE CRIME SCENE"), True),
 ]
+
+# how far the story is when a chapter starts (the cheat menu's JUMP stages)
+define CHAPTER_STAGE = {
+    "carriage_1_start": 0, "carriage_2_start": 1, "carriage_3_start": 2,
+    "carriage_4_start": 3, "carriage_5_start": 4, "part2_start": 5,
+    "carriage_2_part2_start": 6,
+}
 
 # the carriage you walk in from, so a chapter starts with the right background
 define CHAPTER_BG = {
@@ -4259,9 +4260,8 @@ init python:
             return True
         return lab in CHAPTER_ACH and achievement.has(CHAPTER_ACH[lab])
 
-    def chapter_play(lab, loop):
+    def chapter_play(lab):
         persistent.replay_to = lab
-        persistent.replay_loop = loop
         renpy.run(Start("chapter_replay"))
 
     def unlock_ending(key):
@@ -4553,7 +4553,7 @@ screen extras_menu():
                             vbox:
                                 spacing 4
                                 yalign 0.5
-                                xsize (ex_w - 340)
+                                xsize (ex_w - 52 - 32 - 48 - 150)
                                 text (_("PART 2") if loop else _("PART 1")):
                                     size 14
                                     color (("#a8281a" if loop else "#e0521f") if open_ else "#55556a")
@@ -4569,13 +4569,15 @@ screen extras_menu():
                             if open_:
                                 textbutton _("PLAY"):
                                     yalign 0.5
-                                    padding (30, 12)
+                                    xsize 150
+                                    text_xalign 0.5
+                                    padding (0, 12)
                                     background rbox("#e0521f", 14)
                                     hover_background rbox("#ff7a3d", 14)
                                     text_size 20
                                     text_color "#0a0a0e"
                                     text_font GFONT
-                                    action Function(chapter_play, lab, loop)
+                                    action Function(chapter_play, lab)
                                     at button_hover_anim
 
             elif xt == "cast":
@@ -4995,9 +4997,8 @@ screen mm_ticket(rows):
 
 label chapter_replay:
     $ menu_music_filter_off()
-    $ in_loop = persistent.replay_loop
-    if in_loop:
-        show screen loop_overlay
+    $ cheat_target(persistent.replay_to, CHAPTER_STAGE.get(persistent.replay_to, 0))
+    $ cheat_apply()
     $ renpy.scene()
     $ renpy.show(CHAPTER_BG.get(persistent.replay_to, "black"))
     with fade

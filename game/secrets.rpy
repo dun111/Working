@@ -35,7 +35,7 @@ init 1 python:
 
 init python:
     def cheats_allowed():
-        return bool(config.developer or persistent.cheats_on or has_pass("cheats") or has_pass("eric"))
+        return bool(config.developer or has_pass("cheats") or (CHEATS_BUILD and persistent.cheats_on))
 
     def toggle_cheats():
         persistent.cheats_on = not persistent.cheats_on
@@ -166,9 +166,9 @@ init python:
     config.overlay_screens.append("cheat_hotkey")
 
 define CHEAT_TABS = [("jump", _("JUMP")), ("flags", _("FLAGS")), ("scares", _("SCARES")),
-                     ("games", _("MINIGAMES")), ("unlocks", _("UNLOCKS"))]
+                     ("games", _("MINIGAMES")), ("unlocks", _("UNLOCKS")), ("tools", _("TOOLS"))]
 
-screen cheat_btn(label, act, w=360, sel=False):
+screen cheat_btn(label, act, w=392, sel=False):
     button:
         xsize w
         ysize 52
@@ -216,7 +216,7 @@ screen cheat_menu():
             hbox:
                 spacing 10
                 for tk, tl in CHEAT_TABS:
-                    use cheat_btn(tl, SetScreenVariable("ct", tk), w=210, sel=(ct == tk))
+                    use cheat_btn(tl, SetScreenVariable("ct", tk), w=190, sel=(ct == tk))
 
             null height 6
 
@@ -226,6 +226,7 @@ screen cheat_menu():
                 if ct == "jump":
                     hbox:
                         box_wrap True
+                        box_wrap_spacing 12
                         xmaximum 1220
                         spacing 12
                         for lab, target, stage in CHEAT_CHAPTERS:
@@ -250,6 +251,7 @@ screen cheat_menu():
                                 use cheat_btn(_("Do everything (Part 2)"), Function(cheat_talk_part2))
                             hbox:
                                 box_wrap True
+                                box_wrap_spacing 12
                                 xmaximum 1220
                                 spacing 12
                                 for fl in ["in_loop", "has_key", "has_maple_sugar", "found_timetable",
@@ -268,6 +270,7 @@ screen cheat_menu():
                                 font GFONT
                         hbox:
                             box_wrap True
+                            box_wrap_spacing 12
                             xmaximum 1220
                             spacing 12
                             for kind in ["passenger", "conductor", "flicker", "crawler", "claws", "glitch", "window", "eyes"]:
@@ -280,9 +283,10 @@ screen cheat_menu():
                         spacing 12
                         hbox:
                             spacing 12
-                            use cheat_btn(_("Minigames win themselves"), ToggleField(persistent, "cheat_autowin"), w=420, sel=persistent.cheat_autowin)
+                            use cheat_btn(_("Minigames win themselves"), ToggleField(persistent, "cheat_autowin"), w=604, sel=persistent.cheat_autowin)
                         hbox:
                             box_wrap True
+                            box_wrap_spacing 12
                             xmaximum 1220
                             spacing 12
                             for gk, gname, gscr, greset, gwhere in MINIGAME_LIST:
@@ -291,18 +295,50 @@ screen cheat_menu():
                 elif ct == "unlocks":
                     hbox:
                         box_wrap True
+                        box_wrap_spacing 12
                         xmaximum 1220
                         spacing 12
-                        use cheat_btn(_("Unlock all achievements"), Function(cheat_unlock_achievements), w=560)
-                        use cheat_btn(_("Reset achievements"), Function(cheat_reset_achievements), w=560)
-                        use cheat_btn(_("Unlock endings, secrets, minigames"), Function(cheat_unlock_extras), w=560)
-                        use cheat_btn(_("Reset endings, secrets, minigames"), Function(cheat_reset_extras), w=560)
-                        use cheat_btn(_("Give 50 tickets"), Function(give_tickets, 50), w=560)
-                        use cheat_btn(_("9999 coins"), SetField(persistent, "coins", 9999), w=560)
-                        use cheat_btn(_("Show hotspot outlines"), ToggleField(persistent, "cheat_hotspots"), w=560, sel=persistent.cheat_hotspots)
-                        use cheat_btn(_("Jumpscares"), ToggleField(persistent, "jumpscares"), w=560, sel=persistent.jumpscares)
-                        use cheat_btn(_("Instant text"), [Preference("text speed", 0)], w=560)
-                        use cheat_btn(_("Normal text speed"), [Preference("text speed", 40)], w=560)
+                        use cheat_btn(_("Unlock all achievements"), Function(cheat_unlock_achievements), w=604)
+                        use cheat_btn(_("Reset achievements"), Function(cheat_reset_achievements), w=604)
+                        use cheat_btn(_("Unlock endings, secrets, minigames"), Function(cheat_unlock_extras), w=604)
+                        use cheat_btn(_("Reset endings, secrets, minigames"), Function(cheat_reset_extras), w=604)
+                        use cheat_btn(_("Give 50 tickets"), Function(give_tickets, 50), w=604)
+                        use cheat_btn(_("9999 coins"), SetField(persistent, "coins", 9999), w=604)
+                        use cheat_btn(_("Show hotspot outlines"), ToggleField(persistent, "cheat_hotspots"), w=604, sel=persistent.cheat_hotspots)
+                        use cheat_btn(_("Jumpscares"), ToggleField(persistent, "jumpscares"), w=604, sel=persistent.jumpscares)
+                        use cheat_btn(_("Instant text"), [Preference("text speed", 0)], w=604)
+                        use cheat_btn(_("Normal text speed"), [Preference("text speed", 40)], w=604)
+
+                elif ct == "tools":
+                    vbox:
+                        spacing 18
+                        hbox:
+                            box_wrap True
+                            box_wrap_spacing 12
+                            xmaximum 1220
+                            spacing 12
+                            use cheat_btn(_("Skip to the next choice"), ([Hide("cheat_menu"), Skip(fast=True, confirm=False)] if not main_menu else None))
+                            use cheat_btn(_("Screenshot"), [Hide("cheat_menu"), Screenshot()])
+                            use cheat_btn(_("Mouse coordinates"), ToggleField(persistent, "dev_coords"), sel=persistent.dev_coords)
+                            use cheat_btn(_("Every gamepass"), Function(dev_all_passes))
+                            use cheat_btn(_("Debug game"), Function(play_minigame, "mg_debug", debug_reset))
+                            if config.developer:
+                                use cheat_btn(_("Reload script"), Function(renpy.reload_script))
+                        if not main_menu:
+                            vbox:
+                                spacing 6
+                                for k, v in dev_state_lines():
+                                    hbox:
+                                        spacing 20
+                                        text k:
+                                            min_width 200
+                                            size 17
+                                            color "#8888a0"
+                                            font GFONT
+                                        text _esc(str(v)):
+                                            size 17
+                                            color "#e8e4dc"
+                                            font "DejaVuSans.ttf"
 
             hbox:
                 xalign 1.0
@@ -312,7 +348,7 @@ screen cheat_menu():
 # EXTRAS > ARCADE
 
 screen arcade_list(w):
-    if has_pass("eric"):
+    if cheats_allowed():
         frame:
             xfill True
             background rbox("#0e1620", 22)
@@ -327,7 +363,7 @@ screen arcade_list(w):
                         size 26
                         color "#61afef"
                         font GFONT
-                    text _("ERIC PASS"):
+                    text _("CHEAT MENU"):
                         size 16
                         color "#8888a0"
                         font GFONT
@@ -1011,7 +1047,7 @@ init python:
             _SECRET.typed = ""
             return
         _SECRET.typed = (_SECRET.typed + tok)[-12:]
-        if _SECRET.typed.endswith("debug"):
+        if CHEATS_BUILD and _SECRET.typed.endswith("debug"):
             _SECRET.typed = ""
             toggle_cheats()
             return

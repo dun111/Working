@@ -55,6 +55,11 @@ init python:
     build.classify('game/zz_**', None)
     build.classify('*.png', None)
 
+    # two builds: the normal one, and one with cheats (game/cheats.flag)
+    build.classify('game/cheats.flag', 'cheats')
+    build.package("pc-cheats", "zip", "windows linux renpy all cheats", "PC with cheats")
+    build.package("mac-cheats", "app-zip", "mac renpy all cheats", "Mac with cheats")
+
 
     build.documentation('*.html')
     build.documentation('*.txt')
