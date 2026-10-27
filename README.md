@@ -1,5 +1,11 @@
 # Departure at 4:00
 
+![Version](https://img.shields.io/badge/Version-2.1%20Beta-yellow)
+![Made with Ren'Py](https://img.shields.io/badge/Made%20with-Ren'Py-orange)
+![Python](https://img.shields.io/badge/Python-3.x-blue)
+![Genre](https://img.shields.io/badge/Genre-Mystery%20%7C%20Visual%20Novel-purple)
+![Resolution](https://img.shields.io/badge/Resolution-1920x1080-brightgreen)
+
 A mystery visual novel made in Ren'Py by Blackberry Studios.
 
 You play as Louis, who wakes up on the Grekhov Express with no idea how he got there. You walk the train carriage by carriage, talk to the passengers and staff, and pick up clues. Get to the end of Carriage 5 and the train loops back to the start, except this time someone has been murdered. Shunyu, the gambler from the lounge, is found dead in Carriage 2, and it's up to you to work out who did it before you reach Carriage 6.
