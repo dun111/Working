@@ -1,29 +1,17 @@
-# ==============================================================================
-# DEPARTURE AT 4:00  -  gamepass.rpy
+# The cheats build ships with game/cheats.flag; the normal build leaves it out.
+init -10 python:
+    CHEATS_BUILD = renpy.loadable("cheats.flag")
+
 # Gamepasses, bought with tickets.  EXTRAS > GAMEPASS
-#
-# You earn tickets by playing:
-#   win a minigame for the first time    +2
-#   find a secret                        +3
-#   see an ending for the first time     +5
-#   (the DOUBLE TICKETS pass doubles all of these)
-#
-#   $ give_tickets(5)          hand out tickets from anywhere
-#   if has_pass("gold_key"):   check whether a pass is owned
-# ==============================================================================
 
 default persistent.tickets = 0
 default persistent.passes = set()
 
-# (id, name, what it does, price)
 define GAMEPASSES = [
     ("double",       _("DOUBLE TICKETS"), _("Earn twice as many tickets from now on."), 10),
-    ("gold_key",     _("GOLDEN KEY"),     _("The key on the main menu turns gold."), 6),
-    ("gold_credits", _("GOLD CREDITS"),   _("The names and roles in the credits turn gold."), 4),
     ("extra_life",   _("EXTRA LIFE"),     _("+1 life in DON'T LET THEM REACH YOU, +4 battery in SEARCH IN THE DARK, +3 tries on THE LUGGAGE LOCK, +1 tear on PULL UP THE CARPET."), 8),
-    ("cheats",       _("CHEAT MENU"),     _("Press F9 to open the cheat menu in any copy of the game."), 15),
+    ("cheats",       _("CHEAT MENU"),     _("Press F9 for the cheat menu: jump to any chapter, story flags, jumpscares, every minigame, unlocks and developer tools."), 15),
     ("empty_train",  _("4:01"),           _("Board the empty train from this page whenever you like."), 12),
-    ("eric",         _("ERIC PASS"),      _("Developer mode: the F10 DEV CONSOLE (jump to any scene, live game state, hotspot coordinates, skip to the next choice, every gamepass), the F9 cheat menu, a developer HUD, a DEV badge and Eric's DEBUG game in the Arcade."), 20),
     ("dlc",          _("DLC"),            _("Three new EXTRAS tabs: GALLERY (every character), JUKEBOX (the soundtrack) and THEATRE (the videos)."), 25),
     ("revealer",     _("CHOICE REVEALER"), _("Every choice shows where it leads: the right answers, the deadly ones, achievements, minigames, and what you picked last time."), 18),
     ("rewind",       _("REWIND"),         _("A REWIND button in the quick menu takes you straight back to your last choice so you can pick again."), 14),
@@ -31,17 +19,18 @@ define GAMEPASSES = [
     ("high_roller",  _("HIGH ROLLER"),    _("4:00 Casino: 100 and 250 coin bets, and double the free daily coins."), 10),
 ]
 
-# passes that don't do anything yet: they show this instead of OWNED
 define GAMEPASS_SOON = {}
 
-# passes that stay hidden ("???") until you've found what they're for
 define GAMEPASS_HIDDEN = {"empty_train": "empty_train_done"}
 
 init python:
     TICKETS_FOR = {"minigame": 2, "secret": 3, "ending": 5}
 
     def has_pass(pid):
-        return pid in persistent.passes
+        return pid in persistent.passes or (pid == "cheats" and CHEATS_BUILD)
+
+    def shown_passes():
+        return [p for p in GAMEPASSES if p[0] != "cheats" or CHEATS_BUILD]
 
     def give_tickets(n):
         if has_pass("double"):
@@ -62,19 +51,11 @@ init python:
         renpy.restart_interaction()
 
     def pass_bonus(pid, amount):
-        """How much a pass adds to something: pass_bonus("extra_life", 1)"""
         return amount if has_pass(pid) else 0
 
-    def credit_accent():
-        return "#d4af37" if has_pass("gold_credits") else "#e0521f"
-
-    # the gold key on the main menu
-    KEY_IMAGE_GOLD = Transform(KEY_IMAGE, matrixcolor=SaturationMatrix(0.2) * TintMatrix("#ffd36a") * BrightnessMatrix(0.08))
 
 
-# ------------------------------------------------------------------------------
 # "+2 TICKETS" in the bottom-left corner
-# ------------------------------------------------------------------------------
 
 transform ticket_pop:
     alpha 0.0
@@ -103,9 +84,7 @@ screen ticket_toast(n):
     timer 2.4 action Hide("ticket_toast")
 
 
-# ------------------------------------------------------------------------------
 # EXTRAS > GAMEPASS
-# ------------------------------------------------------------------------------
 
 screen gamepass_list(w):
     frame:
@@ -128,7 +107,6 @@ screen gamepass_list(w):
                 color "#8888a0"
                 font GFONT
 
-    # trade coins (from the slot machine) for tickets
     frame:
         xfill True
         background rbox("#101014", 22)
@@ -151,7 +129,7 @@ screen gamepass_list(w):
                 yalign 0.5
                 use rbtn((_("TRADE %d COINS FOR 1 TICKET") % COINS_PER_TICKET), (Function(coins_to_ticket) if (persistent.coins or 0) >= COINS_PER_TICKET else None), w=420, h=50, r=16, size=18, bg="#8a4a22", hov="#b8631f", col="#f2e6d8", hcol="#ffffff")
 
-    for idx, (pid, pname, pdesc, price) in enumerate(GAMEPASSES):
+    for idx, (pid, pname, pdesc, price) in enumerate(shown_passes()):
         $ owned = has_pass(pid)
         $ hidden = pass_hidden(pid)
         $ afford = (persistent.tickets or 0) >= price
@@ -181,8 +159,6 @@ screen gamepass_list(w):
                     spacing 16
                     if owned and pid == "empty_train":
                         use rbtn(_("BOARD"), Start("empty_train"), w=170, h=50, r=16, size=22, bg="#3a0a0a", hov="#5a1010", col="#f2d8d8", hcol="#ffffff")
-                    elif owned and pid == "eric":
-                        use rbtn((_("HUD: ON") if persistent.dev_hud else _("HUD: OFF")), ToggleField(persistent, "dev_hud"), w=170, h=50, r=16, size=20, bg="#14202e", hov="#1f3048", col="#61afef", hcol="#ffffff")
                     elif owned:
                         text GAMEPASS_SOON.get(pid, _("OWNED")):
                             yalign 0.5
@@ -198,17 +174,14 @@ screen gamepass_list(w):
                         use rbtn(_("BUY"), (Function(buy_pass, pid, price) if afford else None), w=140, h=50, r=16, size=22, bg="#8a4a22", hov="#b8631f", col="#f2e6d8", hcol="#ffffff")
 
 
-# ==============================================================================
-# ERIC PASS  -  developer mode
-# ==============================================================================
+# CHEAT MENU > TOOLS
 
-default persistent.dev_hud = True
+default persistent.dev_coords = False
 
 init python:
     class DEV(object):
         label = "-"
 
-# init 1: after screens.rpy sets its own label callback, so this one chains onto it
 init 1 python:
     _old_label_cb = config.label_callback
 
@@ -221,97 +194,19 @@ init 1 python:
     config.label_callback = _dev_label_cb
 
 init python:
-
-    def dev_hud_lines():
-        clues = len([c for c, _t, _x in CLUE_LIST if getattr(store, c, False)])
-        return [
-            "label   %s" % DEV.label,
-            "part    %s" % ("2" if getattr(store, "in_loop", False) else "1"),
-            "clues   %d / %d" % (clues, len(CLUE_LIST)),
-            "tickets %d" % (persistent.tickets or 0),
-            "runs    %d" % (persistent.runs or 0),
-        ]
-
-# the developer HUD (top-left, in game only)
-screen dev_hud():
-    zorder 90
-    if has_pass("eric") and persistent.dev_hud and not main_menu:
-        frame:
-            xpos 20
-            ypos 20
-            padding (16, 10)
-            background rbox("#0a0e14cc", 10)
-            vbox:
-                spacing 2
-                text "DEV":
-                    size 14
-                    color "#61afef"
-                    font GFONT
-                for ln in dev_hud_lines():
-                    text _esc(ln):
-                        size 14
-                        color "#98c379"
-                        font "DejaVuSans.ttf"
-
-init python:
-    config.overlay_screens.append("dev_hud")
-
-
-# ------------------------------------------------------------------------------
-# DEV CONSOLE  (ERIC PASS, F10 anywhere)
-# ------------------------------------------------------------------------------
-
-default persistent.dev_coords = False      # mouse position readout
-
-define DEV_TABS = [("tools", _("TOOLS")), ("labels", _("JUMP TO LABEL")), ("state", _("GAME STATE"))]
-
-init python:
-    def dev_labels():
-        """Every story label, in the order they appear in the script."""
-        out = []
-        for name in renpy.get_all_labels():
-            if not isinstance(name, (type(u""), type(""))) or name.startswith("_") or name.startswith("zz"):
-                continue
-            try:
-                node = renpy.game.script.namemap[name]
-                if not node.filename.replace("\\", "/").startswith("game/"):
-                    continue
-                out.append((node.filename, node.linenumber, name))
-            except Exception:
-                out.append(("~", 0, name))
-        out.sort()
-        return [(n, "%s:%d" % (f.split("/")[-1], l)) for f, l, n in out]
-
-    def dev_jump(name):
-        renpy.hide_screen("dev_console")
-        if main_menu:
-            renpy.run(Start(name))
-        else:
-            renpy.jump(name)
-
     def dev_all_passes():
-        persistent.passes = set(persistent.passes) | set(p[0] for p in GAMEPASSES)
+        persistent.passes = set(persistent.passes) | set(p[0] for p in shown_passes())
         renpy.notify(_("Every gamepass unlocked."))
 
     def dev_state_lines():
-        info = getattr(store, "sprite_info", {}) or {}
         clues = [c for c, _t, _x in CLUE_LIST if getattr(store, c, False)]
-        try:
-            music = renpy.music.get_playing(channel="music") or "-"
-        except Exception:
-            music = "-"
         return [
             ("label", DEV.label),
-            ("part", "2 (in the loop)" if getattr(store, "in_loop", False) else "1"),
-            ("sprites", ", ".join("%s%s" % (t, "*" if st == "f" else "") for t, (x, st) in info.items()) or "-"),
-            ("clues", "%d / %d  %s" % (len(clues), len(CLUE_LIST), ", ".join(clues))),
-            ("music", music),
+            ("part", "2" if getattr(store, "in_loop", False) else "1"),
+            ("clues", "%d / %d" % (len(clues), len(CLUE_LIST))),
+            ("music", renpy.music.get_playing("music") or "-"),
             ("coins / tickets", "%d / %d" % (persistent.coins or 0, persistent.tickets or 0)),
-            ("passes", ", ".join(sorted(persistent.passes)) or "-"),
-            ("endings seen", ", ".join(sorted(persistent.endings_seen)) or "-"),
-            ("runs / playtime", "%d / %d min" % (persistent.runs or 0, int((persistent.playtime or 0) // 60))),
-            ("rumble / theme", "%s / %s" % (getattr(store, "rumble_on", None), theme_now())),
-            ("screen", "%d x %d   map scale %.2f" % (config.screen_width, config.screen_height, MAP_K)),
+            ("screen", "%d x %d" % (config.screen_width, config.screen_height)),
         ]
 
     def _dev_coords(st, at):
@@ -322,14 +217,9 @@ init python:
 
     DEV_COORDS = DynamicDisplayable(_dev_coords)
 
-screen dev_hotkey():
-    if has_pass("eric"):
-        key "K_F10" action ToggleScreen("dev_console")
-
-# where the mouse is, in screen pixels and in map-art pixels (for placing hotspots)
 screen dev_coords():
     zorder 1500
-    if has_pass("eric") and persistent.dev_coords:
+    if cheats_allowed() and persistent.dev_coords:
         frame:
             xalign 1.0
             yalign 1.0
@@ -339,141 +229,11 @@ screen dev_coords():
             add DEV_COORDS
 
 init python:
-    config.always_shown_screens.append("dev_hotkey")
     config.always_shown_screens.append("dev_coords")
 
-screen dev_btn(label, act, sel=False, w=300):
-    use rbtn(label, act, w=w, h=46, r=12, size=16, bg="#14202e", hov="#1f3048", col="#61afef", hcol="#ffffff", sel=sel)
 
-screen dev_console():
-    modal True
-    zorder 1400
-    default tab = "tools"
-    key "game_menu" action Hide("dev_console")
-    key "K_F10" action Hide("dev_console")
-
-    add Solid("#000000a0")
-    frame:
-        align (0.5, 0.5)
-        xysize (1300, 820)
-        padding (36, 28)
-        background rbox("#0a0e14f4", 20)
-        vbox:
-            spacing 16
-            hbox:
-                spacing 20
-                text _("DEV CONSOLE"):
-                    yalign 0.5
-                    size 30
-                    color "#61afef"
-                    font GFONT
-                text ("label: %s" % DEV.label):
-                    yalign 0.5
-                    size 16
-                    color "#98c379"
-                    font "DejaVuSans.ttf"
-            hbox:
-                spacing 10
-                for tk, tl in DEV_TABS:
-                    use dev_btn(tl, SetScreenVariable("tab", tk), sel=(tab == tk), w=240)
-
-            if tab == "tools":
-                grid 3 6:
-                    spacing 14
-                    use dev_btn(_("CHEAT MENU (F9)"), [Hide("dev_console"), Show("cheat_menu")])
-                    use dev_btn(_("SKIP TO NEXT CHOICE"), ([Hide("dev_console"), Skip(fast=True, confirm=False)] if not main_menu else None))
-                    use dev_btn(_("SCREENSHOT"), [Hide("dev_console"), Screenshot()])
-                    use dev_btn(_("MOUSE COORDINATES"), ToggleField(persistent, "dev_coords"), sel=persistent.dev_coords)
-                    use dev_btn(_("HOTSPOT OUTLINES"), ToggleField(persistent, "cheat_hotspots"), sel=persistent.cheat_hotspots)
-                    use dev_btn(_("DEV HUD"), ToggleField(persistent, "dev_hud"), sel=persistent.dev_hud)
-                    use dev_btn(_("INSTANT TEXT"), Preference("text speed", 0))
-                    use dev_btn(_("NORMAL TEXT"), Preference("text speed", 40))
-                    use dev_btn(_("MINIGAMES AUTO-WIN"), ToggleField(persistent, "cheat_autowin"), sel=persistent.cheat_autowin)
-                    use dev_btn(_("+1000 COINS"), Function(give_coins, 1000))
-                    use dev_btn(_("+50 TICKETS"), Function(give_tickets, 50))
-                    use dev_btn(_("EVERY GAMEPASS"), Function(dev_all_passes))
-                    use dev_btn(_("JUMPSCARES"), ToggleField(persistent, "jumpscares"), sel=persistent.jumpscares)
-                    use dev_btn(_("REDUCE MOTION"), ToggleField(persistent, "reduce_motion"), sel=persistent.reduce_motion)
-                    use dev_btn(_("PLAY DEBUG GAME"), Function(play_minigame, "mg_debug", debug_reset))
-                    use dev_btn(_("RELOAD SCRIPT"), (Function(renpy.reload_script) if config.developer else None))
-                    use dev_btn(_("MAIN MENU"), (MainMenu(confirm=False) if not main_menu else None))
-                    use dev_btn(_("CLOSE (F10)"), Hide("dev_console"))
-                text _("MOUSE COORDINATES shows the map position under the cursor - those are the numbers hotspots use in characters.rpy."):
-                    size 15
-                    color "#55556a"
-                    font GFONT
-
-            elif tab == "labels":
-                text _("Jumps straight to a label with the current story state (use the cheat menu's JUMP to set the state up properly)."):
-                    size 15
-                    color "#55556a"
-                    font GFONT
-                hbox:
-                  spacing 12
-                  viewport:
-                    id "dev_vp_labels"
-                    xysize (1200, 560)
-                    mousewheel True
-                    vbox:
-                        spacing 4
-                        for lname, lwhere in dev_labels():
-                            button:
-                                xsize 1180
-                                ysize 34
-                                padding (14, 0)
-                                background None
-                                hover_background rbox("#1f3048", 8)
-                                action Function(dev_jump, lname)
-                                text lname:
-                                    yalign 0.5
-                                    size 17
-                                    color "#e8e4dc"
-                                    hover_color "#ffffff"
-                                    font "DejaVuSans.ttf"
-                                text lwhere:
-                                    xalign 1.0
-                                    yalign 0.5
-                                    size 14
-                                    color "#55556a"
-                                    font "DejaVuSans.ttf"
-                  vbar:
-                    style "pref_vbar"
-                    value YScrollValue("dev_vp_labels")
-                    ysize 560
-
-            else:
-                hbox:
-                  spacing 12
-                  viewport:
-                    id "dev_vp_state"
-                    xysize (1200, 600)
-                    mousewheel True
-                    vbox:
-                        spacing 10
-                        for k, v in dev_state_lines():
-                            hbox:
-                                spacing 20
-                                text k:
-                                    min_width 220
-                                    size 17
-                                    color "#61afef"
-                                    font "DejaVuSans.ttf"
-                                text _esc(str(v)):
-                                    xmaximum 920
-                                    size 17
-                                    color "#98c379"
-                                    font "DejaVuSans.ttf"
-                  vbar:
-                    style "pref_vbar"
-                    value YScrollValue("dev_vp_state")
-                    ysize 600
-
-
-# ==============================================================================
 # DLC  -  GALLERY, JUKEBOX, THEATRE   (EXTRAS tabs)
-# ==============================================================================
 
-# (picture, name)
 define GALLERY = [
     ("louis neutral", "Louis"), ("dorothy neutral", "Dorothy"), ("dorothy sad", "Dorothy"),
     ("fedora neutral", "Fedora"), ("eduard neutral", "Eduard"), ("shunyu neutral", "Shunyu"),
@@ -484,9 +244,7 @@ define GALLERY = [
     ("conductor_monster neutral", "The Conductor"),
 ]
 
-# the jukebox plays everything in SONG_ORDER (music.rpy)
 
-# (title, file)
 define THEATRE = [
     (_("ENDING"), "movies/ending_video.webm"),
 ]
@@ -498,7 +256,6 @@ init python:
         return [("gallery", _("GALLERY")), ("jukebox", _("JUKEBOX")), ("theatre", _("THEATRE"))]
 
     def jukebox_play(f):
-        """Play one song, then carry on through the rest of the list."""
         files = song_files(SONG_ORDER)
         if f in files:
             k = files.index(f)
@@ -528,7 +285,6 @@ init python:
                 renpy.music.play(config.main_menu_music, fadein=1.0)
             renpy.restart_interaction()
 
-# a slow pan over one character, full screen; click to close
 transform gallery_pan:
     xalign 0.5
     yalign 1.0
@@ -638,7 +394,6 @@ screen jukebox_list(w):
                         use rbtn(_("PLAY"), Function(jukebox_play, f), w=130, h=44, r=14, size=18, bg="#8a4a22", hov="#b8631f", col="#f2e6d8", hcol="#ffffff")
 
 screen theatre_list(w):
-    # only videos that are actually on this device
     for idx, (title, f) in enumerate([(t, f) for t, f in THEATRE if renpy.loadable(f)]):
         frame:
             xfill True
@@ -659,15 +414,10 @@ screen theatre_list(w):
                     use rbtn(_("WATCH"), Function(theatre_play, f), w=150, h=50, r=16, size=22, bg="#8a4a22", hov="#b8631f", col="#f2e6d8", hcol="#ffffff")
 
 
-
-# ==============================================================================
 # THEME PACK  -  colour themes, the CENTERED main menu, TERMINAL / TICKET boxes
-# ==============================================================================
 
 default persistent.ui_theme = "default"
 
-# (id, name). A theme only tints the backgrounds of the carriages and maps
-# and the main menu's picture - never the characters or the dialogue box.
 define UI_THEMES = [
     ("default",  _("DEFAULT")),
     ("soft",     _("SOFT")),
@@ -682,12 +432,10 @@ define UI_THEMES = [
     ("dusk",     _("DUSK")),
 ]
 
-# the dialogue boxes and main menus only the THEME PACK unlocks
 define THEME_DIALOGUE = ("terminal", "ticket")
 define THEME_MENUS = ("centered",)
 
 init python:
-    # gentle colour grades, easy on the eyes
     THEME_GRADE = {
         "soft":     ContrastMatrix(0.78) * BrightnessMatrix(-0.07),
         "midnight": SaturationMatrix(0.75) * TintMatrix("#b8c6ff"),
@@ -706,7 +454,6 @@ init python:
         return t if (t in THEME_GRADE and has_pass("themes")) else "default"
 
     def theme_matrix():
-        """The colour grade for the chosen theme (no change for DEFAULT)."""
         return THEME_GRADE.get(theme_now(), IdentityMatrix())
 
     _THEMED = {}
@@ -719,7 +466,6 @@ init python:
         return t, None
 
     def themed(d):
-        """A background that follows Settings > COLOUR THEME."""
         return DynamicDisplayable(_themed, d=d)
 
     def theme_step(d):
@@ -744,7 +490,6 @@ init python:
         ms = persistent.menu_style
         if ms in THEME_MENUS and not has_pass("themes"):
             return "new"
-        # a style that's been removed (or a typo) -> the default
         if ms not in [m[0] for m in MENU_STYLES]:
             return "new"
         return ms
@@ -770,24 +515,17 @@ init python:
         return TEXT_COLORS.get(persistent.text_color, "#e8e4dc")
 
 
-# ==============================================================================
 # CHOICE REVEALER  -  tags on choices (screen choice in screens.rpy)
-# ==============================================================================
-# Keyed by the choice's exact text. A ("label", "text") key is used when the
-# same text appears in more than one menu ("Yes", "No"...).
-# (tag, colour)
 
 define CHOICE_GOOD = "#6dffa5"
 define CHOICE_BAD = "#ff6b5a"
 define CHOICE_INFO = "#e6a817"
 
 define CHOICE_HINTS = {
-    # the accusation
     "Accuse Misha": (_("THE TRUTH"), CHOICE_GOOD),
     "Accuse Eduard": (_("WRONG · DEATH"), CHOICE_BAD),
     "Accuse Alexander": (_("WRONG · DEATH"), CHOICE_BAD),
     "Accuse Agatha": (_("WRONG · DEATH"), CHOICE_BAD),
-    # carriage 6: all three right for the true ending
     "“Your life.”": (_("WRONG ANSWER"), CHOICE_BAD),
     "“Your winning streak.”": (_("WRONG ANSWER"), CHOICE_BAD),
     "“Nothing. You never really understood what you were risking.”": (_("RIGHT ANSWER"), CHOICE_GOOD),
@@ -797,7 +535,6 @@ define CHOICE_HINTS = {
     "“To keep the train running forever.”": (_("WRONG ANSWER"), CHOICE_BAD),
     "“To punish the ones who did wrong.”": (_("WRONG ANSWER"), CHOICE_BAD),
     "“To help everyone finally understand it's over, so they can stop waiting for a stop that isn't coming.”": (_("RIGHT ANSWER"), CHOICE_GOOD),
-    # minigames and achievements
     ("c2_shunyu_dialogue", "Yes"): (_("MINIGAME · ACHIEVEMENT"), CHOICE_INFO),
     ("c5_alexander_dialogue", "Yes"): (_("ACHIEVEMENT"), CHOICE_INFO),
     "Pick it": (_("MINIGAME"), CHOICE_INFO),
@@ -809,21 +546,17 @@ define CHOICE_HINTS = {
 
 init python:
     def choice_hint(caption):
-        """(tag, colour) for a choice, or None. Only with the CHOICE REVEALER pass."""
         if not has_pass("revealer"):
             return None
         return CHOICE_HINTS.get((DEV.label, caption)) or CHOICE_HINTS.get(caption)
 
 
-# ==============================================================================
 # REWIND  -  back to the last choice (quick menu)
-# ==============================================================================
 
 default rewind_point = None
 
 init python:
     def rewind_mark():
-        """Called when a choice appears: remember the line just before it."""
         try:
             if _history_list:
                 store.rewind_point = _history_list[-1].rollback_identifier

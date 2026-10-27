@@ -1,25 +1,12 @@
-# ==============================================================================
-# DEPARTURE AT 4:00  -  casino.rpy
 # SECRET: click DEPARTURES on the main menu's departure board (or the COINS
-# counter in the top-right corner). Four simple games, all played with COINS:
-#
-#   SLOTS        slots.rpy
-#   ROULETTE     bet on a colour, odd/even, a half, or one number, then spin
-#   HORSE RACE   pick a horse, watch the bars race
-#   MAHJONG      the mahjong minigame from Carriage 2, paid per pair
-#
-#   CASINO_BETS           the bet sizes you can pick (HIGH ROLLER adds more)
-#   CASINO_DAILY          free coins once a day
-#   $ casino_pay(n)       pay out n coins
-# ==============================================================================
 
 define CASINO_BETS = [5, 10, 25, 50]
-define CASINO_BETS_HIGH = [100, 250]       # HIGH ROLLER pass
-define CASINO_DAILY = 50                   # doubled by HIGH ROLLER
+define CASINO_BETS_HIGH = [100, 250]
+define CASINO_DAILY = 50
 
-default persistent.casino_best = 0         # biggest single win
-default persistent.casino_daily = ""       # the date the daily bonus was last claimed
-default persistent.casino_won = 0          # coins won, all time
+default persistent.casino_best = 0
+default persistent.casino_daily = ""
+default persistent.casino_won = 0
 default casino_bet = 10
 
 init python:
@@ -29,7 +16,6 @@ init python:
         return CASINO_BETS + (CASINO_BETS_HIGH if has_pass("high_roller") else [])
 
     def casino_take(n):
-        """Take a stake. False if you can't afford it."""
         if (persistent.coins or 0) < n:
             renpy.notify(_("Not enough coins."))
             return False
@@ -66,11 +52,9 @@ init python:
         renpy.restart_interaction()
 
     def casino_open():
-        # a bet size the player can't use any more falls back
         if store.casino_bet not in casino_bets():
             store.casino_bet = 10
         renpy.show_screen("casino")
-        # casino songs while you're in here (music.rpy)
         menu_music_filter_off()
         music_for("casino", fade=1.0)
         renpy.restart_interaction()
@@ -83,9 +67,7 @@ init python:
         renpy.restart_interaction()
 
 
-# ------------------------------------------------------------------------------
 # PIECES SHARED BY THE GAMES
-# ------------------------------------------------------------------------------
 
 transform casino_win_pop:
     alpha 0.0
@@ -94,7 +76,6 @@ transform casino_win_pop:
     pause 1.0
     easeout 0.4 alpha 0.0
 
-# "+50 COINS" for a moment
 screen casino_win(n):
     zorder 450
     frame:
@@ -109,7 +90,6 @@ screen casino_win(n):
             font GFONT
     timer 1.7 action Hide("casino_win")
 
-# coins in the top corner of every casino screen
 screen casino_wallet():
     frame:
         xalign 1.0
@@ -127,7 +107,6 @@ screen casino_wallet():
                 color "#ffd76a"
                 font GFONT
 
-# pick how big each bet is
 screen casino_bet_picker(locked=False):
     hbox:
         spacing 10
@@ -139,7 +118,6 @@ screen casino_bet_picker(locked=False):
         for b in casino_bets():
             use pref_toggle(str(b), (None if locked else Function(casino_set_bet, b)), selected=(casino_bet == b), w=80)
 
-# a title and a one-line explanation, top-left
 screen casino_title(title, hint):
     vbox:
         pos (60, 40)
@@ -154,11 +132,8 @@ screen casino_title(title, hint):
             font GFONT
 
 
-# ------------------------------------------------------------------------------
 # THE CASINO  (the lobby)
-# ------------------------------------------------------------------------------
 
-# (id, name, what it is)
 define CASINO_GAMES = [
     ("slots",    _("SLOTS"),      _("Three reels. Match them. Three 4:00s is the jackpot.")),
     ("roulette", _("ROULETTE"),   _("Bet on a colour, odd or even, a half, or one number.")),
@@ -249,14 +224,11 @@ screen casino():
                 font GFONT
 
 
-# ------------------------------------------------------------------------------
 # ROULETTE  -  a number flickers and stops, like a departure board
-# ------------------------------------------------------------------------------
 
 define RL_RED = {1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36}
-define RL_SPIN = 2.4         # seconds the number flickers
+define RL_SPIN = 2.4
 
-# (key, label) - each pays 2x; a single number pays 36x
 define RL_BETS = [
     ("red", _("RED")), ("black", _("BLACK")),
     ("odd", _("ODD")), ("even", _("EVEN")),
@@ -265,10 +237,10 @@ define RL_BETS = [
 
 default rl_bets = {}
 default rl_spinning = False
-default rl_show = 0          # the number on the display
+default rl_show = 0
 default rl_result = None
 default rl_t = 0.0
-default rl_pick = 17         # the number for a ONE NUMBER bet
+default rl_pick = 17
 default rl_msg = ""
 default rl_history = []
 
@@ -380,7 +352,6 @@ screen roulette():
             xfill True
             spacing 24
 
-            # the number
             hbox:
                 xalign 0.5
                 spacing 40
@@ -411,7 +382,6 @@ screen roulette():
                                 color ("#ff6b5a" if hn in RL_RED else ("#6dffa5" if hn == 0 else "#a8a4b4"))
                                 font GFONT
 
-            # the bets
             hbox:
                 xalign 0.5
                 spacing 12
@@ -449,16 +419,14 @@ screen roulette():
                 use rbtn(_("BACK"), (Hide("roulette") if not rl_spinning else None), w=160, h=64, r=20, size=20)
 
 
-# ------------------------------------------------------------------------------
 # HORSE RACE  -  six bars race to the end
-# ------------------------------------------------------------------------------
 
 define HR_COLORS = ["#e0521f", "#3a6fd8", "#2e8b57", "#c9a21a", "#9b4fd0", "#d8d8e0"]
-define HR_TRACK = 1000        # how far they run
+define HR_TRACK = 1000
 define HR_TICK = 0.05
 
-default hr_power = []         # each horse's hidden strength this race
-default hr_odds = []          # what each one pays
+default hr_power = []
+default hr_odds = []
 default hr_pos = []
 default hr_pick = None
 default hr_stake = 0
@@ -508,7 +476,6 @@ init python:
         for i, p in enumerate(store.hr_power):
             if pos[i] >= HR_TRACK:
                 continue
-            # steady pace + bursts and stumbles, so anything can happen
             pos[i] = min(HR_TRACK, pos[i] + 10.0 * p * renpy.random.uniform(0.4, 1.7))
             if pos[i] >= HR_TRACK and i not in store.hr_order:
                 store.hr_order = store.hr_order + [i]
@@ -591,19 +558,16 @@ screen horses():
                 use rbtn(_("BACK"), (Hide("horses") if not hr_running else None), w=160, h=64, r=20, size=20)
 
 
-# ------------------------------------------------------------------------------
 # MAHJONG  (the Carriage 2 minigame, for coins)
-# ------------------------------------------------------------------------------
 
-define CASINO_MJ_FEE = 20         # to sit down
-define CASINO_MJ_PAIR = 3         # paid for every pair
-define CASINO_MJ_CLEAR = 150      # bonus for clearing the whole table
+define CASINO_MJ_FEE = 20
+define CASINO_MJ_PAIR = 3
+define CASINO_MJ_CLEAR = 150
 
 default mj_casino = False
 
 init python:
     def casino_mahjong():
-        """Plays one table. Returns the coins won (None if you couldn't pay to sit)."""
         if not casino_take(CASINO_MJ_FEE):
             return None
         mahjong_reset()
@@ -614,3 +578,286 @@ init python:
             store.mj_casino = False
         pairs = store.mj_gone.count(True) // 2
         return pairs * CASINO_MJ_PAIR + (CASINO_MJ_CLEAR if all(store.mj_gone) else 0)
+
+
+default persistent.coins = 50
+
+define SLOT_PAIR = 2
+define COINS_PER_TICKET = 100
+
+define SLOT_SYMBOLS = [
+    ("4:00", 1, 100),
+    ("7", 2, 40),
+    ("$", 3, 20),
+    ("中", 4, 12),
+    ("♦", 5, 8),
+    ("♣", 5, 6),
+]
+
+default slot_reels = ["4:00", "7", "$"]
+default slot_spinning = [False, False, False]
+default slot_msg = ""
+default slot_win = 0
+default slot_stake = 0
+default slot_streak = 0
+default slot_tease = False
+
+init python:
+    class _SLOT(object):
+        t = 0.0
+        stops = [1.0, 1.5, 2.0]
+        final = ["4:00", "4:00", "4:00"]
+        refilled = False
+
+    def circ_coin(d):
+        return Fixed(
+            Transform("gui/round/r256.png", xysize=(d, d), matrixcolor=TintMatrix("#c9921a")),
+            At(Transform("gui/round/r256.png", xysize=(d - 6, d - 6), matrixcolor=TintMatrix("#ffd76a")),
+               Transform(pos=(3, 3))),
+            xysize=(d, d))
+
+    def give_coins(n):
+        persistent.coins = (persistent.coins or 0) + n
+        renpy.restart_interaction()
+
+    def _slot_pick():
+        bag = []
+        for sym, weight, _pay in SLOT_SYMBOLS:
+            bag += [sym] * weight
+        return renpy.random.choice(bag)
+
+    def slot_pay(sym):
+        for s, _w, pay in SLOT_SYMBOLS:
+            if s == sym:
+                return pay
+        return 0
+
+    def slot_spin():
+        if any(store.slot_spinning):
+            return
+        bet = store.casino_bet
+        if (persistent.coins or 0) < bet:
+            store.slot_msg = _("Not enough coins.")
+            renpy.restart_interaction()
+            return
+        persistent.coins -= bet
+        store.slot_stake = bet
+        _SLOT.t = 0.0
+        _SLOT.final = [_slot_pick() for _i in range(3)]
+        _SLOT.stops = [1.0, 1.5, (3.0 if _SLOT.final[0] == _SLOT.final[1] else 2.0)]
+        store.slot_tease = False
+        store.slot_spinning = [True, True, True]
+        store.slot_msg = ""
+        store.slot_win = 0
+        sfx("ui_click")
+        renpy.restart_interaction()
+
+    def slot_tick():
+        if not any(store.slot_spinning):
+            return
+        _SLOT.t += 0.07
+        reels = list(store.slot_reels)
+        spin = list(store.slot_spinning)
+        for i in range(3):
+            if spin[i]:
+                if _SLOT.t >= _SLOT.stops[i]:
+                    spin[i] = False
+                    reels[i] = _SLOT.final[i]
+                    sfx("thud")
+                    if i == 1 and reels[0] == reels[1]:
+                        store.slot_tease = True
+                else:
+                    reels[i] = _slot_pick()
+        store.slot_reels = reels
+        store.slot_spinning = spin
+        if not any(spin):
+            _slot_payout()
+        renpy.restart_interaction()
+
+    def _slot_payout():
+        a, b, c = store.slot_reels
+        store.slot_tease = False
+        win = 0
+        if a == b == c:
+            win = slot_pay(a) * store.slot_stake
+        elif a == b or b == c or a == c:
+            win = SLOT_PAIR * store.slot_stake
+        store.slot_win = win
+        store.slot_streak = (store.slot_streak + 1) if win else 0
+        if win:
+            casino_pay(win)
+        else:
+            sfx("lose")
+        if a == b == c == "4:00":
+            store.slot_msg = _("JACKKKPOTTTTTTT!")
+            secret_found("slots_jackpot")
+        elif win:
+            store.slot_msg = _("+%d COINS") % win
+        else:
+            store.slot_msg = _("No luck.")
+        secret_found("slots")
+
+    def slot_refill():
+        if not _SLOT.refilled and (persistent.coins or 0) < store.casino_bet:
+            _SLOT.refilled = True
+            give_coins(20)
+            store.slot_msg = _("+20 COINS")
+
+    def coins_to_ticket():
+        if (persistent.coins or 0) >= COINS_PER_TICKET:
+            persistent.coins -= COINS_PER_TICKET
+            give_tickets(1)
+            renpy.restart_interaction()
+
+
+# THE MACHINE
+
+transform slot_in:
+    alpha 0.0
+    zoom 0.9
+    easein_back 0.35 alpha 1.0 zoom 1.0
+
+transform reel_flip(key):
+    yzoom 0.2
+    ease 0.06 yzoom 1.0
+
+transform slot_win_pop:
+    zoom 0.6
+    alpha 0.0
+    easein_back 0.3 zoom 1.0 alpha 1.0
+
+screen slot_symbol(sym, size):
+    if sym == "中":
+        text sym:
+            align (0.5, 0.5)
+            size size
+            color "#d83a2a"
+            font MJ_FONT
+    elif sym in ("♦", "♣"):
+        text sym:
+            align (0.5, 0.5)
+            size size
+            color ("#d83a2a" if sym == "♦" else "#e8e4dc")
+            font "DejaVuSans.ttf"
+    else:
+        text sym:
+            align (0.5, 0.5)
+            size (int(size * 0.8) if sym == "4:00" else size)
+            color ("#ffd76a" if sym in ("4:00", "7") else "#6dffa5")
+            font CREDIT_FONT
+
+transform slot_tease_pulse:
+    alpha 0.4
+    block:
+        ease 0.25 alpha 1.0
+        ease 0.25 alpha 0.4
+        repeat
+
+screen slot_machine():
+    modal True
+    zorder 310
+    key "game_menu" action Hide("slot_machine")
+    if any(slot_spinning):
+        timer 0.07 repeat True action Function(slot_tick)
+
+    add Solid("#000000c8")
+
+    frame:
+        align (0.5, 0.5)
+        xysize (1180, 720)
+        padding (40, 30)
+        background rbox("#121218f4", 30)
+        at slot_in
+        vbox:
+            xfill True
+            spacing 18
+            hbox:
+                xfill True
+                text _("4:00 SLOTS"):
+                    size 40
+                    color "#e6a817"
+                    font CREDIT_FONT
+                hbox:
+                    xalign 1.0
+                    yalign 0.5
+                    spacing 12
+                    add circ_coin(28):
+                        yalign 0.5
+                    text (_("COINS  %d") % (persistent.coins or 0)):
+                        yalign 0.5
+                        size 28
+                        color "#ffd76a"
+                        font GFONT
+
+            frame:
+                xalign 0.5
+                padding (24, 20)
+                background rbox(("#3a2a08" if (slot_reels[0] == slot_reels[1] == slot_reels[2] and not any(slot_spinning) and slot_win) else "#0a0a0e"), 24)
+                hbox:
+                    spacing 22
+                    for i in range(3):
+                        frame:
+                            xysize (240, 220)
+                            padding (0, 0)
+                            background rbox(("#1a1a22" if slot_spinning[i] else "#22222c"), 18)
+                            fixed:
+                                at reel_flip((i, slot_reels[i], slot_spinning[i]))
+                                use slot_symbol(slot_reels[i], 130)
+
+            fixed:
+                ysize 56
+                if slot_tease:
+                    text _("ONE MORE..."):
+                        align (0.5, 0.5)
+                        size 40
+                        color "#ffd76a"
+                        font CREDIT_FONT
+                        at slot_tease_pulse
+                elif slot_msg:
+                    text slot_msg:
+                        align (0.5, 0.5)
+                        size 40
+                        color ("#ffd700" if slot_win else "#8888a0")
+                        font CREDIT_FONT
+                        at slot_win_pop
+
+            hbox:
+                xalign 0.5
+                spacing 40
+                use casino_bet_picker(any(slot_spinning))
+                if slot_streak >= 2:
+                    text (_("WIN STREAK x%d") % slot_streak):
+                        yalign 0.5
+                        size 22
+                        color "#6dffa5"
+                        font GFONT
+
+            hbox:
+                xalign 0.5
+                spacing 24
+                use mg_btn((_("SPIN  (%d COINS)") % casino_bet), Function(slot_spin), w=320, h=70, size=26)
+                if (persistent.coins or 0) < casino_bet and not any(slot_spinning):
+                    use rbtn(_("SPOT ME 20"), Function(slot_refill), w=240, h=70, r=22, size=22)
+                use rbtn(_("CLOSE"), Hide("slot_machine"), w=180, h=70, r=22, size=22)
+
+            hbox:
+                xalign 0.5
+                spacing 26
+                for sym, _w, pay in SLOT_SYMBOLS:
+                    hbox:
+                        spacing 8
+                        fixed:
+                            xysize (64, 36)
+                            use slot_symbol(sym, 26)
+                        text ("x%d" % pay):
+                            yalign 0.5
+                            layout "nobreak"
+                            size 15
+                            color "#8888a0"
+                            font GFONT
+                text (_("PAIR x%d") % SLOT_PAIR):
+                    yalign 0.5
+                    layout "nobreak"
+                    size 15
+                    color "#8888a0"
+                    font GFONT

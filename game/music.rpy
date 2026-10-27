@@ -1,90 +1,48 @@
-# ==============================================================================
-# DEPARTURE AT 4:00  -  music.rpy
 # Every song lives in game/Songs/. This file says which ones play where.
-#
-#   SONGS          id -> (file, title, artist)      add a song here
-#   MUSIC_FOR      a place in the game -> the songs that play there (in order,
-#                  then round again). None = silence.
-#   LABEL_MUSIC    which place each story label belongs to
-#
-#   $ music_for("casino")      switch to a place's songs (fades)
-#   $ music_menu()             back to the main menu music
-#
-# Settings > AUDIO: IN-GAME MUSIC, MAIN MENU MUSIC (theme / shuffle), SONG POPUPS
-# ==============================================================================
 
 define SONGS = {
-    "main_menu":            ("Songs/main_menu.mp3",               _("Main Theme"),                       "Departure at 4:00"),
-    "larp":                 ("Songs/larp.mp3",                    _("LARP Music"),                       "larp music"),
-    "end_of_beginning":     ("Songs/end_of_beginning.opus",       "End Of Beginning",                    "Djo"),
-    "earrings":             ("Songs/earrings.opus",               "Earrings",                            "Malcolm Todd"),
-    "music_sounds_better":  ("Songs/music_sounds_better.opus",    "Music Sounds Better With You",        "Stardust"),
-    "stayin_alive":         ("Songs/stayin_alive.opus",           "Stayin' Alive",                       "Bee Gees"),
-    "everybody_wants_to_rule": ("Songs/everybody_wants_to_rule.opus", "Everybody Wants To Rule The World", "Tears For Fears"),
-    "slide":                ("Songs/slide.opus",                  "Slide",                               "Calvin Harris"),
-    "the_less_i_know":      ("Songs/the_less_i_know.opus",        "The Less I Know The Better",          "Tame Impala"),
-    "somebodys_watching_me": ("Songs/somebodys_watching_me.opus", "Somebody's Watching Me",              "Rockwell"),
-    "self_aware":           ("Songs/self_aware.opus",             "Self Aware",                          "Temper City"),
-    "loser":                ("Songs/loser.opus",                  "Loser",                               "Tame Impala"),
-    "walking_on_a_dream":   ("Songs/walking_on_a_dream.opus",     "Walking On A Dream",                  "Empire Of The Sun"),
-    "sunflower":            ("Songs/sunflower.opus",              "Sunflower",                           "Post Malone, Swae Lee"),
-    "stella":               ("Songs/stella.opus",                 "STELLA",                              "SAINT PEPSI"),
-    "pumped_up_kicks":      ("Songs/pumped_up_kicks.opus",        "Pumped Up Kicks",                     "Foster The People"),
-    "gta6_main_theme":      ("Songs/gta6_main_theme.opus",        "Grand Theft Auto VI Main Theme",      "Rockstar Games"),
-    "gta6_trailer_song":    ("Songs/gta6_trailer_song.opus",      "GTA VI Trailer Song (Edit)",          "Rockstar Games"),
-    "flower_in_a_hurricane": ("Songs/flower_in_a_hurricane.opus", "Flower In A Hurricane",               "Justice ft. Tame Impala, SZA, King Gizzard & the Lizard Wizard"),
-    "rhyno":                ("Songs/rhyno.opus",                  "RHYNO",                               "Travis Scott"),
-    "midnight_city":        ("Songs/midnight_city.opus",          "Midnight City",                       "M83"),
-    "gta6_extended_look":   ("Songs/gta6_extended_look.opus",     "GTA VI: An Extended Look",            "Rockstar Games"),
+    "main_menu":            ("Songs/main_menu.mp3",               _("Grekhov Theme"),                    "Departure at 4:00"),
+    "carriage_3":           ("Songs/carriage_3.opus",             "Rendezvous (Instrumental)",           "Carriage 3"),
+    "larp":                 ("Songs/larp.opus",                   "We Do What We Want (Edit)",           "Alan Fitzpatrick"),
+    "the_days":             ("Songs/the_days.opus",               "The Days (NOTION Remix)",             "Chrystal"),
+    "dreamin":              ("Songs/dreamin.opus",                "Dreamin",                             "PARTYNEXTDOOR"),
+    "make_it_to_the_morning": ("Songs/make_it_to_the_morning.opus", "MAKE IT TO THE MORNING",           "PARTYNEXTDOOR"),
+    "say_it":               ("Songs/say_it.opus",                 "Say It",                              ""),
+    "still_love_you":       ("Songs/still_love_you.opus",         "still love you (Slowed)",             ""),
+    "tbh":                  ("Songs/tbh.opus",                    "TBH",                                 ""),
+    "flower_in_a_hurricane": ("Songs/flower_in_a_hurricane.opus", "Flower In A Hurricane",               "Justice ft. Tame Impala, SZA, King Gizzard & the Lizard Wizard (GTA VI)"),
 }
 
-# the order the jukebox lists them in
-define SONG_ORDER = [
-    "main_menu", "larp", "end_of_beginning", "earrings", "music_sounds_better", "stayin_alive",
-    "everybody_wants_to_rule", "slide", "the_less_i_know", "somebodys_watching_me", "self_aware",
-    "loser", "walking_on_a_dream", "sunflower", "stella", "pumped_up_kicks",
-    "gta6_main_theme", "gta6_trailer_song", "flower_in_a_hurricane", "rhyno", "midnight_city",
-    "gta6_extended_look",
-]
+define SONG_ORDER = ["main_menu", "carriage_3", "larp", "the_days", "flower_in_a_hurricane",
+                     "dreamin", "make_it_to_the_morning", "say_it", "still_love_you", "tbh"]
 
-# a place -> its songs
 define MUSIC_FOR = {
-    # Part 1: an ordinary (ish) train ride
-    "c1": ["end_of_beginning", "earrings"],                 # waking up, confused
-    "c2": ["music_sounds_better", "stayin_alive"],          # the bar and the gambler
-    "c3": ["everybody_wants_to_rule"],                      # the expensive cabin
-    "c4": ["slide"],                                        # the engine
-    "c5": ["the_less_i_know"],                              # Alexander's corner
-    # Part 2: someone's dead and the train keeps looping
-    "part2": ["somebodys_watching_me"],
-    "part2_c3": ["self_aware"],
-    "part2_c5": ["loser"],
-    # nothing while it matters most
+    "c1": ["main_menu"],
+    "c2": ["main_menu"],
+    "c3": ["carriage_3"],
+    "c4": ["main_menu"],
+    "c5": ["main_menu"],
+    "part2": ["main_menu"],
+    "part2_c3": ["carriage_3"],
+    "part2_c5": ["main_menu"],
     "silence": None,
-    # the way out
-    "escape": ["sunflower"],
-    "true": ["walking_on_a_dream"],
-    # away from the story
-    "menu_shuffle": ["main_menu", "walking_on_a_dream", "stella", "end_of_beginning", "sunflower"],
-    "casino": ["stella", "stayin_alive", "pumped_up_kicks", "music_sounds_better"],
-    "credits": ["gta6_main_theme", "flower_in_a_hurricane", "rhyno", "gta6_trailer_song", "midnight_city", "gta6_extended_look"],
+    "escape": ["main_menu"],
+    "true": ["main_menu"],
+    "menu_shuffle": ["main_menu", "carriage_3"],
+    "casino": ["main_menu", "carriage_3"],
+    "credits": ["larp"],
     "credits_tickets": ["larp"],
-    # radio stations (the radio bar at the bottom)
-    "station_gta": ["gta6_main_theme", "flower_in_a_hurricane", "rhyno", "gta6_trailer_song", "midnight_city", "gta6_extended_look"],
-    "station_chill": ["walking_on_a_dream", "stella", "end_of_beginning", "sunflower", "earrings", "the_less_i_know", "slide"],
+    "credits_spotlight": ["flower_in_a_hurricane"],
 }
 
-# (id, name). SCENE MUSIC = the songs that fit where you are (MUSIC_FOR);
-# the others play their own list everywhere until you change station.
 define RADIO_STATIONS = [
-    ("scene", _("SCENE MUSIC")),
-    ("all",   _("ALL SONGS")),
-    ("gta",   _("GTA RADIO")),
-    ("chill", _("CHILL")),
-    ("off",   _("RADIO OFF")),
+    ("scene", _("GREKHOV FM")),
+    ("all",   _("EDUARD'S JUKEBOX")),
+    ("off",   _("OFF AIR")),
 ]
 
-# story label -> place. (label, place, place while in the loop)
+define RADIO_FREQ = {"scene": "88.0", "all": "91.4", "off": "--.-"}
+
 define LABEL_MUSIC = {
     "carriage_1_start":        ("c1", "part2"),
     "carriage_1_hub":          ("c1", "part2"),
@@ -114,41 +72,37 @@ define LABEL_MUSIC = {
 }
 
 default persistent.ingame_music = True
-default persistent.menu_music = "theme"        # "theme" or "shuffle"
+default persistent.menu_music = "theme"
 default persistent.song_popups = True
 default persistent.radio_station = "scene"
 default persistent.radio_bar = True
 
 init python:
-    SONG_BY_FILE = dict((f, (sid, title, artist)) for sid, (f, title, artist) in SONGS.items())
+    SONG_BY_FILE = {}
+    for _sid, (_f, _title, _artist) in SONGS.items():
+        SONG_BY_FILE[_f] = (_sid, _title, _artist)
 
     def song_files(ids):
         return [SONGS[i][0] for i in ids if i in SONGS and renpy.loadable(SONGS[i][0])]
 
     class _MUSIC(object):
-        place = None        # what's playing now: a MUSIC_FOR place, "menu", "jukebox", a station
-        scene = None        # the story place we're in (for SCENE MUSIC)
+        place = None
+        scene = None
 
     def radio_scene():
-        return persistent.radio_station == "scene"
+        return radio_station_now() == "scene"
 
     def music_for(place, fade=2.0, carry=False):
-        """Switch to a place's songs. Already playing them: carry on.
-        carry: let the song that's playing finish first, then go on to these
-        (used when the story starts, so the menu song doesn't cut off)."""
         if not radio_scene():
-            return          # a radio station is on: it keeps playing
+            return
+        renpy.music.set_pause(False, channel="music")
         if place == _MUSIC.place and renpy.music.is_playing("music"):
             return
-        before = _MUSIC.place
         _MUSIC.place = place
         ids = MUSIC_FOR.get(place)
         files = song_files(ids) if ids else []
         if not files:
             renpy.music.stop(channel="music", fadeout=fade)
-            return
-        if carry and before in ("menu", "jukebox", None) and renpy.music.is_playing("music"):
-            renpy.music.queue(files, channel="music", loop=True, clear_queue=True)
             return
         renpy.music.play(files, channel="music", loop=True, fadein=fade, fadeout=fade, if_changed=True)
 
@@ -159,16 +113,14 @@ init python:
         return song_files(ids)
 
     def _menu_music_config():
-        # Ren'Py starts config.main_menu_music by itself on the main menu, so
-        # only set it while SCENE MUSIC is the station
         config.main_menu_music = (menu_music_files() or None) if radio_scene() else None
 
     def music_menu():
-        """Back to the main menu's music (or whatever station is on)."""
         if not radio_scene():
             radio_play_station(restart=False)
             return
         _MUSIC.place = "menu"
+        renpy.music.set_pause(False, channel="music")
         files = menu_music_files()
         if files:
             renpy.music.play(files, channel="music", loop=True, fadein=1.0, if_changed=True)
@@ -183,7 +135,6 @@ init python:
         renpy.restart_interaction()
 
     def music_skip():
-        """NEXT: on to the next song in what's playing."""
         q = renpy.music.get_playing("music")
         files = renpy.music.get_loop("music") or []
         if q in files and len(files) > 1:
@@ -193,12 +144,16 @@ init python:
         elif q:
             renpy.music.stop(channel="music", fadeout=0.5)
 
-    # ---- the radio ------------------------------------------------------------
+    # the radio
     class _RADIO(object):
-        history = []        # songs played, newest last (for PREVIOUS)
+        history = []
+
+    def radio_station_now():
+        st = persistent.radio_station
+        return st if st in dict(RADIO_STATIONS) else "scene"
 
     def radio_play_station(restart=True):
-        st = persistent.radio_station
+        st = radio_station_now()
         if st == "off":
             _MUSIC.place = "off"
             renpy.music.stop(channel="music", fadeout=1.0)
@@ -225,7 +180,7 @@ init python:
 
     def radio_station_step(d=1):
         ids = [k for k, _n in RADIO_STATIONS]
-        k = ids.index(persistent.radio_station) if persistent.radio_station in ids else 0
+        k = ids.index(radio_station_now())
         persistent.radio_station = ids[(k + d) % len(ids)]
         renpy.music.set_pause(False, channel="music")
         _menu_music_config()
@@ -233,7 +188,7 @@ init python:
         renpy.restart_interaction()
 
     def radio_station_name():
-        return dict(RADIO_STATIONS).get(persistent.radio_station, _("SCENE MUSIC"))
+        return dict(RADIO_STATIONS)[radio_station_now()]
 
     def radio_paused():
         try:
@@ -254,7 +209,6 @@ init python:
         renpy.restart_interaction()
 
     def radio_prev():
-        """Back to the song before this one (or the start of this one)."""
         h = _RADIO.history
         cur = renpy.music.get_playing("music")
         files = renpy.music.get_loop("music") or []
@@ -269,9 +223,7 @@ init python:
 
     _menu_music_config()
 
-# init 2: after every other label callback is set up, chaining onto them
 init 2 python:
-    # every story label: switch to the music for where we are
     _old_label_cb_music = config.label_callback
 
     def _music_label_cb(name, abnormal=False):
@@ -281,6 +233,9 @@ init 2 python:
                 _MUSIC.scene = looped if getattr(store, "in_loop", False) else normal
                 if persistent.ingame_music:
                     music_for(_MUSIC.scene, carry=True)
+            # a station stops when a game starts (Ren'Py leaves the menu's music behind)
+            if not main_menu and not radio_scene() and not renpy.music.is_playing("music"):
+                radio_play_station(restart=False)
         except Exception:
             pass
         if _old_label_cb_music:
@@ -296,7 +251,7 @@ init python:
             renpy.music.stop(channel="music", fadeout=1.0)
         renpy.restart_interaction()
 
-    # ---- "now playing" popup, like a radio station changing song -----------
+    # "now playing" popup, like a radio station changing song
     class _NP(object):
         last = None
 
@@ -310,9 +265,13 @@ init python:
         _NP.last = cur
         if cur:
             _RADIO.history = (_RADIO.history + [cur])[-30:]
-        if cur in SONG_BY_FILE and persistent.song_popups:
+        if cur in SONG_BY_FILE and persistent.song_popups and not popup_blocked():
             sid, title, artist = SONG_BY_FILE[cur]
             renpy.show_screen("now_playing", title, artist)
+
+    def popup_blocked():
+        m = renpy.get_screen("menu")
+        return bool(m) and not renpy.get_screen("main_menu")
 
     def now_playing_title():
         cur = renpy.music.get_playing("music")
@@ -336,8 +295,9 @@ screen now_playing_watch():
 screen now_playing(title, artist):
     zorder 1300
     frame:
-        xalign 0.5
-        ypos 30
+        xalign 1.0
+        xoffset -40
+        ypos (110 if main_menu else 30)
         padding (22, 12)
         background rbox("#3a2412f0", 14)
         at np_slide
@@ -364,27 +324,20 @@ screen now_playing(title, artist):
     timer 5.2 action Hide("now_playing")
 
 
-# ------------------------------------------------------------------------------
-# THE RADIO  (bottom right, on every screen; Settings > Audio > RADIO BAR)
-# Folded away as a little RADIO tab. Point at it to open the radio; click it
-# to keep the radio open (HIDE folds it away again).
-# The radio: a wooden box, a dial with the stations (click it to tune to the
-# next one), the song that's on, and three knobs.
-# ------------------------------------------------------------------------------
-
-define RADIO_W = 600
-define RADIO_H = 92
-define RADIO_DIAL_W = 300
-define RADIO_DIAL_PAD = 34      # room at the ends of the dial for the station names
-define RADIO_RIGHT = 150        # gap from the right edge of the screen
-define RADIO_BOTTOM = 8         # gap from the bottom
-define RADIO_TAB_W = 92         # the folded tab
+define RADIO_W = 640
+define RADIO_H = 96
+define RADIO_WIN_W = 360
+define RADIO_RIGHT = 150
+define RADIO_BOTTOM = 8
+define RADIO_TAB_W = 92
+define RADIO_ABOVE_SAY = 330
 define RADIO_TAB_H = 30
 
 init python:
     class _RADIOUI(object):
         hover = False
         pinned = False
+        booting = True
 
     def radio_hover(on):
         if _RADIOUI.hover != on:
@@ -403,100 +356,143 @@ transform radio_unfold:
     yoffset 20
     easein 0.15 alpha 1.0 yoffset 0
 
-# a round knob with its label underneath
-screen radio_knob(label, act):
+transform radio_marquee(dist, key):
+    xoffset 0
+    pause 2.0
+    block:
+        linear (dist / 40.0) xoffset -dist
+        pause 1.5
+        xoffset 0
+        pause 2.0
+        repeat
+
+transform radio_still:
+    xoffset 0
+
+init python:
+    def radio_song_text():
+        cur = renpy.music.get_playing("music")
+        song = SONG_BY_FILE.get(cur)
+        if not song:
+            return _("Nothing on air")
+        return ("%s - %s" % (song[1], song[2])) if song[2] else song[1]
+
+    def radio_overflow(t, size, width):
+        try:
+            w = renpy.render(Text(t, size=size, font=GFONT), 4000, 100, 0, 0).width
+        except Exception:
+            w = len(t) * size * 0.62
+        return max(0, int(w - width))
+
+screen radio_key(label, act, w=74):
     button:
-        xysize (60, 74)
+        xysize (w, 32)
         padding (0, 0)
-        background None
+        background rbox("#3e2814", 8)
+        hover_background rbox("#c9a24a", 8)
         action act
-        add Transform("gui/round/r256.png", xysize=(40, 40), matrixcolor=TintMatrix("#c9a24a")):
-            xalign 0.5
-            ypos 4
         text label:
-            xalign 0.5
-            ypos 52
-            size 12
+            align (0.5, 0.5)
+            size 13
             color "#f2e6d0"
-            hover_color "#ffd76a"
+            hover_color "#2a1a0c"
             font GFONT
+
+init python:
+    RADIO_AVOID = ["slot_machine", "roulette", "horses", "cheat_menu", "gallery_view"]
+
+    def radio_where():
+        if not persistent.radio_bar or _RADIOUI.booting:
+            return None
+        names = RADIO_AVOID + [g[2] for g in getattr(store, "MINIGAME_LIST", [])] + ["mg_debug"]
+        for n in names:
+            if renpy.get_screen(n):
+                return None
+        if not main_menu and renpy.get_screen("quick_menu") and not renpy.context()._menu:
+            return "game"
+        return "corner"
+
+    def radio_toggle():
+        _RADIOUI.pinned = not _RADIOUI.pinned
+        renpy.restart_interaction()
+
+screen radio_panel(px, py):
+    $ cur = renpy.music.get_playing("music")
+    $ st = radio_station_now()
+    $ line = radio_song_text()
+    $ over = radio_overflow(line, 15, RADIO_WIN_W - 24)
+    frame:
+        pos (px, py)
+        xysize (RADIO_W, RADIO_H)
+        padding (14, 10)
+        background rbox("#6b4524", 14)
+        at radio_unfold
+        vbox:
+            spacing 8
+            hbox:
+                spacing 8
+                use radio_key("<", Function(radio_station_step, -1), w=32)
+                frame:
+                    xysize (RADIO_WIN_W - 80, 32)
+                    padding (12, 0)
+                    background rbox("#e8d9b0", 8)
+                    text radio_station_name():
+                        yalign 0.5
+                        size 14
+                        color "#7a1f12"
+                        font GFONT
+                    text RADIO_FREQ.get(st, ""):
+                        xalign 1.0
+                        yalign 0.5
+                        size 13
+                        color "#6b5534"
+                        font GFONT
+                use radio_key(">", Function(radio_station_step, 1), w=32)
+                null width 10
+                use radio_key(_("HIDE") if _RADIOUI.pinned else _("PIN"), Function(radio_pin, not _RADIOUI.pinned), w=62)
+            hbox:
+                spacing 8
+                fixed:
+                  xysize (RADIO_WIN_W, 32)
+                  add rbox("#1a0f06", 8):
+                      xysize (RADIO_WIN_W, 32)
+                  viewport:
+                    xysize (RADIO_WIN_W, 32)
+                    frame:
+                        xysize (max(RADIO_WIN_W, RADIO_WIN_W + over + 24), 32)
+                        padding (12, 0)
+                        background None
+                        text line:
+                            yalign 0.5
+                            size 15
+                            layout "nobreak"
+                            color ("#ffb84a" if cur else "#7a5a34")
+                            font GFONT
+                            at (radio_marquee(over + 24, line) if over else radio_still)
+                use radio_key(_("PREV"), Function(radio_prev))
+                use radio_key((_("PLAY") if (radio_paused() or not cur) else _("PAUSE")), Function(radio_toggle_pause))
+                use radio_key(_("NEXT"), Function(radio_next))
 
 screen radio_bar():
     zorder 1250
-    if persistent.radio_bar:
-        # folded: only the tab opens it. Open: pointing anywhere over the radio keeps it open
+    $ where = radio_where()
+    $ sw, sh = config.screen_width, config.screen_height
+
+    if where == "game":
+        if _RADIOUI.pinned:
+            use radio_panel(40, sh - RADIO_ABOVE_SAY - RADIO_H)
+
+    elif where == "corner":
         if radio_open():
             mousearea:
-                area (config.screen_width - RADIO_RIGHT - RADIO_W, config.screen_height - RADIO_BOTTOM - RADIO_H, RADIO_W, RADIO_H)
+                area (sw - RADIO_RIGHT - RADIO_W, sh - RADIO_BOTTOM - RADIO_H, RADIO_W, RADIO_H)
                 hovered Function(radio_hover, True)
                 unhovered Function(radio_hover, False)
+            use radio_panel(sw - RADIO_RIGHT - RADIO_W, sh - RADIO_BOTTOM - RADIO_H)
         else:
             mousearea:
-                area (config.screen_width - RADIO_RIGHT - RADIO_TAB_W, config.screen_height - RADIO_BOTTOM - RADIO_TAB_H, RADIO_TAB_W, RADIO_TAB_H)
+                area (sw - RADIO_RIGHT - RADIO_TAB_W, sh - RADIO_BOTTOM - RADIO_TAB_H, RADIO_TAB_W, RADIO_TAB_H)
                 hovered Function(radio_hover, True)
-
-        if radio_open():
-            $ cur = renpy.music.get_playing("music")
-            $ song = SONG_BY_FILE.get(cur)
-            $ ids = [k for k, _n in RADIO_STATIONS]
-            $ si = ids.index(persistent.radio_station) if persistent.radio_station in ids else 0
-            $ step = (RADIO_DIAL_W - 2 * RADIO_DIAL_PAD) / float(len(ids) - 1)
-            frame:
-                xalign 1.0
-                yalign 1.0
-                offset (-RADIO_RIGHT, -RADIO_BOTTOM)
-                xysize (RADIO_W, RADIO_H)
-                padding (14, 0)
-                background rbox("#6b4524", 14)
-                at radio_unfold
-                hbox:
-                    yalign 0.5
-                    spacing 14
-                    vbox:
-                        yalign 0.5
-                        spacing 6
-                        # the dial: click to tune to the next station
-                        button:
-                            xysize (RADIO_DIAL_W, 34)
-                            padding (0, 0)
-                            background rbox("#e8d9b0", 6)
-                            hover_background rbox("#f4e7c4", 6)
-                            action Function(radio_station_step, 1)
-                            for k, (sid, sname) in enumerate(RADIO_STATIONS):
-                                text sid.upper():
-                                    xcenter RADIO_DIAL_PAD + int(k * step)
-                                    yalign 0.5
-                                    size 12
-                                    color ("#7a1f12" if k == si else "#6b5534")
-                                    font GFONT
-                            add Solid("#c0281a"):
-                                xcenter RADIO_DIAL_PAD + int(si * step)
-                                yalign 0.5
-                                xysize (2, 28)
-                        frame:
-                            xysize (RADIO_DIAL_W, 28)
-                            padding (10, 0)
-                            background rbox("#1a0f06", 6)
-                            text ((("%s - %s" % (song[1], song[2])) if song else _("Nothing on air"))[:40]):
-                                yalign 0.5
-                                size 13
-                                layout "nobreak"
-                                color ("#ffb84a" if song else "#7a5a34")
-                                font GFONT
-                    use radio_knob(_("PREV"), Function(radio_prev))
-                    use radio_knob((_("PLAY") if (radio_paused() or not cur) else _("PAUSE")), Function(radio_toggle_pause))
-                    use radio_knob(_("NEXT"), Function(radio_next))
-                    textbutton (_("HIDE") if _RADIOUI.pinned else _("PIN")):
-                        yalign 0.5
-                        padding (6, 4)
-                        background None
-                        text_size 11
-                        text_color "#c9a982"
-                        text_hover_color "#ffd76a"
-                        text_font GFONT
-                        action Function(radio_pin, not _RADIOUI.pinned)
-        else:
-            # folded away: just a little tab
             button:
                 xalign 1.0
                 yalign 1.0
