@@ -11,7 +11,6 @@ define GAMEPASSES = [
     ("double",       _("DOUBLE TICKETS"), _("Earn twice as many tickets from now on."), 10),
     ("extra_life",   _("EXTRA LIFE"),     _("+1 life in DON'T LET THEM REACH YOU, +4 battery in SEARCH IN THE DARK, +3 tries on THE LUGGAGE LOCK, +1 tear on PULL UP THE CARPET."), 8),
     ("cheats",       _("CHEAT MENU"),     _("Press F9 for the cheat menu: jump to any chapter, story flags, jumpscares, every minigame, unlocks and developer tools."), 15),
-    ("empty_train",  _("4:01"),           _("Board the empty train from this page whenever you like."), 12),
     ("dlc",          _("DLC"),            _("Three new EXTRAS tabs: GALLERY (every character), JUKEBOX (the soundtrack) and THEATRE (the videos)."), 25),
     ("revealer",     _("CHOICE REVEALER"), _("Every choice shows where it leads: the right answers, the deadly ones, achievements, minigames, and what you picked last time."), 18),
     ("rewind",       _("REWIND"),         _("A REWIND button in the quick menu takes you straight back to your last choice so you can pick again."), 14),
@@ -21,7 +20,7 @@ define GAMEPASSES = [
 
 define GAMEPASS_SOON = {}
 
-define GAMEPASS_HIDDEN = {"empty_train": "empty_train_done"}
+define GAMEPASS_HIDDEN = {}
 
 init python:
     TICKETS_FOR = {"minigame": 2, "secret": 3, "ending": 5}
@@ -157,9 +156,7 @@ screen gamepass_list(w):
                     xalign 1.0
                     yalign 0.5
                     spacing 16
-                    if owned and pid == "empty_train":
-                        use rbtn(_("BOARD"), Start("empty_train"), w=170, h=50, r=16, size=22, bg="#3a0a0a", hov="#5a1010", col="#f2d8d8", hcol="#ffffff")
-                    elif owned:
+                    if owned:
                         text GAMEPASS_SOON.get(pid, _("OWNED")):
                             yalign 0.5
                             size 22
