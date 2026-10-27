@@ -233,6 +233,9 @@ init 2 python:
                 _MUSIC.scene = looped if getattr(store, "in_loop", False) else normal
                 if persistent.ingame_music:
                     music_for(_MUSIC.scene, carry=True)
+            # a station stops when a game starts (Ren'Py leaves the menu's music behind)
+            if not main_menu and not radio_scene() and not renpy.music.is_playing("music"):
+                radio_play_station(restart=False)
         except Exception:
             pass
         if _old_label_cb_music:

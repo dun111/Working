@@ -4153,6 +4153,8 @@ init python:
         try:
             if not isinstance(name, (type(u""), type(""))):
                 return
+            if name in CHAPTER_LABELS and not main_menu:
+                persistent.chapters_seen = set(persistent.chapters_seen) | set([name])
             if name.endswith("_hub"):
                 apply_rumble(True)
             elif name == "start":
@@ -4193,6 +4195,30 @@ init python:
 
 
 default persistent.endings_seen = set()
+default persistent.chapters_seen = set()
+default persistent.replay_to = None
+default persistent.replay_loop = False
+
+# CHAPTERS (EXTRAS, main menu only): replay any carriage you've reached
+define CHAPTERS = [
+    ("carriage_1_start",       _("CARRIAGE 1"), _("FIRST CLASS"),     False),
+    ("carriage_2_start",       _("CARRIAGE 2"), _("THE LOUNGE"),      False),
+    ("carriage_3_start",       _("CARRIAGE 3"), _("SLEEPER CABINS"),  False),
+    ("carriage_4_start",       _("CARRIAGE 4"), _("STAFF CART"),      False),
+    ("carriage_5_start",       _("CARRIAGE 5"), _("THE MAIL ROOM"),   False),
+    ("part2_start",            _("CARRIAGE 1"), _("HERE AGAIN?"),     True),
+    ("carriage_2_part2_start", _("CARRIAGE 2"), _("THE CRIME SCENE"), True),
+]
+
+# the carriage you walk in from, so a chapter starts with the right background
+define CHAPTER_BG = {
+    "carriage_1_start": "bg carriage_1",
+    "carriage_2_start": "bg carriage_1",
+    "carriage_3_start": "bg carriage_2",
+    "carriage_4_start": "bg carriage_3",
+    "carriage_5_start": "bg carriage_4",
+}
+define CHAPTER_LABELS = [c[0] for c in CHAPTERS]
 default persistent.secrets = set()
 default persistent.met = set()
 default persistent.playtime = 0.0
@@ -4217,6 +4243,26 @@ init python:
         ("escape", "ENDING 2", "PARTIAL TRUTH",  "Name the killer, then answer only some of the questions in Carriage 6.", "#e6a817", False),
         ("true",   "ENDING 3", "THE TRUE LINE",  "Name the killer and answer all three questions in Carriage 6.", "#e0521f", False),
     ]
+
+    # saves from before CHAPTERS existed: unlock from the story achievements
+    CHAPTER_ACH = {
+        "carriage_2_start": "carriage_1_complete",
+        "carriage_3_start": "carriage_2_complete",
+        "carriage_4_start": "carriage_3_complete",
+        "carriage_5_start": "carriage_4_complete",
+        "part2_start": "the_loop_begins",
+        "carriage_2_part2_start": "closer_to_the_truth",
+    }
+
+    def chapter_open(lab):
+        if lab == "carriage_1_start" or lab in persistent.chapters_seen:
+            return True
+        return lab in CHAPTER_ACH and achievement.has(CHAPTER_ACH[lab])
+
+    def chapter_play(lab, loop):
+        persistent.replay_to = lab
+        persistent.replay_loop = loop
+        renpy.run(Start("chapter_replay"))
 
     def unlock_ending(key):
         if key not in persistent.endings_seen:
@@ -4388,7 +4434,10 @@ screen secret_listener():
 # EXTRAS menu
 init python:
     def extras_tabs():
-        tabs = [("endings", _("ENDINGS")), ("cast", _("CAST")), ("stats", _("STATS")), ("arcade", _("ARCADE")), ("gamepass", _("GAMEPASS"))]
+        tabs = [("endings", _("ENDINGS"))]
+        if main_menu:
+            tabs.append(("chapters", _("CHAPTERS")))
+        tabs += [("cast", _("CAST")), ("stats", _("STATS")), ("arcade", _("ARCADE")), ("gamepass", _("GAMEPASS"))]
         tabs += dlc_tabs()
         if persistent.secrets:
             tabs.append(("secret", _("4:01")))
@@ -4486,6 +4535,48 @@ screen extras_menu():
                                     color ("#c9c9d8" if er["seen"] else "#55556a")
                                     font GFONT
                                     xsize (ex_w - 160)
+
+            elif xt == "chapters":
+                for idx, (lab, title, sub, loop) in enumerate(CHAPTERS):
+                    $ open_ = chapter_open(lab)
+                    frame:
+                        xfill True
+                        background rbox("#17150d" if open_ else "#101014", 22)
+                        padding (26, 16)
+                        at row_pop(min(idx * 0.05, 0.5))
+                        hbox:
+                            spacing 24
+                            add rbox(("#a8281a" if loop else "#e0521f") if open_ else "#33334a", 6):
+                                xsize 8
+                                ysize 60
+                                yalign 0.5
+                            vbox:
+                                spacing 4
+                                yalign 0.5
+                                xsize (ex_w - 340)
+                                text (_("PART 2") if loop else _("PART 1")):
+                                    size 14
+                                    color (("#a8281a" if loop else "#e0521f") if open_ else "#55556a")
+                                    font GFONT
+                                text (title if open_ else "???"):
+                                    size 28
+                                    color ("#ffffff" if open_ else "#666677")
+                                    font GFONT
+                                text (sub if open_ else _("Not reached yet.")):
+                                    size 18
+                                    color ("#c9c9d8" if open_ else "#55556a")
+                                    font GFONT
+                            if open_:
+                                textbutton _("PLAY"):
+                                    yalign 0.5
+                                    padding (30, 12)
+                                    background rbox("#e0521f", 14)
+                                    hover_background rbox("#ff7a3d", 14)
+                                    text_size 20
+                                    text_color "#0a0a0e"
+                                    text_font GFONT
+                                    action Function(chapter_play, lab, loop)
+                                    at button_hover_anim
 
             elif xt == "cast":
                 for idx, cr in enumerate(cast_rows()):
@@ -4900,3 +4991,14 @@ screen mm_ticket(rows):
                 hbox:
                     xalign 1.0
                     use mm_departures(col="#7a6a4a")
+
+
+label chapter_replay:
+    $ menu_music_filter_off()
+    $ in_loop = persistent.replay_loop
+    if in_loop:
+        show screen loop_overlay
+    $ renpy.scene()
+    $ renpy.show(CHAPTER_BG.get(persistent.replay_to, "black"))
+    with fade
+    jump expression (persistent.replay_to or "carriage_1_start")
