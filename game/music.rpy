@@ -68,7 +68,6 @@ define LABEL_MUSIC = {
     "ending_1_death":          ("silence", "silence"),
     "ending_2_escape":         ("escape", "escape"),
     "ending_3_true":           ("true", "true"),
-    "empty_train":             ("silence", "silence"),
 }
 
 default persistent.ingame_music = True

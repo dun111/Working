@@ -681,7 +681,7 @@ init python:
             line = "%s - %s" % (t[0], t[1])
             if line not in places:
                 places.append(line)
-        places += ["CARRIAGE 6", "THE EMPTY TRAIN"]
+        places += ["CARRIAGE 6"]
         return [
             (_("The passengers"), [(n, "") for n in passengers]),
             (_("The carriages"), [(n, "") for n in places]),

@@ -682,7 +682,6 @@ image bg carriage_1 = themed(ConditionSwitch(
     "in_loop", wide_bg(carriage_art("images/PT2_Carriage_1_With_CharacterS.webp")),
     "True", wide_bg(carriage_art("images/Carriage_1_With_CharacterS.webp"))))
 
-image bg carriage_1_empty = wide_bg("images/bg_carriage_1.webp")
 image bg carriage_5 = themed(wide_bg("images/bg_carriage_5.webp"))
 
 image bg carriage_2 = themed(Solid("#2a2430"))
@@ -808,7 +807,7 @@ init python:
     KEY_LOOP_FRONT = Transform("gui/key_loop_front.png", zoom=KEY_LOOP_ZOOM)
 
     def _save_tag(d):
-        d["story"] = not getattr(store, "in_secret_game", False)
+        d["story"] = True
 
     config.save_json_callbacks.append(_save_tag)
 
@@ -887,7 +886,6 @@ default persistent.broken_saves = set()
 default persistent.cont_trying = None
 default persistent.cont_retry = False
 default persistent.cont_msg = False
-default in_secret_game = False
 default persistent.film_transition = True
 default persistent.old_map = True
 default persistent.menu_style = "new"
@@ -4186,13 +4184,15 @@ define CHAPTERS = [
     ("carriage_5_start",       _("CARRIAGE 5"), _("THE MAIL ROOM"),   False),
     ("part2_start",            _("CARRIAGE 1"), _("HERE AGAIN?"),     True),
     ("carriage_2_part2_start", _("CARRIAGE 2"), _("THE CRIME SCENE"), True),
+    ("carriage_3_part2_start", _("CARRIAGE 3"), _("SLEEPER CABINS"),  True),
+    ("carriage_5_part2_start", _("CARRIAGE 5"), _("THE MAIL ROOM"),   True),
 ]
 
 # how far the story is when a chapter starts (the cheat menu's JUMP stages)
 define CHAPTER_STAGE = {
     "carriage_1_start": 0, "carriage_2_start": 1, "carriage_3_start": 2,
     "carriage_4_start": 3, "carriage_5_start": 4, "part2_start": 5,
-    "carriage_2_part2_start": 6,
+    "carriage_2_part2_start": 6, "carriage_3_part2_start": 7, "carriage_5_part2_start": 8,
 }
 
 # the carriage you walk in from, so a chapter starts with the right background
@@ -4237,6 +4237,8 @@ init python:
         "carriage_5_start": "carriage_4_complete",
         "part2_start": "the_loop_begins",
         "carriage_2_part2_start": "closer_to_the_truth",
+        "carriage_3_part2_start": "closer_to_the_truth",
+        "carriage_5_part2_start": "alibi_confirmed",
     }
 
     def chapter_open(lab):
