@@ -649,11 +649,6 @@ transform list_page:
     on hide:
         linear 0.01 alpha 0.0
 
-transform tab_ind_in:
-    alpha 0.0
-    xoffset -10
-    easein 0.25 alpha 1.0 xoffset 0
-
 transform gold_glow:
     alpha 0.85
     ease 1.2 alpha 1.0
@@ -1666,8 +1661,6 @@ screen cine_entry(i, label, act, primary=False):
         xsize (CINE_COL_W - 52)
         padding (6, 3)
         background None
-        hover_background rbox("#ffffff0e", 8)
-        hover_foreground Transform(Solid("#e0521f"), xsize=4)
         action act
         tooltip MENU_HELP.get(label, "")
         at fade_slide_in(0.4 + i * 0.06, xoff=-30)
@@ -1675,6 +1668,14 @@ screen cine_entry(i, label, act, primary=False):
             at cine_hover
             fixed:
                 xysize (CINE_TIME_W, (56 if primary else 42))
+                text "▸":
+                    xpos -24
+                    yalign 0.5
+                    yoffset -2
+                    size (26 if primary else 20)
+                    color "#e6a817"
+                    font "DejaVuSans.ttf"
+                    at cine_arrow
                 text t:
                     yalign 0.5
                     size (30 if primary else 24)
@@ -1698,22 +1699,19 @@ screen cine_entry(i, label, act, primary=False):
                             color "#e0521f"
                             font CREDIT_FONT
                             at board_blink
-                add Solid("#e0521f"):
-                    xysize (int(len(label) * (26 if primary else 18)), 3)
-                    at cine_line
 
 transform cine_hover:
     on idle:
         ease 0.2 xoffset 0
     on hover:
-        ease 0.2 xoffset 16
+        ease 0.2 xoffset 8
 
-transform cine_line:
-    xzoom 0.0
+transform cine_arrow:
+    alpha 0.0
     on idle:
-        ease 0.2 xzoom 0.0
+        ease 0.15 alpha 0.0
     on hover:
-        ease 0.3 xzoom 1.0
+        ease 0.15 alpha 1.0
 
 # the little train on its rail (left column)
 
@@ -2749,10 +2747,6 @@ screen clues():
 
                 hbox:
                     spacing 24
-                    add rbox("#e6a817" if r["got"] else "#33334a", 6):
-                        xsize 8
-                        ysize 72
-                        yalign 0.5
                     vbox:
                         spacing 6
                         yalign 0.5
@@ -2923,20 +2917,13 @@ screen preferences():
                 selected (pref_tab == tkey)
                 at (fade_slide_in(tdelay), button_hover_anim)
 
-                if pref_tab == tkey:
-                    add rbox("#e0521f", 2):
-                        xpos 12
-                        yalign 0.5
-                        xsize 6
-                        ysize 30
-                        at tab_ind_in
                 text tlabel:
-                    xpos 34
+                    xpos 28
                     yalign 0.5
                     size 22
                     color "#8888a0"
-                    hover_color "#ffd700"
-                    selected_color "#ffffff"
+                    hover_color "#ffffff"
+                    selected_color "#e6a817"
                     font GFONT
 
         null height 28
@@ -4515,10 +4502,6 @@ screen extras_menu():
                         at row_pop(min(idx * 0.06, 0.5))
                         hbox:
                             spacing 24
-                            add rbox(er["accent"] if er["seen"] else "#33334a", 6):
-                                xsize 8
-                                ysize 76
-                                yalign 0.5
                             vbox:
                                 spacing 6
                                 yalign 0.5
@@ -4546,14 +4529,10 @@ screen extras_menu():
                         at row_pop(min(idx * 0.05, 0.5))
                         hbox:
                             spacing 24
-                            add rbox(("#a8281a" if loop else "#e0521f") if open_ else "#33334a", 6):
-                                xsize 8
-                                ysize 60
-                                yalign 0.5
                             vbox:
                                 spacing 4
                                 yalign 0.5
-                                xsize (ex_w - 52 - 32 - 48 - 150)
+                                xsize (ex_w - 52 - 24 - 150)
                                 text (_("PART 2") if loop else _("PART 1")):
                                     size 14
                                     color (("#a8281a" if loop else "#e0521f") if open_ else "#55556a")
@@ -4589,10 +4568,6 @@ screen extras_menu():
                         at row_pop(min(idx * 0.03, 0.5))
                         hbox:
                             spacing 24
-                            add rbox("#e6a817" if cr["met"] else "#33334a", 6):
-                                xsize 8
-                                ysize 60
-                                yalign 0.5
                             vbox:
                                 spacing 4
                                 yalign 0.5
