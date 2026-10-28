@@ -972,11 +972,15 @@ screen credits_tickets():
                     button:
                         xfill True
                         padding (0, 0)
-                        background rbox("#14141a", 26)
-                        hover_background rbox("#1d1820", 26)
+                        background None
                         action Function(credits_click, c["key"])
-                        at card_hover
-                        use crew_card(ci, c)
+                        frame:
+                            xfill True
+                            padding (0, 0)
+                            background rbox("#14141a", 26)
+                            hover_background rbox("#1d1820", 26)
+                            at card_hover
+                            use crew_card(ci, c)
 
             for heading, lines in credit_sections():
                 frame:

@@ -721,7 +721,6 @@ screen mg_blocks():
                 padding (0, 0)
                 background None
                 action Function(blocks_pick, i)
-                at button_hover_anim
                 add rbox(MS_LIT[i] if lit else MS_LIT[i] + "aa", 14):
                     xysize (180, 60)
                 add rbox(MS_LIT[i] if lit else MS_COLORS[i], 14):
@@ -1617,7 +1616,6 @@ screen mg_evidence():
                     background rbox(("#2a2312" if known else "#14141a"), 22)
                     hover_background rbox("#4a3a14", 22)
                     action (Function(evidence_pick, cid) if known and ev_result is None else None)
-                    at button_hover_anim
                     vbox:
                         spacing 12
                         text (title if known else "???"):

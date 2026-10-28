@@ -305,12 +305,17 @@ init python:
     def menu_shake_extreme(trans, st, at):
         return _menu_shake(trans, True)
 
+    # the plain yellow logo, built once: most of the time nothing changes
+    _LOGO_STILL = Fixed("images/Game_Logo_Yellow.webp", fit_first=True)
+
     def _menu_logo(st, at):
         k = menu_rumbling()
         if k is not None:
             red = min(1.0, k * MENU_RUMBLE_LONG / 0.08)
         else:
             red = max(0.0, 1.0 - menu_phase() / 0.6)
+        if red <= 0.0:
+            return _LOGO_STILL, 0.1
         return Fixed("images/Game_Logo_Yellow.webp",
                      Transform("images/Game_Logo_Red.webp", alpha=red),
                      fit_first=True), 0.03
@@ -409,13 +414,6 @@ transform shine_sweep(delay=1.5):
             linear 0.14 alpha 0.0
         pause 3.5
         repeat
-
-transform nudge_hover:
-    xoffset 0
-    on hover:
-        ease 0.12 xoffset 6
-    on idle:
-        ease 0.12 xoffset 0
 
 transform choice_in(delay=0.0):
     alpha 0.0
@@ -1105,6 +1103,10 @@ init python:
     def ach_poll():
         try:
             s = renpy.session
+            now = _time.time()
+            if now - s.get("ach_polled", 0) < 0.5 and not s.get("ach_queue"):
+                return
+            s["ach_polled"] = now
             have = set([a["id"] for a in ACHIEVEMENTS if _ach_unlocked(a["id"])])
             seen = s.get("ach_seen")
             if seen is None:
@@ -1170,7 +1172,6 @@ screen rbtn(label, act, w=200, h=50, r=14, size=22, bg="#101014", hov="#2a2a35",
         selected_hover_background rbox(hcol, r)
         action act
         selected sel
-        at button_hover_anim
 
         frame:
             margin (2, 2)
@@ -1310,7 +1311,6 @@ screen achievements():
                 selected_hover_background rbox("#f06a35", 14)
                 action SetScreenVariable("ach_filter", fkey)
                 selected (ach_filter == fkey)
-                at button_hover_anim
                 text flabel:
                     size 18
                     color "#8888a0"
@@ -1990,11 +1990,14 @@ screen main_menu():
                             if renpy.variant("pc"):
                                 use menu_entry(_("QUIT"), Quit(confirm=True), 0.72)
 
-                        text (GetTooltip() or ""):
+                        fixed:
                             xsize gui.sidebar_content_width
-                            size 15
-                            color "#e6a817"
-                            font GFONT
+                            ysize 42
+                            text (GetTooltip() or ""):
+                                xsize gui.sidebar_content_width
+                                size 15
+                                color "#e6a817"
+                                font GFONT
 
                     text "v[config.version]":
                         xalign 0.95
@@ -2032,11 +2035,17 @@ screen main_menu():
             for i, (lab, act, primary) in enumerate(rows):
                 use mm_row(lab, act, (52 if primary else 34), ("#e0521f" if primary else "#cfcac0"), ("#ff7a3d" if primary else "#ffd76a"), 0.35 + i * 0.05, xa=0.5, pad=(30, 6))
             null height 20
-            text (GetTooltip() or _("Point at an option to see what it does.")):
+            fixed:
                 xalign 0.5
-                size 17
-                color ("#e6a817" if GetTooltip() else "#55556a")
-                font GFONT
+                xsize 900
+                ysize 48
+                text (GetTooltip() or _("Point at an option to see what it does.")):
+                    xalign 0.5
+                    xmaximum 900
+                    text_align 0.5
+                    size 17
+                    color ("#e6a817" if GetTooltip() else "#55556a")
+                    font GFONT
             null height 10
             textbutton _("DEPARTURES"):
                 xalign 0.5
@@ -2143,10 +2152,14 @@ screen main_menu():
                         add Solid("#2a2a35"):
                             xysize (CINE_COL_W - 48, 2)
                         null height 6
-                        text (GetTooltip() or _("Point at an option to see what it does.")):
-                            size 15
-                            color ("#e6a817" if GetTooltip() else "#55556a")
-                            font GFONT
+                        # fixed height: a two-line tip mustn't move the rows under the mouse
+                        fixed:
+                            xsize (CINE_COL_W - 48)
+                            ysize 40
+                            text (GetTooltip() or _("Point at an option to see what it does.")):
+                                size 15
+                                color ("#e6a817" if GetTooltip() else "#55556a")
+                                font GFONT
                         null height 4
                         textbutton (_("v4:00") if version_pokes >= 5 else "v[config.version]"):
                             xalign 1.0
@@ -2446,7 +2459,6 @@ screen choice(items):
                     background rbox("#14141aee", 24)
                     hover_background rbox("#2a2a35", 24)
                     action i.action
-                    at button_hover_anim
 
                     text i.caption:
                         align (0.5, 0.5)
@@ -2653,7 +2665,6 @@ screen game_menu_nav():
                     background rbox("#00000000", 14)
                     hover_background rbox("#ffffff14", 14)
                     action nav_act
-                    at button_hover_anim
                     text nav_label:
                         size 18
                         color "#8888a0"
@@ -2869,7 +2880,7 @@ screen brightness_fx():
 screen preferences():
     tag menu
     modal True
-    default pref_tab = "display"
+    default pref_tab = UI_MEMORY.pref
 
     $ back_action = ShowMenu("main_menu") if main_menu else Return()
     key "game_menu" action back_action
@@ -2908,9 +2919,9 @@ screen preferences():
                 hover_background rbox("#1a1a22", 22)
                 selected_background rbox("#1d1d28", 22)
                 selected_hover_background rbox("#232330", 22)
-                action SetScreenVariable("pref_tab", tkey)
+                action [SetScreenVariable("pref_tab", tkey), SetField(UI_MEMORY, "pref", tkey)]
                 selected (pref_tab == tkey)
-                at (fade_slide_in(tdelay), button_hover_anim)
+                at fade_slide_in(tdelay)
 
                 text tlabel:
                     xpos 28
@@ -2930,7 +2941,7 @@ screen preferences():
             background rbox("#00000000", 22)
             hover_background rbox("#e0521f22", 22)
             action Function(reset_preferences)
-            at (fade_slide_in(0.3), button_hover_anim)
+            at fade_slide_in(0.3)
             text _("RESET TO DEFAULTS"):
                 align (0.5, 0.5)
                 size 15
@@ -2947,7 +2958,7 @@ screen preferences():
             background rbox("#3a0a0a66", 22)
             hover_background rbox("#a8281a66", 22)
             action Confirm(_("Erase EVERYTHING? Every save, achievement, unlock, ticket, coin and setting will be deleted and the game will start fresh."), Function(erase_everything))
-            at (fade_slide_in(0.35), button_hover_anim)
+            at fade_slide_in(0.35)
             text _("ERASE ALL DATA"):
                 align (0.5, 0.5)
                 size 15
@@ -3261,7 +3272,6 @@ screen file_slots(title):
                         hover_background rbox("#1a1a22", 14)
                         selected_background rbox("#e0521f", 14)
                         action FilePage(pg)
-                        at button_hover_anim
                         text str(pg).upper():
                             size 18
                             color "#8888a0"
@@ -3288,7 +3298,6 @@ screen file_slots(title):
                             hover_background rbox("#1c1c26", 22)
                             action FileAction(slot)
                             key "save_delete" action FileDelete(slot)
-                            at nudge_hover
 
                             hbox:
                                 spacing 20
@@ -3831,6 +3840,9 @@ screen help():
                     color "#ffffff"
                     font GFONT
                 text _("J: Open the clue journal"):
+                    color "#ffffff"
+                    font GFONT
+                text _("F5 / F8: Quick save / quick load"):
                     color "#ffffff"
                     font GFONT
 
@@ -4432,7 +4444,7 @@ init python:
 screen extras_menu():
     tag menu
     modal True
-    default xt = "endings"
+    default xt = (UI_MEMORY.extras if UI_MEMORY.extras in [t[0] for t in extras_tabs()] else "endings")
 
     $ back_action = ShowMenu("main_menu") if main_menu else Return()
     key "game_menu" action back_action
@@ -4468,9 +4480,8 @@ screen extras_menu():
                 hover_background rbox("#1a1a22", 14)
                 selected_background rbox("#e0521f", 14)
                 selected_hover_background rbox("#f06a35", 14)
-                action SetScreenVariable("xt", tkey)
+                action [SetScreenVariable("xt", tkey), SetField(UI_MEMORY, "extras", tkey)]
                 selected (xt == tkey)
-                at button_hover_anim
                 text tlabel:
                     size 18
                     color "#8888a0"
@@ -4556,7 +4567,6 @@ screen extras_menu():
                                     text_color "#0a0a0e"
                                     text_font GFONT
                                     action Function(chapter_play, lab)
-                                    at button_hover_anim
 
             elif xt == "cast":
                 for idx, cr in enumerate(cast_rows()):
@@ -4735,13 +4745,17 @@ screen mm_logo(w):
                 fit "contain"
 
 screen mm_help(col="#e6a817", dim="#55556a", size=16, xa=0.0, w=900, font=None):
-    text (GetTooltip() or _("Point at an option to see what it does.")):
+    fixed:
         xalign xa
-        xmaximum w
-        text_align xa
-        size size
-        color (col if GetTooltip() else dim)
-        font (font or GFONT)
+        xsize w
+        ysize int(size * 2.8)
+        text (GetTooltip() or _("Point at an option to see what it does.")):
+            xalign xa
+            xmaximum w
+            text_align xa
+            size size
+            color (col if GetTooltip() else dim)
+            font (font or GFONT)
 
 screen mm_departures(col="#55556a", size=16):
     textbutton _("DEPARTURES"):
@@ -4977,3 +4991,18 @@ label chapter_replay:
     $ renpy.show(CHAPTER_BG.get(persistent.replay_to, "black"))
     with fade
     jump expression (persistent.replay_to or "carriage_1_start")
+
+
+# QUICK SAVE / LOAD KEYS, and the last tab you had open in EXTRAS and SETTINGS
+
+init python:
+    class UI_MEMORY(object):
+        pref = "display"
+        extras = "endings"
+
+    config.always_shown_screens.append("quick_keys")
+
+screen quick_keys():
+    if not main_menu and not renpy.get_screen("menu"):
+        key "K_F5" action QuickSave()
+        key "K_F8" action QuickLoad()

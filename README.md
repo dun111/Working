@@ -41,6 +41,7 @@ There's also a clue journal, achievements, a radio with the soundtrack, a casino
 | Tab | Turn skipping on or off |
 | Mouse wheel up | Look back at earlier lines |
 | J | Clue journal |
+| F5 / F8 | Quick save / quick load |
 | F9 | Cheat menu (dev build only) |
 
 ## Running from source
