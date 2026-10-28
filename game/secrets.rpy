@@ -649,6 +649,15 @@ init python:
 
     SECRET_LETTERS = sorted(set("".join(c["key"] for c in CREW)) | set("ba") | set("debug"))
 
+    # clicking the Blackberry logo after "Stop clicking it. Please."
+    BERRY_LINES = {
+        1: _("You already found the secret. Stop clicking it. Please."),
+        4: _("\"Now leave me alone!\""),
+        7: _("\"Can yer shut up?\""),
+        10: _("\"WATCH OUT.\""),
+        13: _("\"Fine.\""),
+    }
+
     def blackberry_click():
         _SECRET.berry_clicks += 1
         n = _SECRET.berry_clicks
