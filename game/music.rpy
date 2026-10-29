@@ -296,7 +296,7 @@ screen now_playing(title, artist):
     frame:
         xalign 1.0
         xoffset -40
-        ypos (110 if main_menu else 30)
+        ypos (110 if main_menu else 30) + (170 if renpy.get_screen("ach_toast") else 0)
         padding (22, 12)
         background rbox("#3a2412f0", 14)
         at np_slide
