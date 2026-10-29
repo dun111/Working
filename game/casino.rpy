@@ -135,10 +135,10 @@ screen casino_title(title, hint):
 # THE CASINO  (the lobby)
 
 define CASINO_GAMES = [
-    ("slots",    _("SLOTS"),      _("Three reels. Match them. Three 4:00s is the jackpot.")),
+    ("slots",    _("SLOTS"),      _("Match three. Three 4:00s is the jackpot.")),
     ("roulette", _("ROULETTE"),   _("Bet on a colour, odd or even, a half, or one number.")),
     ("horses",   _("HORSE RACE"), _("Pick one of six horses and watch them race.")),
-    ("mahjong",  _("MAHJONG"),    _("Clear the table. Every pair pays, a full clear pays big.")),
+    ("mahjong",  _("MAHJONG"),    _("Every pair pays. Clear the table for a big win.")),
 ]
 
 init python:
@@ -177,7 +177,7 @@ screen casino():
                 size 44
                 color "#e6a817"
                 font GFONT
-            text _("Every game pays out in COINS. Trade 100 coins for a ticket in EXTRAS > GAMEPASS."):
+            text _("You win coins here. 100 coins buys a ticket in EXTRAS > GAMEPASS."):
                 size 16
                 color "#8888a0"
                 font GFONT
@@ -341,7 +341,7 @@ screen roulette():
 
     add Solid("#0a0a0ef4")
     use casino_wallet
-    use casino_title(_("ROULETTE"), _("Click a bet as many times as you like (one BET each click), then SPIN. Numbers 0 to 36."))
+    use casino_title(_("ROULETTE"), _("Click bets to place them, then SPIN."))
 
     frame:
         align (0.5, 0.55)
@@ -405,7 +405,7 @@ screen roulette():
                     font GFONT
                 use rbtn("+", Function(rl_pick_step, 1), w=56, h=56, r=16, size=24)
                 use rbtn(rl_label(rl_pick, _("BET ON IT")), Function(rl_place, rl_pick), w=220, h=56, r=16, size=18, sel=(rl_pick in rl_bets))
-            text _("Colours, odd/even and halves pay 2x. 0 loses them all."):
+            text _("Colours, odd/even and halves pay 2x. 0 loses."):
                 xalign 0.5
                 size 15
                 color "#55556a"
@@ -517,7 +517,7 @@ screen horses():
 
     add Solid("#0a0a0ef4")
     use casino_wallet
-    use casino_title(_("HORSE RACE"), _("Pick a horse, set your BET, press START. A low price wins more often, a high price pays more."))
+    use casino_title(_("HORSE RACE"), _("Pick a horse and press START. Low odds win more often, high odds pay more."))
 
     frame:
         align (0.5, 0.55)
