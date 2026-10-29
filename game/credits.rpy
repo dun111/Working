@@ -233,7 +233,7 @@ init python:
         renpy.restart_interaction()
 
 screen mg_debug():
-    use mg_scene(_("DEBUG"), _("Each piece of code has one broken line. Click it."), "black", skippable=False):
+    use mg_scene(_("DEBUG"), _("Click the broken line."), "black", skippable=False):
         if dbg_result is None:
             timer 0.1 repeat True action Function(debug_tick)
             if dbg_picked is not None:

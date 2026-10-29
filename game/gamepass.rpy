@@ -8,14 +8,14 @@ default persistent.tickets = 0
 default persistent.passes = set()
 
 define GAMEPASSES = [
-    ("double",       _("DOUBLE TICKETS"), _("Earn twice as many tickets from now on."), 10),
-    ("extra_life",   _("EXTRA LIFE"),     _("+1 life in DON'T LET THEM REACH YOU, +4 battery in SEARCH IN THE DARK, +3 tries on THE LUGGAGE LOCK, +1 tear on PULL UP THE CARPET."), 8),
-    ("cheats",       _("CHEAT MENU"),     _("Press F9 for the cheat menu: jump to any chapter, story flags, jumpscares, every minigame, unlocks and developer tools."), 15),
-    ("dlc",          _("DLC"),            _("Three new EXTRAS tabs: GALLERY (every character), JUKEBOX (the soundtrack) and THEATRE (the videos)."), 25),
-    ("revealer",     _("CHOICE REVEALER"), _("Every choice shows where it leads: the right answers, the deadly ones, achievements, minigames, and what you picked last time."), 18),
-    ("rewind",       _("REWIND"),         _("A REWIND button in the quick menu takes you straight back to your last choice so you can pick again."), 14),
-    ("themes",       _("THEME PACK"),     _("Exclusive colour themes for the whole game (MIDNIGHT, BLOOD MOON, ROYAL, NOIR), the CENTERED main menu, and the TERMINAL (a plain terminal window) and TICKET dialogue boxes. Switch in SETTINGS > DISPLAY."), 16),
-    ("high_roller",  _("HIGH ROLLER"),    _("4:00 Casino: 100 and 250 coin bets, and double the free daily coins."), 10),
+    ("double",       _("DOUBLE TICKETS"), _("Double tickets from now on."), 10),
+    ("extra_life",   _("EXTRA LIFE"),     _("More lives, battery and tries in the harder minigames."), 8),
+    ("cheats",       _("CHEAT MENU"),     _("Press F9 to open the cheat menu."), 15),
+    ("dlc",          _("DLC"),            _("Adds GALLERY, JUKEBOX and THEATRE to EXTRAS."), 25),
+    ("revealer",     _("CHOICE REVEALER"), _("Choices show where they lead."), 18),
+    ("rewind",       _("REWIND"),         _("A REWIND button that takes you back to your last choice."), 14),
+    ("themes",       _("THEME PACK"),     _("Extra colour themes, a centered main menu and two more dialogue boxes."), 16),
+    ("high_roller",  _("HIGH ROLLER"),    _("Bigger casino bets and double daily coins."), 10),
 ]
 
 define GAMEPASS_SOON = {}
@@ -100,7 +100,7 @@ screen gamepass_list(w):
                 size 34
                 color "#ffd700"
                 font GFONT
-            text _("Win minigames, find secrets and see endings to earn more."):
+            text _("Earn more from minigames, secrets and endings."):
                 yalign 0.5
                 size 16
                 color "#8888a0"
@@ -566,6 +566,6 @@ init python:
     def rewind_go():
         n = renpy.get_identifier_checkpoints(store.rewind_point) if store.rewind_point else None
         if n is None:
-            renpy.notify(_("Can't rewind past a minigame or a loaded save."))
+            renpy.notify(_("Can't rewind past a minigame or a load."))
             return
         renpy.rollback(checkpoints=n, force=True)

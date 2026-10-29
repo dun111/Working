@@ -836,7 +836,7 @@ init python:
     def continue_after_fail():
         if persistent.cont_msg:
             persistent.cont_msg = False
-            renpy.notify(_("That save is from an older version of the game and can't be opened."))
+            renpy.notify(_("That save is too old to open."))
         if persistent.cont_retry:
             persistent.cont_retry = False
             continue_game()
@@ -1496,12 +1496,12 @@ label splashscreen:
 define MENU_HELP = {
     "NEW GAME": _("Start the story from the beginning."),
     "PLAY": _("Start the story from the beginning."),
-    "CONTINUE": _("Pick up from your latest save, or start a new game if there isn't one."),
+    "CONTINUE": _("Carry on from your last save."),
     "LOAD GAME": _("Choose a save to load."),
-    "SETTINGS": _("Display, text, sound, gameplay and accessibility."),
-    "ACHIEVEMENTS": _("See what you've unlocked."),
-    "EXTRAS": _("Endings, cast, stats, minigames, gamepasses and more."),
-    "CREDITS": _("The people who made the game."),
+    "SETTINGS": _("Change the settings."),
+    "ACHIEVEMENTS": _("Your achievements."),
+    "EXTRAS": _("Endings, chapters, minigames and more."),
+    "CREDITS": _("Who made the game."),
     "QUIT": _("Close the game."),
 }
 
@@ -2180,7 +2180,7 @@ screen main_menu():
         background rbox("#0c0c10d8", 16)
         hover_background rbox("#2a2210e8", 16)
         action Function(casino_open)
-        tooltip _("Open the 4:00 Casino: slots, roulette, horse racing and mahjong for coins.")
+        tooltip _("Open the casino.")
         at fade_slide_in(1.0, xoff=40)
         hbox:
             spacing 12
@@ -2957,7 +2957,7 @@ screen preferences():
             padding (0, 0)
             background rbox("#3a0a0a66", 22)
             hover_background rbox("#a8281a66", 22)
-            action Confirm(_("Erase EVERYTHING? Every save, achievement, unlock, ticket, coin and setting will be deleted and the game will start fresh."), Function(erase_everything))
+            action Confirm(_("Erase everything? All saves, unlocks and settings will be gone."), Function(erase_everything))
             at fade_slide_in(0.35)
             text _("ERASE ALL DATA"):
                 align (0.5, 0.5)
@@ -2983,21 +2983,21 @@ screen preferences():
                 vbox:
                     spacing 14
 
-                    use pref_row(_("WINDOW MODE"), _("Play in a window or take over the screen."), 0.0):
+                    use pref_row(_("WINDOW MODE"), _("Window or fullscreen."), 0.0):
                         use pref_toggle(_("WINDOW"), Preference("display", "window"))
                         use pref_toggle(_("FULLSCREEN"), Preference("display", "fullscreen"))
 
-                    use pref_row(_("DIALOGUE FONT SIZE"), _("Size of the text in the dialogue box."), 0.12):
+                    use pref_row(_("DIALOGUE FONT SIZE"), _("Dialogue text size."), 0.12):
                         for dsz, dlabel in DIALOGUE_SIZES:
                             use pref_toggle(dlabel, SetField(persistent, "dialogue_font_size", dsz), selected=(persistent.dialogue_font_size == dsz), w=90)
 
-                    use pref_row(_("DIALOGUE BOX STYLE"), _("How the dialogue box looks."), 0.0):
+                    use pref_row(_("DIALOGUE BOX STYLE"), _("The look of the dialogue box."), 0.0):
                         use pref_toggle(_("CLASSIC"), SetField(persistent, "dialogue_style", "classic"), selected=(dialogue_style_now() == "classic"), w=130)
                         use pref_toggle(_("MINIMAL"), SetField(persistent, "dialogue_style", "minimal"), selected=(persistent.dialogue_style == "minimal"), w=130)
                         use pref_toggle(_("PAPER"), SetField(persistent, "dialogue_style", "paper"), selected=(persistent.dialogue_style == "paper"), w=130)
                         use pref_toggle(_("FILM"), SetField(persistent, "dialogue_style", "film"), selected=(persistent.dialogue_style == "film"), w=130)
 
-                    use pref_row(_("THEME PACK DIALOGUE BOXES"), (_("Exclusive: a plain terminal window, or a train ticket.") if has_pass("themes") else _("Unlock TERMINAL and TICKET with the THEME PACK gamepass (EXTRAS > GAMEPASS).")), 0.0):
+                    use pref_row(_("THEME PACK DIALOGUE BOXES"), (_("A terminal window or a train ticket.") if has_pass("themes") else _("Needs the THEME PACK gamepass.")), 0.0):
                         if has_pass("themes"):
                             use pref_toggle(_("TERMINAL"), SetField(persistent, "dialogue_style", "terminal"), selected=(persistent.dialogue_style == "terminal"), w=150)
                             use pref_toggle(_("TICKET"), SetField(persistent, "dialogue_style", "ticket"), selected=(persistent.dialogue_style == "ticket"), w=150)
@@ -3019,11 +3019,11 @@ screen preferences():
                             font GFONT
                         use rbtn("›", Function(menu_style_step, 1), w=56, h=44, r=14, size=24)
 
-                    use pref_row(_("CREDITS STYLE"), _("How the credits look: SCROLL, TICKETS, FILM or SPOTLIGHT. You can also switch inside the credits."), 0.0):
+                    use pref_row(_("CREDITS STYLE"), _("The style of the credits."), 0.0):
                         for cid, cname in CREDIT_STYLES:
                             use pref_toggle(cname, Function(set_credits_style, cid), selected=(credits_style_now() == cid), w=(160 if cid == "departures" else 130))
 
-                    use pref_row(_("COLOUR THEME"), (_("THEME PACK: a soft colour grade on the carriage backgrounds, the maps and the main menu. Characters and text are never tinted.") if has_pass("themes") else _("Unlock 10 colour themes with the THEME PACK gamepass (EXTRAS > GAMEPASS).")), 0.0):
+                    use pref_row(_("COLOUR THEME"), (_("Tints the backgrounds and maps.") if has_pass("themes") else _("Needs the THEME PACK gamepass.")), 0.0):
                         if has_pass("themes"):
                             use rbtn("‹", Function(theme_step, -1), w=56, h=44, r=14, size=24)
                             text theme_name():
@@ -3041,11 +3041,11 @@ screen preferences():
                                 color "#55556a"
                                 font GFONT
 
-                    use pref_row(_("FILL WIDE SCREENS"), _("Use the whole screen on ultrawide and 16:10 monitors. Restart the game to apply."), 0.0):
+                    use pref_row(_("FILL WIDE SCREENS"), _("Use the whole screen on wide monitors. Needs a restart."), 0.0):
                         use pref_toggle(_("ON"), SetField(persistent, "fill_screen", True), selected=(persistent.fill_screen is not False))
                         use pref_toggle(_("OFF"), SetField(persistent, "fill_screen", False), selected=(persistent.fill_screen is False))
-                    use pref_onoff(_("MENU EFFECTS"), _("Light streaks and embers on the main menu."), "menu_fx", 0.18)
-                    use pref_onoff(_("ACHIEVEMENT POPUPS"), _("Show a banner when you unlock an achievement."), "ach_toasts", 0.24)
+                    use pref_onoff(_("MENU EFFECTS"), _("Lights and embers on the main menu."), "menu_fx", 0.18)
+                    use pref_onoff(_("ACHIEVEMENT POPUPS"), _("Show a pop-up for new achievements."), "ach_toasts", 0.24)
 
         showif pref_tab == "text":
             viewport:
@@ -3057,37 +3057,37 @@ screen preferences():
                 vbox:
                     spacing 14
 
-                    use pref_row(_("TEXT SPEED"), _("How fast dialogue appears."), 0.0):
+                    use pref_row(_("TEXT SPEED"), _("How fast the text types out."), 0.0):
                         use pref_slider(Preference("text speed"), text_speed_label())
 
-                    use pref_row(_("AUTO-FORWARD SPEED"), _("How long auto mode waits on each line. Slide left for faster, right for slower. (Also in the quick menu while Auto is on.)"), 0.06):
+                    use pref_row(_("AUTO-FORWARD SPEED"), _("How long Auto waits on each line."), 0.06):
                         use pref_slider(Preference("auto-forward time"), auto_speed_label())
 
-                    use pref_row(_("DIALOGUE TEXT COLOUR"), _("Colour of the dialogue text. White and yellow stand out more. (The paper box keeps its dark ink.)"), 0.09):
+                    use pref_row(_("DIALOGUE TEXT COLOUR"), _("Dialogue text colour."), 0.09):
                         use pref_toggle(_("LIGHT"), SetField(persistent, "text_color", "light"), selected=(persistent.text_color == "light"), w=130)
                         use pref_toggle(_("WHITE"), SetField(persistent, "text_color", "white"), selected=(persistent.text_color == "white"), w=130)
                         use pref_toggle(_("YELLOW"), SetField(persistent, "text_color", "yellow"), selected=(persistent.text_color == "yellow"), w=130)
 
-                    use pref_row(_("LINE SPACING"), _("Space between lines of dialogue. Wider can be easier to read."), 0.10):
+                    use pref_row(_("LINE SPACING"), _("Space between lines."), 0.10):
                         use pref_toggle(_("NORMAL"), SetField(persistent, "line_spacing", 10), selected=(persistent.line_spacing == 10), w=130)
                         use pref_toggle(_("WIDE"), SetField(persistent, "line_spacing", 20), selected=(persistent.line_spacing == 20), w=130)
                         use pref_toggle(_("WIDEST"), SetField(persistent, "line_spacing", 30), selected=(persistent.line_spacing == 30), w=130)
 
-                    use pref_row(_("TEXT EFFECTS"), _("Shaking, waving and screaming words in dialogue. STILL keeps the colours and sizes but nothing moves."), 0.11):
+                    use pref_row(_("TEXT EFFECTS"), _("Shaking and waving words. STILL turns the movement off."), 0.11):
                         use pref_toggle(_("FULL"), SetField(persistent, "text_fx", "full"), selected=(persistent.text_fx == "full"), w=130)
                         use pref_toggle(_("STILL"), SetField(persistent, "text_fx", "still"), selected=(persistent.text_fx == "still"), w=130)
                         use pref_toggle(_("OFF"), SetField(persistent, "text_fx", "off"), selected=(persistent.text_fx == "off"), w=130)
 
-                    use pref_onoff(_("QUICK MENU BAR"), _("The row of buttons under the dialogue box. Esc still opens the menu when it's hidden."), "quick_menu_shown", 0.12)
+                    use pref_onoff(_("QUICK MENU BAR"), _("The buttons under the dialogue box."), "quick_menu_shown", 0.12)
 
-                    use pref_row(_("DIALOGUE BOX OPACITY"), _("How see-through the dialogue box is."), 0.12):
+                    use pref_row(_("DIALOGUE BOX OPACITY"), _("Dialogue box see-through amount."), 0.12):
                         use pref_slider(FieldValue(persistent, "dialogue_opacity", range=0.7, offset=0.3), opacity_label())
 
-                    use pref_row(_("SKIP"), _("Which text the skip button is allowed to fast-forward."), 0.18):
+                    use pref_row(_("SKIP"), _("What Skip skips."), 0.18):
                         use pref_toggle(_("SEEN TEXT"), Preference("skip", "seen"))
                         use pref_toggle(_("ALL TEXT"), Preference("skip", "all"))
 
-                    use pref_row(_("AFTER CHOICES"), _("What skipping does when a choice appears."), 0.24):
+                    use pref_row(_("AFTER CHOICES"), _("What Skip does at a choice."), 0.24):
                         use pref_toggle(_("STOP SKIPPING"), Preference("after choices", "stop"))
                         use pref_toggle(_("KEEP SKIPPING"), Preference("after choices", "skip"))
 
@@ -3101,35 +3101,35 @@ screen preferences():
                 vbox:
                     spacing 14
 
-                    use pref_row(_("MUSIC VOLUME"), _("Background music level."), 0.0):
+                    use pref_row(_("MUSIC VOLUME"), _("Music volume."), 0.0):
                         use pref_slider(Preference("music volume"), vol_pct("music"))
 
                     use pref_row(_("SOUND VOLUME"), _("Sound effects level."), 0.06):
                         use pref_slider(Preference("sound volume"), vol_pct("sfx"))
 
-                    use pref_row(_("VOICE VOLUME"), _("Voiced lines level (this game has no voiced lines yet)."), 0.12):
+                    use pref_row(_("VOICE VOLUME"), _("Voice volume."), 0.12):
                         use pref_slider(Preference("voice volume"), vol_pct("voice"))
 
-                    use pref_row(_("MUTE ALL AUDIO"), _("Silence everything at once."), 0.18):
+                    use pref_row(_("MUTE ALL AUDIO"), _("Mute all sound."), 0.18):
                         use pref_toggle(_("MUTED"), Preference("all mute", "enable"))
                         use pref_toggle(_("SOUND ON"), Preference("all mute", "disable"))
 
-                    use pref_onoff(_("MENU MUSIC ECHO"), _("Muffled, echoey music on the main menu. Applies instantly."), "menu_echo", 0.24)
+                    use pref_onoff(_("MENU MUSIC ECHO"), _("Muffled music on the main menu."), "menu_echo", 0.24)
 
-                    use pref_row(_("IN-GAME MUSIC"), _("Songs that fit each carriage, the investigation and the endings. Quiet when it matters."), 0.27):
+                    use pref_row(_("IN-GAME MUSIC"), _("Music during the story."), 0.27):
                         use pref_toggle(_("ON"), Function(set_ingame_music, True), selected=bool(persistent.ingame_music))
                         use pref_toggle(_("OFF"), Function(set_ingame_music, False), selected=(not persistent.ingame_music))
 
-                    use pref_row(_("MAIN MENU MUSIC"), _("The main theme on repeat, or shuffle through a few songs."), 0.30):
+                    use pref_row(_("MAIN MENU MUSIC"), _("The theme on repeat, or a shuffle."), 0.30):
                         use pref_toggle(_("THEME"), Function(set_menu_music, "theme"), selected=(persistent.menu_music != "shuffle"))
                         use pref_toggle(_("SHUFFLE"), Function(set_menu_music, "shuffle"), selected=(persistent.menu_music == "shuffle"))
 
-                    use pref_onoff(_("SONG POPUPS"), _("Show the song's name when a new one starts, like a radio."), "song_popups", 0.33)
+                    use pref_onoff(_("SONG POPUPS"), _("Show the song name when it changes."), "song_popups", 0.33)
 
                     use pref_row(_("NOW PLAYING"), now_playing_title(), 0.36):
                         use pref_toggle(_("NEXT SONG"), Function(music_skip), selected=False, w=200)
 
-                    use pref_row(_("RADIO STATION"), _("GREKHOV FM plays songs that fit where you are. The other stations play their own songs everywhere, without being reset."), 0.39):
+                    use pref_row(_("RADIO STATION"), _("GREKHOV FM follows the story. The jukebox shuffles everything else."), 0.39):
                         use rbtn("‹", Function(radio_station_step, -1), w=56, h=44, r=14, size=24)
                         text radio_station_name():
                             yalign 0.5
@@ -3140,7 +3140,7 @@ screen preferences():
                             font GFONT
                         use rbtn("›", Function(radio_station_step, 1), w=56, h=44, r=14, size=24)
 
-                    use pref_onoff(_("RADIO BAR"), _("The little RADIO tab in the bottom-right corner. Point at it to open the radio, click it to keep it open."), "radio_bar", 0.42)
+                    use pref_onoff(_("RADIO BAR"), _("The RADIO tab in the corner."), "radio_bar", 0.42)
 
         showif pref_tab == "gameplay":
             viewport:
@@ -3152,17 +3152,17 @@ screen preferences():
                 vbox:
                     spacing 14
 
-                    use pref_row(_("MINIGAME DIFFICULTY"), _("Changes speed, time limits and mistakes allowed."), 0.0):
+                    use pref_row(_("MINIGAME DIFFICULTY"), _("How hard the minigames are."), 0.0):
                         use pref_toggle(_("EASY"), SetField(persistent, "mg_difficulty", 0), selected=(persistent.mg_difficulty == 0), w=130)
                         use pref_toggle(_("NORMAL"), SetField(persistent, "mg_difficulty", 1), selected=(persistent.mg_difficulty == 1), w=130)
                         use pref_toggle(_("HARD"), SetField(persistent, "mg_difficulty", 2), selected=(persistent.mg_difficulty == 2), w=130)
 
-                    use pref_onoff(_("MINIGAME TIMERS"), _("Turn off to play every minigame with no time limit."), "mg_timers", 0.06)
-                    use pref_onoff(_("ALLOW SKIPPING MINIGAMES"), _("Shows a SKIP button on every minigame (counts as a win)."), "mg_skip_allowed", 0.12)
-                    use pref_onoff(_("AUTO-SAVE ON NEW CARRIAGE"), _("Saves automatically when you enter a carriage."), "autosave_on", 0.18)
-                    use pref_onoff(_("BURN-REVEAL TRANSITION"), _("The ticket scene burns away to reveal the map."), "film_transition", 0.24)
-                    use pref_onoff(_("AGED MAP LOOK"), _("Old parchment, stains and lamp flicker over the carriage maps."), "old_map", 0.30)
-                    use pref_onoff(_("MAP OBJECTIVE LINE"), _("Show what to do next at the top of each carriage map."), "show_objective", 0.36)
+                    use pref_onoff(_("MINIGAME TIMERS"), _("Turn off for no time limits."), "mg_timers", 0.06)
+                    use pref_onoff(_("ALLOW SKIPPING MINIGAMES"), _("Adds a SKIP button to minigames."), "mg_skip_allowed", 0.12)
+                    use pref_onoff(_("AUTO-SAVE ON NEW CARRIAGE"), _("Saves when you enter a carriage."), "autosave_on", 0.18)
+                    use pref_onoff(_("BURN-REVEAL TRANSITION"), _("The opening burns away into the map."), "film_transition", 0.24)
+                    use pref_onoff(_("AGED MAP LOOK"), _("An old paper look on the maps."), "old_map", 0.30)
+                    use pref_onoff(_("MAP OBJECTIVE LINE"), _("Show what to do next on the maps."), "show_objective", 0.36)
 
         showif pref_tab == "comfort":
             viewport:
@@ -3174,11 +3174,11 @@ screen preferences():
                 vbox:
                     spacing 14
 
-                    use pref_row(_("FLASHING LIGHTS"), _("SOFTER swaps flashes and flickering lights for slow fades. Recommended if you are sensitive to flashing."), 0.0):
+                    use pref_row(_("FLASHING LIGHTS"), _("SOFTER replaces flashes with slow fades."), 0.0):
                         use pref_toggle(_("NORMAL"), SetField(persistent, "reduce_flashes", False), selected=(not persistent.reduce_flashes), w=130)
                         use pref_toggle(_("SOFTER"), SetField(persistent, "reduce_flashes", True), selected=bool(persistent.reduce_flashes), w=130)
 
-                    use pref_row(_("SCREEN BRIGHTNESS"), _("Lighten the game if it's too dark to see, or darken it for a dark room."), 0.06):
+                    use pref_row(_("SCREEN BRIGHTNESS"), _("Make the game lighter or darker."), 0.06):
                         use pref_toggle("-", SetField(persistent, "brightness", max(-2, (persistent.brightness or 0) - 1)), selected=False, w=60)
                         text brightness_label():
                             yalign 0.5
@@ -3189,17 +3189,17 @@ screen preferences():
                             font GFONT
                         use pref_toggle("+", SetField(persistent, "brightness", min(2, (persistent.brightness or 0) + 1)), selected=False, w=60)
 
-                    use pref_row(_("HOTSPOT LABELS"), _("The little tags on things you can click. ON HOVER keeps the scene clear until you point at something."), 0.12):
+                    use pref_row(_("HOTSPOT LABELS"), _("Labels on things you can click."), 0.12):
                         use pref_toggle(_("ALWAYS"), SetField(persistent, "hotspot_labels", "always"), selected=(persistent.hotspot_labels != "hover"), w=150)
                         use pref_toggle(_("ON HOVER"), SetField(persistent, "hotspot_labels", "hover"), selected=(persistent.hotspot_labels == "hover"), w=150)
 
-                    use pref_row(_("RUMBLE STRENGTH"), _("How hard the train shakes, on the main menu and in the carriages. EXTREME is violent. Turn it OFF if the movement makes you feel sick."), 0.18):
+                    use pref_row(_("RUMBLE STRENGTH"), _("How much the train shakes."), 0.18):
                         use pref_toggle(_("OFF"), Function(set_rumble, "off"), selected=(not persistent.screen_shake_enabled), w=120)
                         use pref_toggle(_("NORMAL"), Function(set_rumble, "normal"), selected=(persistent.screen_shake_enabled and not persistent.rumble_extreme), w=120)
                         use pref_toggle(_("EXTREME"), Function(set_rumble, "extreme"), selected=(persistent.screen_shake_enabled and persistent.rumble_extreme), w=120)
 
-                    use pref_onoff(_("JUMPSCARES"), _("Jumpscares, the scary sounds and the shadows on the maps."), "jumpscares", 0.24)
-                    use pref_onoff(_("REDUCE MOTION"), _("Stops shaking, swaying, embers, zooms and dialogue animations."), "reduce_motion", 0.30)
+                    use pref_onoff(_("JUMPSCARES"), _("Jumpscares and scary sounds."), "jumpscares", 0.24)
+                    use pref_onoff(_("REDUCE MOTION"), _("Turns off most movement."), "reduce_motion", 0.30)
 
         showif pref_tab == "access":
             viewport:
@@ -3211,14 +3211,14 @@ screen preferences():
                 vbox:
                     spacing 14
 
-                    use pref_onoff(_("TEXT OUTLINE"), _("Black outline around dialogue for easier reading."), "text_outline", 0.06)
-                    use pref_onoff(_("READABLE FONT"), _("Swap the dialogue font for a plain, clear one."), "readable_font", 0.12)
+                    use pref_onoff(_("TEXT OUTLINE"), _("Outline the dialogue text."), "text_outline", 0.06)
+                    use pref_onoff(_("READABLE FONT"), _("Use a plainer font."), "readable_font", 0.12)
 
-                    use pref_row(_("SELF-VOICING"), _("Read the screen aloud (text-to-speech)."), 0.18):
+                    use pref_row(_("SELF-VOICING"), _("Read the text aloud."), 0.18):
                         use pref_toggle(_("ON"), Preference("self voicing", "enable"))
                         use pref_toggle(_("OFF"), Preference("self voicing", "disable"))
 
-                    text _("Flashing lights, brightness, rumble, jumpscares and reduce motion are in COMFORT. Text colour, line spacing and text effects are in TEXT & SKIP."):
+                    text _("More options are in COMFORT and TEXT & SKIP."):
                         xsize PREF_PANEL_W
                         size 16
                         color "#666677"
@@ -3821,13 +3821,13 @@ screen help():
                 text _("Keyboard Controls"):
                     color "#e6a817"
                     font GFONT
-                text _("Enter / Space: Advance dialogue"):
+                text _("Enter / Space: Next line"):
                     color "#ffffff"
                     font GFONT
-                text _("Escape: Toggle Game Menu"):
+                text _("Escape: Game menu"):
                     color "#ffffff"
                     font GFONT
-                text _("Ctrl: Fast Forward while held"):
+                text _("Ctrl: Hold to fast-forward"):
                     color "#ffffff"
                     font GFONT
                 text _("Tab: Toggle Skipping"):
@@ -3836,7 +3836,7 @@ screen help():
                 text _("Delete (over a save slot): Delete that save"):
                     color "#ffffff"
                     font GFONT
-                text _("Minigames: Space = act, Up/Down = stoke/vent (engine)"):
+                text _("Minigames: Space, and Up/Down for the engine"):
                     color "#ffffff"
                     font GFONT
                 text _("J: Open the clue journal"):
@@ -4366,25 +4366,25 @@ init python:
             if not (_flag_on("c2_talked_eduard") and _flag_on("c2_talked_shunyu")):
                 return "Carriage 2: talk to Eduard and Shunyu."
             if not (_flag_on("c3_talked_kimmy") and _flag_on("c3_talked_himmel") and _flag_on("c3_talked_sebastian") and _flag_on("c3_talked_misha")):
-                return "Carriage 3: speak to everyone in the cabins."
+                return "Carriage 3: talk to everyone in the cabins."
             if not (_flag_on("c4_talked_agatha") and _flag_on("c4_talked_ichora")):
                 return "Carriage 4: meet the staff."
             if not (_flag_on("c5_talked_pattison") and _flag_on("c5_talked_alexander")):
                 return "Carriage 5: talk to Pattison and Alexander."
             return "Go through the door at the end of Carriage 5."
         if not _flag_on("c2_p2_found_body"):
-            return "Search Carriage 2. Something is wrong at the second table."
+            return "Carriage 2: look at the second table."
         if not (_flag_on("c2_p2_reinterviewed_eduard") and _flag_on("c2_p2_reinterviewed_agatha")):
             return "Carriage 2: question Eduard and Agatha."
         if not _flag_on("clue_drug_wrapper"):
-            return "Carriage 3: something is hidden in the luggage."
+            return "Carriage 3: check the luggage."
         if not _flag_on("clue_hidden_tile"):
-            return "Carriage 3: that carpet has been sticking up all along."
+            return "Carriage 3: check the carpet."
         if not (_flag_on("kimmy_reinterviewed") and _flag_on("himmel_reinterviewed") and _flag_on("sebastian_reinterviewed") and _flag_on("misha_reinterviewed")):
             return "Carriage 3: question everyone again."
         if not (_flag_on("alexander_reinterviewed") and _flag_on("pattison_reinterviewed")):
             return "Carriage 5: question Alexander, then Pattison."
-        return "You have everything. Decide who did it."
+        return "Decide who did it."
 
     KONAMI = ["UP", "UP", "DOWN", "DOWN", "LEFT", "RIGHT", "LEFT", "RIGHT", "b", "a"]
     _konami_buf = []
@@ -4402,7 +4402,7 @@ init python:
                     pass
             sfx("win")
             renpy.show_screen("map_stamp", "4:01", "ONE MORE STOP")
-            renpy.notify("EXTRAS: a new tab appeared.")
+            renpy.notify("New tab in EXTRAS.")
             renpy.restart_interaction()
 
     def key_poke():
@@ -4417,7 +4417,7 @@ init python:
                 achievement.grant("key_cut")
             except Exception:
                 pass
-            renpy.notify("The string creaks. It is holding... for now.")
+            renpy.notify("The string creaks.")
         elif n == 50:
             renpy.notify("Ichora says: 'Hey! That is MY key!'")
         renpy.restart_interaction()
@@ -4676,13 +4676,13 @@ init offset = 0
 
 
 define MENU_STYLES = [
-    ("new",       _("BOARD"),     _("The cinematic menu: the logo, the train and the departure board down the left.")),
+    ("new",       _("BOARD"),     _("The departure board.")),
     ("classic",   _("CLASSIC"),   _("The rounded sidebar.")),
-    ("minimal",   _("MINIMAL"),   _("Just the logo and a clean list, in one column on the left.")),
-    ("panel",     _("PANEL"),     _("A dark glass panel down the right side.")),
-    ("cinema",    _("CINEMA"),    _("Black bars top and bottom, the logo big in the middle, the options along the bottom.")),
-    ("ticket",    _("TICKET"),    _("The menu printed on a train ticket.")),
-    ("centered",  _("CENTERED"),  _("THEME PACK: the logo and the menu down the middle.")),
+    ("minimal",   _("MINIMAL"),   _("Just the logo and a list.")),
+    ("panel",     _("PANEL"),     _("A dark panel on the right.")),
+    ("cinema",    _("CINEMA"),    _("Black bars and a big logo.")),
+    ("ticket",    _("TICKET"),    _("The menu on a train ticket.")),
+    ("centered",  _("CENTERED"),  _("The menu down the middle. Needs the THEME PACK.")),
 ]
 
 define MENU_EXTRA = ("minimal", "panel", "cinema", "ticket")

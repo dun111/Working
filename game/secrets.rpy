@@ -262,7 +262,7 @@ screen cheat_menu():
                     vbox:
                         spacing 12
                         if not persistent.jumpscares:
-                            text _("Jumpscares are turned off in Settings > Accessibility."):
+                            text _("Jumpscares are off in Settings > Comfort."):
                                 size 20
                                 color "#e0521f"
                                 font GFONT

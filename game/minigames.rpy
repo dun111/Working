@@ -224,7 +224,7 @@ transform lp_key_turn(start=0.0):
     ease 0.5 rotate 90
 
 screen mg_lockpick():
-    use mg_scene(_("PICK THE LOCK"), _("Turn the key (TURN or SPACE) while it's inside the green marks. Set 3 pins. 3 slips and it jams."), "bg carriage_1"):
+    use mg_scene(_("PICK THE LOCK"), _("Press TURN or SPACE when it's in the green. Set 3 pins."), "bg carriage_1"):
         if lp_result is None:
             timer 0.025 repeat True action Function(lockpick_tick)
             key "K_SPACE" action Function(lockpick_turn)
@@ -340,7 +340,7 @@ transform shard_glint(delay=0.0):
         repeat
 
 screen mg_shards():
-    use mg_scene(_("SWEEP UP THE GLASS"), _("Click every shard on the floor before time runs out."), "bg carriage_2", "eduard neutral", 0.88):
+    use mg_scene(_("SWEEP UP THE GLASS"), _("Click all the shards before time runs out."), "bg carriage_2", "eduard neutral", 0.88):
         if sh_result is None and mg_timed():
             timer 1.0 repeat True action Function(shards_tick)
 
@@ -570,7 +570,7 @@ init python:
         renpy.restart_interaction()
 
 screen mahjong_minigame():
-    use mg_scene(_("MAHJONG"), _("Match two free tiles with the same face. A tile is free if nothing is on it and one side is open."), "bg carriage_2", "shunyu neutral", 0.9, skippable=False):
+    use mg_scene(_("MAHJONG"), _("Match pairs of free tiles."), "bg carriage_2", "shunyu neutral", 0.9, skippable=False):
         if mj_result is None and mg_timed():
             timer 1.0 repeat True action Function(mahjong_tick)
 
@@ -690,7 +690,7 @@ init python:
         renpy.restart_interaction()
 
 screen mg_blocks():
-    use mg_scene(_("MISHA'S BLOCKS"), _("Watch the order the blocks light up, then click them in the same order."), "bg carriage_3", "misha neutral", 0.86):
+    use mg_scene(_("MISHA'S BLOCKS"), _("Watch the blocks light up, then repeat the order."), "bg carriage_3", "misha neutral", 0.86):
         if ms_phase == "show" and ms_result is None:
             timer (0.6 / mg_mult()) repeat True action Function(blocks_show_step)
         if ms_phase == "input" and ms_lit_i is not None:
@@ -793,7 +793,7 @@ init python:
         renpy.restart_interaction()
 
 screen mg_engine():
-    use mg_scene(_("KEEP STEAM PRESSURE STEADY"), _("Stoke the fire (UP) or vent steam (DOWN). Keep the needle in the green for 12 seconds. Hit 0 or 100 and it's over."), "bg carriage_4", "ichora neutral", 0.88):
+    use mg_scene(_("KEEP STEAM PRESSURE STEADY"), _("UP to stoke, DOWN to vent. Keep the needle in the green."), "bg carriage_4", "ichora neutral", 0.88):
         if ep_result is None:
             timer 0.1 repeat True action Function(engine_tick)
             key "K_UP" action Function(engine_push, 9)
@@ -955,7 +955,7 @@ transform letter_in:
         linear 0.1 alpha 0.0
 
 screen mg_mail():
-    use mg_scene(_("SORT THE MAIL"), _("Read the letter on the desk, then click the pile it belongs in. Each pile says what goes inside.") + "  " + _("\"This goes to the clock, while this goes to the end. This goes to the fake ones and this goes to the friend.\""), "bg carriage_5", "pattison neutral", 0.9):
+    use mg_scene(_("SORT THE MAIL"), _("Put each letter in the right pile.") + "  " + _("\"This goes to the clock, while this goes to the end. This goes to the fake ones and this goes to the friend.\""), "bg carriage_5", "pattison neutral", 0.9):
         if ml_result is None and mg_timed():
             timer 0.1 repeat True action Function(mail_tick)
 
@@ -1095,7 +1095,7 @@ transform tk_slide(x):
     ease 0.3 xcenter x
 
 screen mg_ticket():
-    use mg_scene(_("FIND YOUR TICKET"), _("Watch the ticket, then click the card it ends up under."), "Train station", "dorothy neutral", 0.88):
+    use mg_scene(_("FIND YOUR TICKET"), _("Follow the ticket and click its card."), "Train station", "dorothy neutral", 0.88):
         if tk_phase == "show":
             timer 1.6 action Function(ticket_begin)
         elif tk_phase == "shuffle":
@@ -1165,7 +1165,7 @@ init python:
         renpy.restart_interaction()
 
 screen mg_door():
-    use mg_scene(_("OPEN THE DOOR"), _("Alternate LEFT and RIGHT (arrow keys, A/D or the buttons) to turn the wheel before it slips back."), dr_bg):
+    use mg_scene(_("OPEN THE DOOR"), _("Press LEFT and RIGHT in turn to open the wheel."), dr_bg):
         if dr_result is None:
             timer 0.1 repeat True action Function(door_tick)
             key "K_LEFT" action Function(door_push, "L")
@@ -1256,7 +1256,7 @@ init python:
         renpy.restart_interaction()
 
 screen mg_flashlight():
-    use mg_scene(_("SEARCH IN THE DARK"), _("Click a square to shine your light on it. Find the mahjong tile, the glass and the blood before the battery dies."), "bg carriage_2"):
+    use mg_scene(_("SEARCH IN THE DARK"), _("Shine the light around. Find the tile, the glass and the blood."), "bg carriage_2"):
         if fl_result is None and mg_timed():
             timer 0.1 repeat True action Function(flashlight_tick)
 
@@ -1333,7 +1333,7 @@ init python:
         renpy.restart_interaction()
 
 screen mg_combo():
-    $ cb_hint = _("Set the three wheels and press OPEN. It tells you how many wheels are right.")
+    $ cb_hint = _("Set the wheels and press OPEN.")
     if found_timetable:
         $ cb_hint = cb_hint + "  \"" + _("Every departure on it is printed the same way: 4:00.") + "\""
     use mg_scene(_("THE LUGGAGE LOCK"), cb_hint, "bg carriage_3"):
@@ -1408,7 +1408,7 @@ init python:
         renpy.restart_interaction()
 
 screen mg_pry():
-    use mg_scene(_("PULL UP THE CARPET"), _("Click PULL (or SPACE). Wait for the tension to drop, or the carpet tears."), "bg carriage_3", "misha stares", 0.88):
+    use mg_scene(_("PULL UP THE CARPET"), _("Press PULL, then wait before pulling again."), "bg carriage_3", "misha stares", 0.88):
         if pr_result is None:
             timer 0.1 repeat True action Function(pry_tick)
             key "K_SPACE" action Function(pry_pull)
@@ -1499,7 +1499,7 @@ init python:
         renpy.restart_interaction()
 
 screen mg_survive():
-    use mg_scene(_("DON'T LET THEM REACH YOU"), _("Click each shadow before it reaches you."), "carriage_6"):
+    use mg_scene(_("DON'T LET THEM REACH YOU"), _("Click the shadows before they reach you."), "carriage_6"):
         if sv_result is None:
             timer 0.05 repeat True action Function(survive_tick)
             key "K_1" action Function(survive_banish, 0)
@@ -1696,7 +1696,7 @@ init python:
 
 screen mg_reveal():
     $ rv_name, rv_monster, rv_true, rv_true_name = rv_cfg
-    use mg_scene(_("REVEAL"), _("Move the mouse over the shadow to wipe it away. It will fight back."), "carriage_6"):
+    use mg_scene(_("REVEAL"), _("Rub the shadow away with the mouse."), "carriage_6"):
         if rv_result is None:
             timer 0.05 repeat True action Function(reveal_tick)
 
