@@ -1,38 +1,66 @@
 # Every song lives in game/Songs/. This file says which ones play where.
 
 define SONGS = {
-    "main_menu":            ("Songs/main_menu.mp3",               _("Grekhov Theme"),                    "Departure at 4:00"),
-    "carriage_3":           ("Songs/carriage_3.opus",             "Rendezvous (Instrumental)",           "Carriage 3"),
-    "larp":                 ("Songs/larp.opus",                   "We Do What We Want (Edit)",           "Alan Fitzpatrick"),
-    "the_days":             ("Songs/the_days.opus",               "The Days (NOTION Remix)",             "Chrystal"),
-    "dreamin":              ("Songs/dreamin.opus",                "Dreamin",                             "PARTYNEXTDOOR"),
-    "make_it_to_the_morning": ("Songs/make_it_to_the_morning.opus", "MAKE IT TO THE MORNING",           "PARTYNEXTDOOR"),
-    "say_it":               ("Songs/say_it.opus",                 "Say It",                              ""),
-    "still_love_you":       ("Songs/still_love_you.opus",         "still love you (Slowed)",             ""),
-    "tbh":                  ("Songs/tbh.opus",                    "TBH",                                 ""),
-    "flower_in_a_hurricane": ("Songs/flower_in_a_hurricane.opus", "Flower In A Hurricane",               "Justice ft. Tame Impala, SZA, King Gizzard & the Lizard Wizard (GTA VI)"),
+    "main_menu":            ("Songs/main_menu.mp3",               _("Grekhov Theme"),                 "Departure at 4:00"),
+    "carriage_3":           ("Songs/carriage_3.opus",             "Rendezvous (Instrumental)",        "Carriages 2 and 3"),
+    "flower_in_a_hurricane": ("Songs/flower_in_a_hurricane.opus", "Flower In A Hurricane",            "Justice ft. Tame Impala, SZA, King Gizzard & the Lizard Wizard (GTA VI)"),
+    "larp":                 ("Songs/larp.opus",                   "We Do What We Want (Edit)",        "Alan Fitzpatrick"),
+    "we_do_what_we_want_full": ("Songs/we_do_what_we_want_full.opus", "We Do What We Want",           "Alan Fitzpatrick"),
+    "larp_music":           ("Songs/larp_music.opus",             "LARP Music",                       "larp music"),
+    "the_days":             ("Songs/the_days.opus",               "The Days (NOTION Remix)",          "Chrystal"),
+    "dreamin":              ("Songs/dreamin.opus",                "Dreamin",                          "PARTYNEXTDOOR"),
+    "make_it_to_the_morning": ("Songs/make_it_to_the_morning.opus", "MAKE IT TO THE MORNING",        "PARTYNEXTDOOR"),
+    "say_it":               ("Songs/say_it.opus",                 "Say It",                           ""),
+    "still_love_you":       ("Songs/still_love_you.opus",         "still love you (Slowed)",          ""),
+    "tbh":                  ("Songs/tbh.opus",                    "TBH",                              ""),
+    "stayin_alive":         ("Songs/stayin_alive.opus",           "Stayin' Alive",                    "Bee Gees"),
+    "slide":                ("Songs/slide.opus",                  "Slide",                            "Calvin Harris"),
+    "end_of_beginning":     ("Songs/end_of_beginning.opus",       "End Of Beginning",                 "Djo"),
+    "walking_on_a_dream":   ("Songs/walking_on_a_dream.opus",     "Walking On A Dream",               "Empire Of The Sun"),
+    "pumped_up_kicks":      ("Songs/pumped_up_kicks.opus",        "Pumped Up Kicks",                  "Foster The People"),
+    "gta6_main_theme":      ("Songs/gta6_main_theme.opus",        "Grand Theft Auto VI Main Theme",   "Rockstar Games"),
+    "gta6_extended_look":   ("Songs/gta6_extended_look.opus",     "GTA VI: An Extended Look",         "Rockstar Games"),
+    "gta6_trailer_song":    ("Songs/gta6_trailer_song.opus",      "GTA VI Trailer Song (Edit)",       "Rockstar Games"),
+    "earrings":             ("Songs/earrings.opus",               "Earrings",                         "Malcolm Todd"),
+    "midnight_city":        ("Songs/midnight_city.opus",          "Midnight City",                    "M83"),
+    "sunflower":            ("Songs/sunflower.opus",              "Sunflower",                        "Post Malone, Swae Lee"),
+    "somebodys_watching_me": ("Songs/somebodys_watching_me.opus", "Somebody's Watching Me",           "Rockwell"),
+    "stella":               ("Songs/stella.opus",                 "STELLA",                           "SAINT PEPSI"),
+    "music_sounds_better":  ("Songs/music_sounds_better.opus",    "Music Sounds Better With You",     "Stardust"),
+    "loser":                ("Songs/loser.opus",                  "Loser",                            "Tame Impala"),
+    "the_less_i_know_the_better": ("Songs/the_less_i_know_the_better.opus", "The Less I Know The Better", "Tame Impala"),
+    "everybody_wants_to_rule_the_world": ("Songs/everybody_wants_to_rule_the_world.opus", "Everybody Wants To Rule The World", "Tears For Fears"),
+    "self_aware":           ("Songs/self_aware.opus",             "Self Aware",                       "Temper City"),
+    "rhyno":                ("Songs/rhyno.opus",                  "RHYNO",                            "Travis Scott"),
 }
 
-define SONG_ORDER = ["main_menu", "carriage_3", "larp", "the_days", "flower_in_a_hurricane",
-                     "dreamin", "make_it_to_the_morning", "say_it", "still_love_you", "tbh"]
+# GREKHOV FM: the theme everywhere, Rendezvous in Carriages 2 and 3, Flower In A Hurricane in the credits
+define GREKHOV_FM = ["main_menu", "carriage_3", "flower_in_a_hurricane"]
+
+# EDUARD'S JUKEBOX: everything else, shuffled
+define JUKEBOX = [sid for sid in SONGS if sid not in GREKHOV_FM]
+
+define SONG_ORDER = GREKHOV_FM + JUKEBOX
 
 define MUSIC_FOR = {
     "c1": ["main_menu"],
-    "c2": ["main_menu"],
+    "c2": ["carriage_3"],
     "c3": ["carriage_3"],
     "c4": ["main_menu"],
     "c5": ["main_menu"],
     "part2": ["main_menu"],
+    "part2_c2": ["carriage_3"],
     "part2_c3": ["carriage_3"],
     "part2_c5": ["main_menu"],
     "silence": None,
     "escape": ["main_menu"],
     "true": ["main_menu"],
     "menu_shuffle": ["main_menu", "carriage_3"],
-    "casino": ["main_menu", "carriage_3"],
-    "credits": ["larp"],
-    "credits_tickets": ["larp"],
+    "casino": ["main_menu"],
+    "credits": ["flower_in_a_hurricane"],
+    "credits_tickets": ["flower_in_a_hurricane"],
     "credits_spotlight": ["flower_in_a_hurricane"],
+    "station_all": JUKEBOX,
 }
 
 define RADIO_STATIONS = [
@@ -46,8 +74,8 @@ define RADIO_FREQ = {"scene": "88.0", "all": "91.4", "off": "--.-"}
 define LABEL_MUSIC = {
     "carriage_1_start":        ("c1", "part2"),
     "carriage_1_hub":          ("c1", "part2"),
-    "carriage_2_start":        ("c2", "part2"),
-    "carriage_2_hub":          ("c2", "part2"),
+    "carriage_2_start":        ("c2", "part2_c2"),
+    "carriage_2_hub":          ("c2", "part2_c2"),
     "carriage_3_start":        ("c3", "part2_c3"),
     "carriage_3_hub":          ("c3", "part2_c3"),
     "carriage_4_start":        ("c4", "c4"),
@@ -55,10 +83,10 @@ define LABEL_MUSIC = {
     "carriage_5_start":        ("c5", "part2_c5"),
     "carriage_5_hub":          ("c5", "part2_c5"),
     "part2_start":             ("part2", "part2"),
-    "carriage_2_part2_start":  ("part2", "part2"),
-    "carriage_2_part2_hub":    ("part2", "part2"),
-    "c2_p2_investigation_hub": ("part2", "part2"),
-    "carriage_2_part2_return": ("part2", "part2"),
+    "carriage_2_part2_start":  ("part2_c2", "part2_c2"),
+    "carriage_2_part2_hub":    ("part2_c2", "part2_c2"),
+    "c2_p2_investigation_hub": ("part2_c2", "part2_c2"),
+    "carriage_2_part2_return": ("part2_c2", "part2_c2"),
     "carriage_3_part2_start":  ("part2_c3", "part2_c3"),
     "carriage_3_part2_hub":    ("part2_c3", "part2_c3"),
     "carriage_5_part2_start":  ("part2_c5", "part2_c5"),
@@ -167,7 +195,7 @@ init python:
         else:
             if not restart and _MUSIC.place == "station_" + st and renpy.music.is_playing("music"):
                 return
-            ids = SONG_ORDER[:] if st == "all" else MUSIC_FOR["station_" + st][:]
+            ids = MUSIC_FOR["station_" + st][:]
             renpy.random.shuffle(ids)
             files = song_files(ids)
             _MUSIC.place = "station_" + st

@@ -51,8 +51,6 @@ init python:
     build.classify('music_source/**', None)
     build.classify('video_source/**', None)
     build.classify('tools/**', None)
-    build.classify('game/_mcp/**', None)
-    build.classify('game/zz_**', None)
     build.classify('*.png', None)
 
     # two builds: the normal one, and one with cheats (game/cheats.flag)
