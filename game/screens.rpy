@@ -4260,7 +4260,10 @@ init python:
 
     def chapter_play(lab):
         persistent.replay_to = lab
-        renpy.run(Start("chapter_replay"))
+        if main_menu:
+            renpy.run(Start("chapter_replay"))
+        else:
+            renpy.jump("chapter_replay")
 
     def unlock_ending(key):
         if key not in persistent.endings_seen:
