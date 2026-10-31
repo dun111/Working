@@ -1,7 +1,3 @@
-# Character sprites, talk backgrounds, story animations, hotspot markers,
-
-# SPRITE HELPERS
-
 define SPRITE_H = 960
 
 init -2 python:
@@ -52,8 +48,6 @@ define DOROTHY_PNG     = ("images/dorothy_normal.png", 1305)
 define DOROTHY_SAD_PNG = ("images/dorothy_sad.png", 1298)
 
 
-# DRAWN CHARACTERS
-
 image louis neutral        = sprite("louis", *LOUIS_PNG)
 image louis confused       = sprite("louis", *LOUIS_PNG)
 image louis looking_around = sprite("louis", *LOUIS_PNG)
@@ -66,8 +60,6 @@ image dorothy confused  = sprite("dorothy", *DOROTHY_PNG)
 image dorothy surprised = sprite("dorothy", *DOROTHY_PNG)
 image dorothy sad       = sprite("dorothy", *DOROTHY_SAD_PNG)
 
-
-# PLACEHOLDER SILHOUETTES  (art not drawn yet)
 
 image eduard neutral    = silhouette("eduard", "Eduard", *LOUIS_PNG, color="#3b2a20")
 image shunyu neutral    = silhouette("shunyu", "Shunyu", *LOUIS_PNG, color="#2e2a40")
@@ -92,8 +84,6 @@ image conductor_monster neutral = At(
     silhouette("conductor_monster", "", *DOROTHY_PNG, color="#1a0606", scale=1.18, label=False),
     distortion_warp, monster_glow)
 
-
-# CONVERSATION BACKGROUND
 
 define talk_in = Dissolve(0.35)
 
@@ -134,8 +124,6 @@ image talk to alexander = "talk_bg"
 image engine room       = "bg carriage_4"
 
 
-# STORY ANIMATIONS
-
 init python:
     def jolt(kind="v"):
         if persistent.reduce_motion or not persistent.screen_shake_enabled:
@@ -164,8 +152,6 @@ image door_light:
 
 define red_flash = FlashTr("#7a0a0a", 0.06, 0.5)
 
-
-# CLUE / ITEM POP-UP
 
 transform clue_card_in:
     yoffset -40
@@ -228,8 +214,6 @@ init python:
         sfx("win")
         renpy.show_screen("clue_popup", _("GOT ITEM"), name, desc)
 
-
-# MAP HOTSPOTS
 
 define HS_CHECKED = "#7a7a88"
 define HS_NUDGE = 20.0
@@ -424,8 +408,6 @@ screen hs(rect, act, label="", kind="look", delay=0.0):
                             hover_color "#0a0a0e"
 
 
-# PASSENGER MANIFEST  (M key, PASSENGERS in the pause menu, People in quick menu)
-
 define MANIFEST = [
     ("louis neutral", "Louis", "\"I was tryna go home…\"", None, [
         (None, "\"Huh, I don't remember how I got here…\""),
@@ -553,7 +535,6 @@ screen manifest():
         color "#e6a817"
         font GFONT
 
-    # list of passengers (left)
     $ grid_rows = (len(rows) + 1) // 2
     grid 2 grid_rows:
         xpos 80
@@ -594,7 +575,6 @@ screen manifest():
         if len(rows) % 2:
             null
 
-    # selected passenger (right)
     frame:
         xpos 880
         ypos 180

@@ -1,5 +1,3 @@
-# Every minigame happens inside its carriage instead of a pop-up box.
-
 init python:
     import math as _mgmath
 
@@ -10,8 +8,6 @@ init python:
             pts.append((a, cx + radius * _mgmath.sin(r), cy - radius * _mgmath.cos(r)))
         return pts
 
-
-# SHARED SCENE
 
 transform mg_npc(x=0.86):
     xanchor 0.5
@@ -150,8 +146,6 @@ style mg_small is text:
     color "#8888a0"
     font GFONT
 
-
-# A  -  THE LOCK  (Carriage 1 cupboard)
 
 define LP_SWING = 70
 define LP_CX = 960
@@ -295,8 +289,6 @@ screen mg_lockpick():
             use mg_end(_("The lock jams."), "lose")
 
 
-# B  -  SWEEP THE GLASS  (Carriage 2 floor)
-
 define SH_COUNT = 6
 
 default sh_pos = []
@@ -375,8 +367,6 @@ screen mg_shards():
         elif sh_result == "lose":
             use mg_end(_("Out of time!"), "lose")
 
-
-# C  -  MAHJONG  (Carriage 2, Shunyu's table)
 
 define MJ_FONT = "gui/ReggaeOne-Regular.ttf"
 define MJ_TW = 78
@@ -616,8 +606,6 @@ screen mahjong_minigame():
             use mg_end(mj_end_msg, mj_result)
 
 
-# D  -  MISHA'S BLOCKS  (Carriage 3 rug)
-
 define MS_COLORS = ["#a83a2e", "#2c6a9c", "#2c8a4f", "#c9a21a"]
 define MS_LIT    = ["#ff8a7a", "#7fcaff", "#7dffb0", "#fff08a"]
 define MS_LETTERS = ["A", "B", "C", "D"]
@@ -739,8 +727,6 @@ screen mg_blocks():
             use mg_end(_("Misha knocks the tower over."), "lose")
 
 
-# E  -  ENGINE PRESSURE  (Carriage 4, with Ichora the engineer)
-
 define EP_GOAL = 12.0
 define EP_CX = 960
 define EP_CY = 470
@@ -859,8 +845,6 @@ screen mg_engine():
         else:
             use mg_end(_("The boiler shrieks."), "lose")
 
-
-# F  -  SORT THE MAIL  (Carriage 5, Pattison's desk)
 
 define ML_LETTERS = [
     ("Pendulum order #44 - rush", "clock"),
@@ -1046,8 +1030,6 @@ label play_required(scr, reset):
             return
 
 
-# G  -  FIND YOUR TICKET
-
 define TK_X = [190, 510, 830]
 
 default tk_slot = [0, 1, 2]
@@ -1126,8 +1108,6 @@ screen mg_ticket():
             use mg_end(_("Are you fine… sir?"), "lose")
 
 
-# H  -  OPEN THE DOOR  (valve wheel between carriages)
-
 default dr_prog = 0.0
 default dr_last = None
 default dr_t = 10.0
@@ -1202,8 +1182,6 @@ screen mg_door():
         elif dr_result == "lose":
             use mg_end(_("LOCKED"), "lose")
 
-
-# I  -  SEARCH IN THE DARK  (crime scene)
 
 define FL_COLS = 6
 define FL_ROWS = 3
@@ -1290,8 +1268,6 @@ screen mg_flashlight():
             use mg_end(_("Huh… It's dark.."), "lose")
 
 
-# J  -  THE LUGGAGE LOCK  (3-digit combination)
-
 define CB_CODE = [4, 0, 0]
 
 default cb_digits = [0, 0, 0]
@@ -1367,8 +1343,6 @@ screen mg_combo():
             use mg_end(_("LOCKED"), "lose")
 
 
-# K  -  PULL UP THE CARPET
-
 default pr_tension = 0.0
 default pr_prog = 0.0
 default pr_tears = 0
@@ -1438,8 +1412,6 @@ screen mg_pry():
         elif pr_result == "lose":
             use mg_end(_("This again..."), "lose")
 
-
-# L  -  DON'T LET THEM REACH YOU  (Carriage 6)
 
 define SV_TIME = 20.0
 
@@ -1544,8 +1516,6 @@ screen mg_survive():
             use mg_end(_("You'll see."), "lose")
 
 
-# N  -  PRESENT THE EVIDENCE
-
 default ev_cfg = ("", "", "", "clue_hidden_tile", "black")
 default ev_result = None
 default ev_pick = None
@@ -1633,8 +1603,6 @@ screen mg_evidence():
         elif ev_result == "lose":
             use mg_end(_("WRONG"), "lose")
 
-
-# O  -  REVEAL  (Carriage 6)
 
 define RV_COLS = 6
 define RV_ROWS = 8

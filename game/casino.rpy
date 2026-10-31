@@ -1,5 +1,3 @@
-# SECRET: click DEPARTURES on the main menu's departure board (or the COINS
-
 define CASINO_BETS = [5, 10, 25, 50]
 define CASINO_BETS_HIGH = [100, 250]
 define CASINO_DAILY = 50
@@ -67,8 +65,6 @@ init python:
         renpy.restart_interaction()
 
 
-# PIECES SHARED BY THE GAMES
-
 transform casino_win_pop:
     alpha 0.0
     yoffset 20
@@ -131,8 +127,6 @@ screen casino_title(title, hint):
             color "#8888a0"
             font GFONT
 
-
-# THE CASINO  (the lobby)
 
 define CASINO_GAMES = [
     ("slots",    _("SLOTS"),      _("Match three. Three 4:00s is the jackpot.")),
@@ -223,8 +217,6 @@ screen casino():
                 color "#55556a"
                 font GFONT
 
-
-# ROULETTE  -  a number flickers and stops, like a departure board
 
 define RL_RED = {1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36}
 define RL_SPIN = 2.4
@@ -419,8 +411,6 @@ screen roulette():
                 use rbtn(_("BACK"), (Hide("roulette") if not rl_spinning else None), w=160, h=64, r=20, size=20)
 
 
-# HORSE RACE  -  six bars race to the end
-
 define HR_COLORS = ["#e0521f", "#3a6fd8", "#2e8b57", "#c9a21a", "#9b4fd0", "#d8d8e0"]
 define HR_TRACK = 1000
 define HR_TICK = 0.05
@@ -557,8 +547,6 @@ screen horses():
                     use mg_btn(_("START"), (Function(hr_start) if (hr_pick is not None and not hr_running) else None), w=240, h=64, size=26)
                 use rbtn(_("BACK"), (Hide("horses") if not hr_running else None), w=160, h=64, r=20, size=20)
 
-
-# MAHJONG  (the Carriage 2 minigame, for coins)
 
 define CASINO_MJ_FEE = 20
 define CASINO_MJ_PAIR = 3
@@ -709,8 +697,6 @@ init python:
             give_tickets(1)
             renpy.restart_interaction()
 
-
-# THE MACHINE
 
 transform slot_in:
     alpha 0.0

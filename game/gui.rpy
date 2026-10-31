@@ -1,5 +1,3 @@
-# Initialization
-
 init offset = -2
 
 init python:

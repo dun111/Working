@@ -1,13 +1,4 @@
-﻿# ==============================================================================
-# DEPARTURE AT 4:00  -  script.rpy
-# ==============================================================================
-
-# ------------------------------------------------------------------------------
-# CHARACTERS
-# ------------------------------------------------------------------------------
-# C(name, sprite tag, name-plate colour). The tag lets the game focus and
-# animate the right sprite whenever that character speaks.
-define d   = C("Dorothy",   "dorothy",   "#4a4f5c")
+﻿define d   = C("Dorothy",   "dorothy",   "#4a4f5c")
 define l   = C("Louis",     "louis",     "#5a2a7a")
 define f   = C("Fedora",    "fedora",    "#2f5a3a")
 define ed  = C("Eduard",    "eduard",    "#6a4628")
@@ -23,53 +14,40 @@ define al  = C("Alexander", "alexander", "#6a6a22")
 define pas = C("Passenger")
 define u   = C("???", plate="#3a0a0a", creepy=True)
 
-# Carriage 6 monsters
 define shunyu_monster    = C("The Passenger",  "shunyu_monster",    "#5a0a0a", creepy=True)
 define himmel_monster    = C("The Gentleman",  "himmel_monster",    "#5a0a0a", creepy=True)
 define conductor_monster = C("The Conductor",  "conductor_monster", "#5a0a0a", creepy=True)
 
-# A literal percent sign. Writing [pct] in dialogue is safe whether or not
-# Ren'Py's old-style "%" substitutions are on.
 define pct = "%"
 
-# ------------------------------------------------------------------------------
-# STATE
-# ------------------------------------------------------------------------------
 default in_loop = False
 default visited_carriages = []
 
-# Carriage 1
 default c1_talked_fedora = False
 
-# Carriage 2
 default c2_talked_eduard = False
 default c2_talked_shunyu = False
 default has_maple_sugar = False
 default drank = False
 default played_mahjong = False
 
-# Carriage 3
 default c3_talked_kimmy = False
 default c3_talked_himmel = False
 default c3_talked_sebastian = False
 default c3_talked_misha = False
 default c3_kimmy_dangerous_choice = False
 
-# Carriage 4
 default c4_talked_agatha = False
 default c4_talked_ichora = False
 default has_key = False
 
-# Carriage 5
 default c5_talked_pattison = False
 default c5_talked_alexander = False
 
-# Part 2 - crime scene
 default c2_p2_found_body = False
 default c2_p2_reinterviewed_eduard = False
 default c2_p2_reinterviewed_agatha = False
 
-# Part 2 - clues
 default clue_tile_mismatch = False
 default clue_body_moved = False
 default clue_alexander_alibi = False
@@ -83,35 +61,20 @@ default pattison_reinterviewed = False
 default sebastian_reinterviewed = False
 default misha_reinterviewed = False
 
-# Carriage 6
 default c6_q1_correct = False
 default c6_q2_correct = False
 default c6_q3_correct = False
 
-# doors you've already forced open (minigames2.rpy)
 default door_c2_open = False
 default door_c2_open_loop = False
 default door_c4_open = False
 
 
-# ==============================================================================
-# MAP SCREENS
-# ==============================================================================
-# Doors use Jump. Talk / inspect hotspots use Call. When a called label returns,
-# the "call screen" statement is finished, so every hub label below ends with a
-# "jump" back to itself to re-show the map.
-#
-# Every clickable spot is drawn with  use hs(rect, action, label, kind)
-# (characters.rpy) so the player can see a pulsing marker and a name on it.
-
 screen carriage_1_map():
     add "bg carriage_1"
-    use golden_ticket("c1", 420, 840)    # hidden: secrets.rpy
-    # Fedora is drawn into the carriage art (images/Carriage_1_With_CharacterS.webp)
+    use golden_ticket("c1", 420, 840)
     if in_loop or not c1_talked_fedora:
         use hs((1185, 625, 125, 180), Call("c1_fedora_dialogue"), "Fedora", "talk")
-    # on the things in the art: a window pane, the stand at the carriage's end,
-    # the end wall of the aisle, a spot on the aisle carpet
     use hs((860, 240, 200, 150), Call("c1_interact_window"), "Window", delay=0.05)
     use hs((30, 740, 110, 110), Call("c1_interact_cupboard"), "Cupboard", delay=0.1)
     use hs((30, 560, 110, 130), Call("c1_interact_admin_door"), "Admin door", delay=0.15)
@@ -121,7 +84,7 @@ screen carriage_1_map():
 
 screen carriage_2_map():
     add "bg carriage_2"
-    use golden_ticket("c2", 1760, 880)    # hidden: secrets.rpy
+    use golden_ticket("c2", 1760, 880)
     use hs(DOOR_LEFT, Jump("carriage_1_hub"), "Carriage 1", "back")
     if not c2_talked_eduard:
         use hs((350, 150, 180, 400), Call("c2_eduard_dialogue"), "Eduard", "talk")
@@ -134,7 +97,7 @@ screen carriage_2_map():
 
 screen carriage_3_map():
     add "bg carriage_3"
-    use golden_ticket("c3", 1820, 300)    # hidden: secrets.rpy
+    use golden_ticket("c3", 1820, 300)
     use hs(DOOR_LEFT, Jump("carriage_2_hub"), "Carriage 2", "back")
     if not c3_talked_kimmy:
         use hs((100, 150, 180, 400), Call("c3_kimmy_dialogue"), "Kimmy", "talk")
@@ -153,7 +116,7 @@ screen carriage_3_map():
 
 screen carriage_4_map():
     add "bg carriage_4"
-    use golden_ticket("c4", 420, 860)    # hidden: secrets.rpy
+    use golden_ticket("c4", 420, 860)
     use hs(DOOR_LEFT, Jump("carriage_3_hub"), "Carriage 3", "back")
     if not c4_talked_agatha:
         use hs((250, 150, 220, 400), Call("c4_agatha_dialogue"), "Agatha", "talk")
@@ -166,23 +129,21 @@ screen carriage_4_map():
 
 screen carriage_5_map():
     add "bg carriage_5"
-    use golden_ticket("c5", 1700, 560)    # hidden: secrets.rpy
+    use golden_ticket("c5", 1700, 560)
     use hs(DOOR_LEFT, Jump("carriage_4_hub"), "Carriage 4", "back")
     if not c5_talked_pattison:
         use hs((250, 150, 220, 400), Call("c5_pattison_dialogue"), "Pattison", "talk")
     if not c5_talked_alexander:
         use hs((700, 150, 220, 400), Call("c5_alexander_dialogue"), "Alexander", "talk", 0.05)
-    # the mail stacks on the left, the wire luggage cage in the middle
     use hs((60, 290, 380, 200), Call("c5_interact_mail_room"), "Mail", delay=0.1)
     use hs((920, 470, 500, 250), Call("c5_interact_luggage_room"), "Luggage room", delay=0.15)
     if c5_talked_pattison and c5_talked_alexander:
         use hs(DOOR_RIGHT, Jump("c5_carriage6_door"), "Carriage 6", "door", 0.2)
 
-# ---- Part 2 -------------------------------------------------------------------
 
 screen carriage_2_part2_map():
     add "bg carriage_2"
-    use golden_ticket("c2b", 230, 900)    # hidden: secrets.rpy
+    use golden_ticket("c2b", 230, 900)
     use hs((100, 150, 180, 400), Call("c2_p2_interact_window"), "Window")
     use hs((350, 150, 180, 400), Call("c2_p2_talk_eduard"), "Eduard", "talk", 0.05)
     use hs((600, 150, 180, 400), Call("c2_p2_overturned_table"), "Overturned table", delay=0.1)
@@ -199,23 +160,20 @@ screen carriage_2_part2_investigation_map():
     if c2_p2_reinterviewed_eduard and c2_p2_reinterviewed_agatha:
         use hs(DOOR_RIGHT, Jump("part2_chapter_end"), "Carriage 3", "door", 0.1)
 
-# Carriage 2 once the investigation there is finished (door to carriage 3 only)
 screen carriage_2_part2_after_map():
     add "bg carriage_2"
     use hs(DOOR_RIGHT, Jump("carriage_3_part2_hub"), "Carriage 3", "door")
 
 screen carriage_3_part2_map():
     add "bg carriage_3"
-    use golden_ticket("c3b", 1500, 120)    # hidden: secrets.rpy
+    use golden_ticket("c3b", 1500, 120)
     use hs(DOOR_LEFT, Jump("carriage_2_part2_return"), "Carriage 2", "back")
 
-    # Kimmy / Himmel only have something new to say once the wrapper is found
     if clue_drug_wrapper and not kimmy_reinterviewed:
         use hs((100, 150, 180, 400), Call("c3_p2_kimmy_reinterview"), "Kimmy", "talk")
     if clue_drug_wrapper and not himmel_reinterviewed:
         use hs((350, 150, 180, 400), Call("c3_p2_himmel_reinterview"), "Himmel", "talk", 0.05)
 
-    # Sebastian / Misha need the hidden tile first
     if clue_hidden_tile and not sebastian_reinterviewed:
         use hs((600, 150, 180, 400), Call("c3_p2_sebastian_reinterview"), "Sebastian", "talk", 0.1)
     if clue_hidden_tile and not misha_reinterviewed:
@@ -228,10 +186,9 @@ screen carriage_3_part2_map():
     if kimmy_reinterviewed and himmel_reinterviewed and sebastian_reinterviewed and misha_reinterviewed:
         use hs(DOOR_RIGHT, Jump("carriage_5_part2_start"), "Carriage 5", "door", 0.35)
 
-# Alexander and Pattison live in carriage 5 (the mail room), same as part 1.
 screen carriage_5_part2_map():
     add "bg carriage_5"
-    use golden_ticket("c5b", 90, 200)    # hidden: secrets.rpy
+    use golden_ticket("c5b", 90, 200)
     use hs(DOOR_LEFT, Jump("carriage_3_part2_hub"), "Carriage 3", "back")
     if not alexander_reinterviewed:
         use hs((700, 150, 220, 400), Call("c5_p2_alexander_dialogue"), "Alexander", "talk")
@@ -241,12 +198,7 @@ screen carriage_5_part2_map():
         use hs((1400, 200, 150, 400), Jump("accusation_scene"), "Time to decide", "decide", 0.1)
 
 
-# ==============================================================================
-# MAIN GAME FLOW
-# ==============================================================================
-
 label start:
-    # Stop the filtered menu music
     $ menu_music_filter_off()
 
     $ in_loop = False
@@ -294,9 +246,6 @@ label start:
     jump old_film_to_map
 
 
-# ------------------------------------------------------------------------------
-# CARRIAGE 1
-# ------------------------------------------------------------------------------
 label carriage_1_start:
     $ autosave_checkpoint()
     jump carriage_1_hub
@@ -336,7 +285,6 @@ label c1_fedora_dialogue:
 
 label c1_interact_window:
     if in_loop:
-        # Part 2: the view isn't the one he remembers
         show louis confused at speaker_focus(xalign=0.1)
         l "U-uhm… what?"
         "Huh… It's dark.."
@@ -347,7 +295,6 @@ label c1_interact_window:
     "What a beautiful sight outside! You can see everything from this train!"
     return
 
-# c1_interact_cupboard lives at the bottom of this file (lockpick minigame)
 
 label c1_interact_admin_door:
     "I'm not supposed to enter this carriage, am I…"
@@ -379,9 +326,6 @@ label c1_door_to_carriage_2:
         jump carriage_2_start
 
 
-# ------------------------------------------------------------------------------
-# CARRIAGE 2  -  Lounge
-# ------------------------------------------------------------------------------
 label carriage_2_start:
     if "c2" not in visited_carriages:
         $ visited_carriages.append("c2")
@@ -456,7 +400,6 @@ label c2_shunyu_dialogue:
     return
 
 label c2_interact_window:
-    # secret: keep looking
     $ window_looks += 1
     if window_looks == 5:
         $ jumpscare("window")
@@ -466,12 +409,7 @@ label c2_interact_window:
     "What a beautiful sight outside! You can see everything from this train!"
     return
 
-# c2_interact_broken_glass lives at the bottom of this file (glass sweep minigame)
 
-
-# ------------------------------------------------------------------------------
-# CARRIAGE 3  -  Sleeper
-# ------------------------------------------------------------------------------
 label carriage_3_start:
     if "c3" not in visited_carriages:
         $ visited_carriages.append("c3")
@@ -574,16 +512,12 @@ label c3_interact_carpet:
     "Why is it sticking up like that?"
     return
 
-# c3_interact_toys lives at the bottom of this file (blocks minigame)
 
 label c3_interact_luggage:
     "So much luggage… Do they really need this much for a worktrip?"
     return
 
 
-# ------------------------------------------------------------------------------
-# CARRIAGE 4  -  Staff cart
-# ------------------------------------------------------------------------------
 label carriage_4_start:
     if not door_c4_open:
         $ dr_bg = "bg carriage_3"
@@ -660,10 +594,6 @@ label c4_interact_syringe:
     return
 
 
-
-# ------------------------------------------------------------------------------
-# CARRIAGE 5  -  Mail room
-# ------------------------------------------------------------------------------
 label carriage_5_start:
     if "c5" not in visited_carriages:
         $ visited_carriages.append("c5")
@@ -750,7 +680,6 @@ label c5_alexander_dialogue:
     $ c5_talked_alexander = True
     return
 
-# c5_interact_mail_room lives at the bottom of this file (mail sorting minigame)
 
 label c5_interact_luggage_room:
     "Most of this is probably that couple's, I can't lie."
@@ -770,10 +699,6 @@ label c5_carriage6_door:
     hide screen dark_eyes
     jump part2_start
 
-
-# ==============================================================================
-# PART 2  -  THE LOOP
-# ==============================================================================
 
 label part2_start:
     $ achievement.grant("the_loop_begins")
@@ -804,9 +729,6 @@ label part2_start:
     jump carriage_1_start
 
 
-# ------------------------------------------------------------------------------
-# CARRIAGE 2  -  Part 2: the crime scene
-# ------------------------------------------------------------------------------
 label carriage_2_part2_start:
     scene bg carriage_2 with dissolve
     "{i}Louis enters. The lights feel dimmer, creepier than before.{/i}"
@@ -1057,9 +979,6 @@ label carriage_2_part2_return:
     jump carriage_2_part2_return
 
 
-# ------------------------------------------------------------------------------
-# CARRIAGE 3  -  Part 2 investigation
-# ------------------------------------------------------------------------------
 label carriage_3_part2_start:
     $ autosave_checkpoint()
     scene bg carriage_3 with dissolve
@@ -1222,9 +1141,6 @@ label c3_p2_misha_reinterview:
     return
 
 
-# ------------------------------------------------------------------------------
-# CARRIAGE 5  -  Part 2: Alexander's alibi
-# ------------------------------------------------------------------------------
 label carriage_5_part2_start:
     if "p2_c5" not in visited_carriages:
         $ visited_carriages.append("p2_c5")
@@ -1306,9 +1222,6 @@ label c5_p2_pattison_dialogue:
     return
 
 
-# ------------------------------------------------------------------------------
-# ACCUSATION SCENE
-# ------------------------------------------------------------------------------
 label accusation_scene:
     $ autosave_checkpoint()
     scene bg carriage_5
@@ -1383,7 +1296,6 @@ label wrong_ending:
 label accusation_misha:
     hide fedora
     show louis neutral at speaker_focus(xalign=0.1)
-    # The full clue set is guaranteed by the story flow, but check anyway.
     if not (clue_tile_mismatch and clue_body_moved and clue_alexander_alibi and clue_hidden_tile):
         l "It was Misha."
         show misha neutral at speaker_focus(xalign=0.9)
@@ -1431,9 +1343,6 @@ label accusation_misha:
     jump carriage_6_start
 
 
-# ------------------------------------------------------------------------------
-# CARRIAGE 6  -  Final confrontation
-# ------------------------------------------------------------------------------
 label carriage_6_start:
     scene carriage_6 with fade
     show carriage_6_fog
@@ -1568,10 +1477,6 @@ label carriage_6_aftermath:
         jump ending_1_death
 
 
-# ==============================================================================
-# ENDINGS  (every ending returns the player to the main menu)
-# ==============================================================================
-
 label ending_1_death:
     hide screen loop_overlay
     scene black with dissolve
@@ -1606,7 +1511,6 @@ label ending_3_true:
     return
 
 
-# after every ending card: the ending video (click to skip), then the main menu
 label ending_video:
     if renpy.loadable(ENDING_VIDEO):
         stop music fadeout 1.0
@@ -1615,10 +1519,6 @@ label ending_video:
     return
 
 
-# ==============================================================================
-# OPENING: ticket scene burns away into the carriage 1 map
-# (called from the end of label start)
-# ==============================================================================
 label old_film_to_map:
     window hide
 
@@ -1626,23 +1526,17 @@ label old_film_to_map:
         scene bg carriage_1 with fade
         jump carriage_1_start
 
-    # 1. the scene burns away from the centre, embers rise, camera pushes in
     show screen burn_embers
     show layer master at map_settle
     scene bg carriage_1
     with burn_reveal
 
-    # 2. the old map is revealed and the carriage name is stamped on it
     show screen map_stamp(_("CARRIAGE 1"), _("FIRST CLASS"))
     pause 2.2
 
     show layer master
     jump carriage_1_start
 
-
-# ==============================================================================
-# MINIGAME WRAPPER LABELS
-# ==============================================================================
 
 label c1_interact_cupboard:
     if in_loop:
@@ -1705,7 +1599,6 @@ label c3_interact_toys:
             pass
     return
 
-# the engine is in Carriage 4, with Ichora the engineer
 label c4_interact_engine:
     "This looks like it has a lot of… Zebra power? No, horse power."
     menu:
