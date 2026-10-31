@@ -31,16 +31,13 @@ def sting():
     lp = 0.0
     for i in range(n):
         t = i / float(RATE)
-        # screech: detuned saws sliding from ~1400Hz down to ~180Hz
         f = 180 + 1220 * math.exp(-t * 3.2)
         s = 0.0
         for k, d in enumerate(detune):
             phases[k] = (phases[k] + f * d / RATE) % 1.0
             s += (2 * phases[k] - 1) * (0.5 if k < 3 else 0.25)
         env = min(1.0, t / 0.006) * math.exp(-t * 2.4)
-        # thump
         thump = math.sin(2 * math.pi * 48 * t) * math.exp(-t * 9) * 1.4
-        # noise burst, lightly filtered
         lp += 0.35 * (random.uniform(-1, 1) - lp)
         noise = lp * math.exp(-t * 7) * 0.9
         out.append(s * env * 0.6 + thump + noise)

@@ -1,5 +1,3 @@
-# Testing tools. Press F9 in game or on the main menu.
-
 default persistent.cheats_on = False
 default persistent.cheat_autowin = False
 default persistent.cheat_hotspots = False
@@ -153,8 +151,6 @@ label cheat_warp:
     $ cheat_apply()
     $ renpy.jump(CHEAT.target)
 
-
-# SCREENS
 
 screen cheat_hotkey():
     if cheats_allowed():
@@ -343,8 +339,6 @@ screen cheat_menu():
                 use cheat_btn(_("CLOSE  (F9)"), Hide("cheat_menu"), w=220)
 
 
-# EXTRAS > ARCADE
-
 screen arcade_list(w):
     if cheats_allowed():
         frame:
@@ -398,8 +392,6 @@ screen arcade_list(w):
                     use rbtn(_("PLAY"), Function(play_minigame, gscr, greset), w=170, h=50, r=16, size=22, bg="#8a4a22", hov="#b8631f", col="#f2e6d8", hcol="#ffffff")
 
 
-# THE TIMETABLE  (click the big 4:00 on the main menu four times)
-
 init python:
     class ET_CLOCK(object):
         n = 0
@@ -433,7 +425,6 @@ init python:
             })
         return rows
 
-# chapter -> (departure time, golden ticket in that carriage, who you can meet there)
 define TIMETABLE = {
     "carriage_1_start":       ("4:00", "c1", [(None, "Dorothy"), ("c1_talked_fedora", "Fedora")]),
     "carriage_2_start":       ("4:05", "c2", [("c2_talked_eduard", "Eduard"), ("c2_talked_shunyu", "Shunyu")]),
@@ -649,7 +640,6 @@ init python:
 
     SECRET_LETTERS = sorted(set("".join(c["key"] for c in CREW)) | set("ba") | set("debug"))
 
-    # clicking the Blackberry logo after "Stop clicking it. Please."
     BERRY_LINES = {
         1: _("You already found the secret. Stop clicking it. Please."),
         4: _("\"Now leave me alone!\""),
@@ -679,10 +669,6 @@ init python:
             renpy.show_screen("map_stamp", "4:00", _("WELCOME ABOARD"))
             secret_found("on_time", "right_on_time")
 
-
-# HEARTS
-
-# PIXEL PARADE  (the pixel passengers, see PIXEL_CROPS in characters.rpy)
 
 transform parade_walk(delay=0.0):
     yanchor 1.0
@@ -863,8 +849,6 @@ init python:
             secret_found("halloween")
             renpy.invoke_in_new_context(jumpscare, "eyes")
 
-
-# A PASSENGER PEEKS IN  (type their name on the main menu)
 
 transform peek_in:
     xanchor 0.5

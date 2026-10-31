@@ -1,5 +1,3 @@
-# Every song lives in game/Songs/. This file says which ones play where.
-
 define SONGS = {
     "main_menu":            ("Songs/main_menu.mp3",               _("Grekhov Theme"),                 "Departure at 4:00"),
     "carriage_3":           ("Songs/carriage_3.opus",             "Rendezvous (Instrumental)",        "Carriages 2 and 3"),
@@ -34,10 +32,8 @@ define SONGS = {
     "rhyno":                ("Songs/rhyno.opus",                  "RHYNO",                            "Travis Scott"),
 }
 
-# GREKHOV FM: the theme everywhere, Rendezvous in Carriages 2 and 3, Flower In A Hurricane in the credits
 define GREKHOV_FM = ["main_menu", "carriage_3", "flower_in_a_hurricane"]
 
-# EDUARD'S JUKEBOX: everything else, shuffled
 define JUKEBOX = [sid for sid in SONGS if sid not in GREKHOV_FM]
 
 define SONG_ORDER = GREKHOV_FM + JUKEBOX
@@ -171,7 +167,6 @@ init python:
         elif q:
             renpy.music.stop(channel="music", fadeout=0.5)
 
-    # the radio
     class _RADIO(object):
         history = []
 
@@ -260,7 +255,6 @@ init 2 python:
                 _MUSIC.scene = looped if getattr(store, "in_loop", False) else normal
                 if persistent.ingame_music:
                     music_for(_MUSIC.scene, carry=True)
-            # a station stops when a game starts (Ren'Py leaves the menu's music behind)
             if not main_menu and not radio_scene() and not renpy.music.is_playing("music"):
                 radio_play_station(restart=False)
         except Exception:
@@ -278,7 +272,6 @@ init python:
             renpy.music.stop(channel="music", fadeout=1.0)
         renpy.restart_interaction()
 
-    # "now playing" popup, like a radio station changing song
     class _NP(object):
         last = None
 

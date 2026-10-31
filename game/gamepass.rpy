@@ -1,8 +1,6 @@
-# The cheats build ships with game/cheats.flag; the normal build leaves it out.
 init -10 python:
     CHEATS_BUILD = renpy.loadable("cheats.flag")
 
-# Gamepasses, bought with tickets.  EXTRAS > GAMEPASS
 
 default persistent.tickets = 0
 default persistent.passes = set()
@@ -53,9 +51,6 @@ init python:
         return amount if has_pass(pid) else 0
 
 
-
-# "+2 TICKETS" in the bottom-left corner
-
 transform ticket_pop:
     alpha 0.0
     yoffset 20
@@ -82,8 +77,6 @@ screen ticket_toast(n):
                 font GFONT
     timer 2.4 action Hide("ticket_toast")
 
-
-# EXTRAS > GAMEPASS
 
 screen gamepass_list(w):
     frame:
@@ -171,8 +164,6 @@ screen gamepass_list(w):
                         use rbtn(_("BUY"), (Function(buy_pass, pid, price) if afford else None), w=140, h=50, r=16, size=22, bg="#8a4a22", hov="#b8631f", col="#f2e6d8", hcol="#ffffff")
 
 
-# CHEAT MENU > TOOLS
-
 default persistent.dev_coords = False
 
 init python:
@@ -228,8 +219,6 @@ screen dev_coords():
 init python:
     config.always_shown_screens.append("dev_coords")
 
-
-# DLC  -  GALLERY, JUKEBOX, THEATRE   (EXTRAS tabs)
 
 define GALLERY = [
     ("louis neutral", "Louis"), ("dorothy neutral", "Dorothy"), ("dorothy sad", "Dorothy"),
@@ -411,8 +400,6 @@ screen theatre_list(w):
                     use rbtn(_("WATCH"), Function(theatre_play, f), w=150, h=50, r=16, size=22, bg="#8a4a22", hov="#b8631f", col="#f2e6d8", hcol="#ffffff")
 
 
-# THEME PACK  -  colour themes, the CENTERED main menu, TERMINAL / TICKET boxes
-
 default persistent.ui_theme = "default"
 
 define UI_THEMES = [
@@ -512,8 +499,6 @@ init python:
         return TEXT_COLORS.get(persistent.text_color, "#e8e4dc")
 
 
-# CHOICE REVEALER  -  tags on choices (screen choice in screens.rpy)
-
 define CHOICE_GOOD = "#6dffa5"
 define CHOICE_BAD = "#ff6b5a"
 define CHOICE_INFO = "#e6a817"
@@ -547,8 +532,6 @@ init python:
             return None
         return CHOICE_HINTS.get((DEV.label, caption)) or CHOICE_HINTS.get(caption)
 
-
-# REWIND  -  back to the last choice (quick menu)
 
 default rewind_point = None
 

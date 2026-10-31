@@ -1,5 +1,3 @@
-# What happens when you click someone's name in the credits.
-
 define CREDIT_FONT = "gui/Telegraphem.otf"
 define CREDIT_STEP = 0.3
 define CREDIT_SIZE = 190
@@ -38,8 +36,6 @@ init python:
         return DynamicDisplayable(_typed_plain, word=word, delay=delay, cps=cps, size=size, color=color,
                                   font=font or CREDIT_FONT, caret=caret)
 
-
-# SHARED BITS
 
 transform credit_dim(total):
     alpha 0.0
@@ -85,8 +81,6 @@ screen credit_cam(z0, x0, y0, z1, x1, y1, dur, r0=0, r1=0):
         transclude
 
 
-# ERIC  -  CODING
-
 transform eric_type_out(d):
     alpha 1.0
     pause d
@@ -128,8 +122,6 @@ screen eric_surprise():
 
     timer total action [Hide("eric_surprise"), Function(eric_scare)]
 
-
-# Eric's game: DEBUG
 
 define DEBUG_POOL = [
     (["label start:", "    scene black", "    l \"I'm gonna look around.", "    jump carriage_1_start"],
@@ -297,8 +289,6 @@ screen mg_debug():
             use mg_end(_("BUILD FAILED"), "lose")
 
 
-# HANNAH  -  DRAWING THE CHARACTERS
-
 define HANNAH_DRAWS = [("dorothy neutral", 0.16), ("fedora neutral", 0.84)]
 
 transform ink_over(d):
@@ -345,8 +335,6 @@ screen hannah_surprise():
 
     timer total action Hide("hannah_surprise")
 
-
-# AYDIN  -  MAKING WEBSITES
 
 define AYDIN_COL = "#9db8b4"
 
@@ -431,8 +419,6 @@ screen aydin_surprise():
 
     timer total action Hide("aydin_surprise")
 
-
-# RYAN  -  EATING
 
 define RYAN_LETTERS = ["R", "Y", "A", "N", "", "", "", "Y", "A"]
 define RYAN_FOOD = ["#c98a4a", "#b5653a", "#d6a85a", "#9a6a3a", "#c98a4a", "#b5653a"]
@@ -519,8 +505,6 @@ screen ryan_surprise():
 
     timer total action Hide("ryan_surprise")
 
-
-# ERIC'S JUMPSCARE
 
 define ES_DARK = 2.6
 define ES_HOLD = 1.1
@@ -699,8 +683,6 @@ init python:
         ]
 
 
-# SCROLL
-
 screen credits_scroll():
     default cred_adj = ui.adjustment()
     add Solid("#000000")
@@ -709,7 +691,6 @@ screen credits_scroll():
     add "gui/vignette.png":
         xysize (config.screen_width, config.screen_height)
 
-    # the roll
     viewport:
         xalign 0.5
         xsize 1600
@@ -806,8 +787,6 @@ screen credits_scroll():
     timer 0.03 repeat True action Function(credits_step, cred_adj)
 
 
-# TICKETS  (the original credits)
-
 define CREW_BADGES = {"eric": "</>", "hannah": "✎", "aydin": "www", "ryan": "☕"}
 
 screen crew_card(ci, c):
@@ -890,7 +869,6 @@ screen credits_tickets():
                 ypos sy
                 at streak(sdur, sdelay)
 
-    # left title panel
     frame:
         xpos 80
         ypos 70
@@ -947,7 +925,6 @@ screen credits_tickets():
                     color "#8888a0"
                     font GFONT
 
-    # scrolling ticket cards
     viewport:
         xpos 720
         ypos 70
@@ -1031,8 +1008,6 @@ screen credits_tickets():
 
     timer 0.03 repeat True action Function(credits_step, cred_adj)
 
-
-# FILM
 
 transform film_flicker:
     alpha 0.05
@@ -1271,7 +1246,6 @@ transform spot_flicker:
         linear 0.10 alpha 0.98
         repeat
 
-# text effects
 
 transform spot_letter(d):
     alpha 0.0

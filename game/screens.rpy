@@ -1,10 +1,7 @@
 init offset = -1
 
 
-# FONTS & GLOBAL STYLES
-
 init -5 python:
-    # rounded boxes
     ROUND_RADII = (2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 30, 34, 38, 40, 48,
                    64, 96, 128, 160, 200, 256)
     _rbox_cache = {}
@@ -27,7 +24,6 @@ init -5 python:
             _rbox_cache[key] = d
         return d
 
-    # shared helpers
     def anim_t(t):
         try:
             return 0.0 if persistent.reduce_motion else t
@@ -134,8 +130,6 @@ init python:
         pass
 
 
-# SHARED LAYOUT CONSTANTS
-
 define gui.sidebar_width = 450
 define gui.sidebar_margin = 28
 define gui.sidebar_padding = 35
@@ -146,8 +140,6 @@ define PREF_PANEL_H = GAME_H - 280
 
 define KEY_SCALE = 2.35
 
-
-# TRANSFORMS
 
 transform key_backlight:
     alpha 0.12
@@ -305,7 +297,6 @@ init python:
     def menu_shake_extreme(trans, st, at):
         return _menu_shake(trans, True)
 
-    # the plain yellow logo, built once: most of the time nothing changes
     _LOGO_STILL = Fixed("images/Game_Logo_Yellow.webp", fit_first=True)
 
     def _menu_logo(st, at):
@@ -453,7 +444,6 @@ transform tilt(a=0):
     transform_anchor True
     rotate a
 
-# AUTOMATIC SPEAKER FOCUS
 
 define SP_LIT = BrightnessMatrix(0.0) * SaturationMatrix(1.0)
 define SP_DIM = BrightnessMatrix(-0.16) * SaturationMatrix(0.8)
@@ -617,7 +607,6 @@ transform carriage_6_ambient:
     linear 3.0 alpha 0.0
     repeat
 
-# settings / achievements animations
 
 transform row_pop(delay=0.0):
     alpha 0.0
@@ -665,8 +654,6 @@ transform toast_timer:
     linear 4.3 xzoom 0.0
 
 
-# IMAGES
-
 image carriage_6 = Solid("#0a0a0e")
 image carriage_6_fog = At(Solid("#4a0a0a"), carriage_6_ambient)
 
@@ -695,8 +682,6 @@ screen loop_overlay():
         xysize (config.screen_width, config.screen_height)
 
 
-# GLOBAL TRANSITIONS
-
 init python:
     config.keymap["director"] = []
 
@@ -714,8 +699,6 @@ define config.game_main_transition = Dissolve(0.5)
 define config.say_attribute_transition = Dissolve(0.2)
 define config.say_attribute_transition_layer = "master"
 
-
-# MENU MUSIC
 
 init python:
 
@@ -744,8 +727,6 @@ label before_main_menu:
     $ music_menu()
     return
 
-
-# BLACKBERRY LOGO EASTER EGG + IMAGE HELPERS
 
 default found_blackberry_secret = False
 
@@ -783,7 +764,6 @@ init python:
             _autocrop_disp[path] = d
         return d
 
-    # main-menu key
     KEY_CROP = (43, 903, 555, 1138)
     KEY_RING_CX = 277
     KEY_BAR = (0, 79)
@@ -864,8 +844,6 @@ init python:
                     _er.uniform(7.0, 13.0), _er.uniform(0.0, 8.0),
                     _er.choice([30, 45, 60, 80])) for _ in range(26)]
 
-
-# USER PREFERENCES (persistent)
 
 default persistent.screen_shake_enabled = True
 default persistent.rumble_extreme = False
@@ -996,16 +974,12 @@ init python:
         return "DejaVuSans.ttf" if persistent.readable_font else "gui/Graduate-Regular.ttf"
 
 
-# QUICK MENU AUTO-HIDE STATE
-
 default quick_menu_hover = False
 
 init python:
     def _set_qm_hover(value):
         store.quick_menu_hover = value
 
-
-# ACHIEVEMENTS
 
 define ACHIEVEMENTS = [
     {"id": "first_departure", "title": _("First Departure"), "description": _("Reach the train station for the first time."), "hidden": False},
@@ -1028,7 +1002,6 @@ define ACHIEVEMENTS = [
     {"id": "perfect_understanding", "title": _("Perfect Understanding"), "description": _("Answered all three questions correctly in Carriage 6."), "hidden": False},
     {"id": "partial_truth", "title": _("Partial Truth"), "description": _("Answered some questions correctly in Carriage 6."), "hidden": False},
     {"id": "total_failure", "title": _("Total Failure"), "description": _("Failed all questions in Carriage 6."), "hidden": False},
-    # minigames
     {"id": "tumbler_talent", "title": _("Tumbler Talent"), "description": _("Pick the lock of the Carriage 1 cupboard."), "hidden": False},
     {"id": "sharp_eyes", "title": _("Sharp Eyes"), "description": _("Sweep up the broken glass in Carriage 2."), "hidden": False},
     {"id": "high_roller_win", "title": _("Beginner's Luck"), "description": _("Win a game of mahjong against Shunyu."), "hidden": False},
@@ -1159,8 +1132,6 @@ init python:
                                  if getattr(c, "__name__", "") != "ui_periodic"] + [ui_periodic]
 
 
-# SHARED ROUND BUTTON
-
 screen rbtn(label, act, w=200, h=50, r=14, size=22, bg="#101014", hov="#2a2a35", edge="#33334a", col="#8888a0", hcol="#ffd700", sel=False):
     button:
         xsize w
@@ -1190,8 +1161,6 @@ screen rbtn(label, act, w=200, h=50, r=14, size=22, bg="#101014", hov="#2a2a35",
                 selected_color hcol
                 font GFONT
 
-
-# ACHIEVEMENT POPUP
 
 screen ach_toast(title, desc):
     zorder 400
@@ -1239,8 +1208,6 @@ screen ach_toast(title, desc):
                         yalign 0.0
     timer 4.8 action Hide("ach_toast")
 
-
-# ACHIEVEMENTS SCREEN
 
 screen achievements():
     tag menu
@@ -1437,8 +1404,6 @@ screen achievements():
     use game_menu_back(back_action)
 
 
-# BACKGROUNDS
-
 image game_logo_rumble = DynamicDisplayable(_menu_logo)
 
 image game_logo_cycle:
@@ -1448,8 +1413,6 @@ image game_logo_cycle:
     pause 10.0
     repeat
 
-
-# LOADING SCREEN / SPLASH
 
 screen loading():
     zorder 200
@@ -1490,8 +1453,6 @@ label splashscreen:
     with Pause(0.3)
     return
 
-
-# MAIN MENU
 
 define MENU_HELP = {
     "NEW GAME": _("Start the story from the beginning."),
@@ -1575,7 +1536,6 @@ screen menu_tagline(xa=0.5, size=16):
                 font GFONT
                 at tagline_swap
 
-# main menu: cinematic, with bits of the departure board
 
 define CINE_X = 110
 define CINE_COL_W = 600
@@ -1708,7 +1668,6 @@ transform cine_line:
     on hover:
         ease 0.3 xzoom 1.0
 
-# the little train on its rail (left column)
 
 define TRAIN_CROP = (0, 230, 2048, 1075)
 
@@ -1780,7 +1739,6 @@ screen main_menu():
     timer 15.0 repeat True action Function(check_departure)
     timer 1.0 action Function(check_halloween)
 
-    # Atmosphere
     add "images/1st_carriage_Visualnovel_Background.webp":
         fit "cover"
         xysize (config.screen_width, config.screen_height)
@@ -1861,7 +1819,6 @@ screen main_menu():
         xysize (config.screen_width, config.screen_height)
         alpha 0.8
 
-    # The menu
     $ rows = [(_("CONTINUE"), Function(continue_game), True), (_("NEW GAME"), Start(), False)]
     $ rows += [(_("LOAD GAME"), ShowMenu("load"), False),
                (_("SETTINGS"), ShowMenu("preferences"), False),
@@ -1874,7 +1831,6 @@ screen main_menu():
 
     $ mstyle = menu_style_now()
     if mstyle == "new":
-        # Darker on the left, fading out across the screen
         add left_shade()
 
         if idle_walk:
@@ -1886,7 +1842,6 @@ screen main_menu():
         add Solid("#00000070")
 
     if mstyle == "classic":
-        # Sidebar card
         fixed:
             xpos gui.sidebar_margin
             ypos gui.sidebar_margin
@@ -2011,7 +1966,6 @@ screen main_menu():
         use expression ("mm_" + mstyle) pass (rows)
 
     elif mstyle == "centered":
-        # THEME PACK: the logo and the menu down the middle
         vbox:
             xalign 0.5
             yalign 0.5
@@ -2058,7 +2012,6 @@ screen main_menu():
                 action Function(casino_open)
 
     else:
-        # The left column
         vbox:
             xpos CINE_X
             yalign 0.5
@@ -2152,7 +2105,6 @@ screen main_menu():
                         add Solid("#2a2a35"):
                             xysize (CINE_COL_W - 48, 2)
                         null height 6
-                        # fixed height: a two-line tip mustn't move the rows under the mouse
                         fixed:
                             xsize (CINE_COL_W - 48)
                             ysize 40
@@ -2171,7 +2123,6 @@ screen main_menu():
                             text_font GFONT
                             action Function(version_poke)
 
-    # Tickets (EXTRAS > GAMEPASS) and coins (click: the casino)
     button:
         xalign 1.0
         xoffset -40
@@ -2207,7 +2158,6 @@ screen main_menu():
         timer 3.9 action SetVariable("train_gone", False)
     timer 60.0 action Function(idle_watch)
 
-    # Studio logo (easter egg)
     if renpy.loadable("images/Blackberry_Studios.webp"):
         button:
             xalign 1.0
@@ -2235,8 +2185,6 @@ screen main_menu():
             yoffset -20
             at fade_slide_in(0.9, xoff=60, final_xoff=-20)
 
-
-# DIALOGUE (SAY) SCREEN
 
 transform plate_pop:
     xoffset hover_lift(-30)
@@ -2419,8 +2367,6 @@ screen say(who, what, plate="#8a4a22", creepy=False):
                 at (soft_pulse, next_arrow_bob)
 
 
-# INPUT / CHOICE
-
 screen input(prompt):
     window:
         xalign 0.5
@@ -2494,8 +2440,6 @@ screen choice(items):
                                     color "#0a0a0e"
                                     font GFONT
 
-
-# QUICK MENU
 
 default quick_menu = True
 
@@ -2579,8 +2523,6 @@ screen quick_menu():
                                 action Function(afm_adjust, 3)
 
 
-# NAVIGATION (default escape menu fallback)
-
 screen navigation():
     vbox:
         xpos 0.05
@@ -2613,8 +2555,6 @@ screen navigation():
             textbutton _("Quit"):
                 action Quit(confirm=not main_menu)
 
-
-# SHARED MENU CHROME
 
 screen game_menu_header(title):
     text title:
@@ -2672,8 +2612,6 @@ screen game_menu_nav():
                         selected_color "#e0521f"
                         font GFONT
 
-
-# CLUE JOURNAL  (J key, CLUES in the pause menu, or the quick menu)
 
 define CLUE_LIST = [
     ("clue_tile_mismatch", "THE WRONG TILE", "\"That's not even from his hand. He had three of the dragon tiles laid out, not that one. Someone put that there after.\""),
@@ -2774,8 +2712,6 @@ screen clue_hotkey():
         key "j" action ShowMenu("clues")
         key "m" action ShowMenu("manifest")
 
-
-# PREFERENCES  (5 tabs)
 
 screen pref_toggle(label, act, selected=None, w=170):
     $ sel = renpy.is_selected(act) if selected is None else selected
@@ -2903,7 +2839,6 @@ screen preferences():
         ysize 6
         at underline_in
 
-    # TAB LIST
     vbox:
         xpos 80
         ypos 150
@@ -2966,7 +2901,6 @@ screen preferences():
                 hover_color "#ff6b5a"
                 font GFONT
 
-    # CONTENT (each tab slides in/out)
     fixed:
         xpos 420
         ypos 150
@@ -3234,8 +3168,6 @@ screen preferences():
     use game_menu_back(back_action)
 
 
-# SAVE / LOAD
-
 screen save():
     tag menu
     use file_slots(_("SAVE"))
@@ -3343,8 +3275,6 @@ screen file_slots(title):
     use game_menu_back(back_action)
 
 
-# HISTORY
-
 init python:
     _FACE_CACHE = {}
 
@@ -3435,7 +3365,6 @@ screen history():
                     color "#8888a0"
                     font GFONT
 
-            # every speaker as a folder
             elif hist_view == "folders" and hist_who is None:
                 hbox:
                     box_wrap True
@@ -3482,7 +3411,6 @@ screen history():
                                         italic True
                                         font say_font()
 
-            # one speaker's folder, opened
             elif hist_view == "folders":
                 $ entries = [e for e in _history_list if (e.who or "") == hist_who]
                 button:
@@ -3534,7 +3462,6 @@ screen history():
                                 italic (not hist_who)
                                 font say_font()
 
-            # everything, in order
             else:
                 for entry in _history_list:
                     frame:
@@ -3587,8 +3514,6 @@ screen history():
 
     use game_menu_back(back_action)
 
-
-# CREDITS  (ticket cards scrolling past a title panel)
 
 define CREW = [
     {"key": "eric", "name": "Eric", "roles": [
@@ -3742,8 +3667,6 @@ screen about():
         use rbtn("›", Function(credits_style_step, 1), w=50, h=44, r=14, size=22)
 
 
-# ENDING CARD
-
 screen ending_card(label_text, title, subtitle, accent="#e0521f"):
     modal True
     zorder 250
@@ -3791,8 +3714,6 @@ screen ending_card(label_text, title, subtitle, accent="#e0521f"):
         action Return()
     key "dismiss" action Return()
 
-
-# HELP
 
 screen help():
     tag menu
@@ -3848,8 +3769,6 @@ screen help():
 
     use game_menu_back(back_action)
 
-
-# CONFIRM / NOTIFY / SKIP INDICATOR
 
 screen confirm(message, yes_action, no_action):
     modal True
@@ -3911,8 +3830,6 @@ screen skip_indicator():
         text _("Skipping..."):
             font GFONT
 
-
-# 1. BURN-REVEAL TRANSITION + AGED MAP LOOK
 
 define flash = FlashTr("#ffffff", 0.08, 0.35)
 
@@ -4107,8 +4024,6 @@ screen old_map_fx():
                         font "gui/Graduate-Regular.ttf"
 
 
-# 2. MISC HELPERS
-
 init python:
     def autosave_checkpoint():
         if persistent.autosave_on:
@@ -4117,7 +4032,6 @@ init python:
             except Exception:
                 pass
 
-    # in-game train rumble (SCREEN SHAKE / RUMBLE setting)
     def apply_rumble(force=False):
         try:
             if getattr(store, "main_menu", False):
@@ -4180,14 +4094,10 @@ init python:
             pass
 
 
-# 3. MINIGAMES  -  see minigames.rpy
-
-
 default persistent.endings_seen = set()
 default persistent.chapters_seen = set()
 default persistent.replay_to = None
 
-# CHAPTERS (EXTRAS, main menu only): replay any carriage you've reached
 define CHAPTERS = [
     ("carriage_1_start",       _("CARRIAGE 1"), _("FIRST CLASS"),     False),
     ("carriage_2_start",       _("CARRIAGE 2"), _("THE LOUNGE"),      False),
@@ -4200,14 +4110,12 @@ define CHAPTERS = [
     ("carriage_5_part2_start", _("CARRIAGE 5"), _("THE MAIL ROOM"),   True),
 ]
 
-# how far the story is when a chapter starts (the cheat menu's JUMP stages)
 define CHAPTER_STAGE = {
     "carriage_1_start": 0, "carriage_2_start": 1, "carriage_3_start": 2,
     "carriage_4_start": 3, "carriage_5_start": 4, "part2_start": 5,
     "carriage_2_part2_start": 6, "carriage_3_part2_start": 7, "carriage_5_part2_start": 8,
 }
 
-# the carriage you walk in from, so a chapter starts with the right background
 define CHAPTER_BG = {
     "carriage_1_start": "bg carriage_1",
     "carriage_2_start": "bg carriage_1",
@@ -4241,7 +4149,6 @@ init python:
         ("true",   "ENDING 3", "THE TRUE LINE",  "Name the killer and answer all three questions in Carriage 6.", "#e0521f", False),
     ]
 
-    # saves from before CHAPTERS existed: unlock from the story achievements
     CHAPTER_ACH = {
         "carriage_2_start": "carriage_1_complete",
         "carriage_3_start": "carriage_2_complete",
@@ -4423,7 +4330,6 @@ init python:
         renpy.restart_interaction()
 
 
-# Konami listener (used by the main menu)
 screen secret_listener():
     key "K_UP" action Function(secret_key, "UP")
     key "K_DOWN" action Function(secret_key, "DOWN")
@@ -4432,7 +4338,6 @@ screen secret_listener():
     for ch in SECRET_LETTERS:
         key ("K_" + ch) action Function(secret_key, ch)
 
-# EXTRAS menu
 init python:
     def extras_tabs():
         tabs = [("endings", _("ENDINGS"))]
@@ -4771,8 +4676,6 @@ screen mm_departures(col="#55556a", size=16):
         action Function(casino_open)
 
 
-# MINIMAL
-
 screen mm_minimal(rows):
     add Solid("#00000050")
     vbox:
@@ -4804,8 +4707,6 @@ screen mm_minimal(rows):
                 color "#44445a"
                 font GFONT
 
-
-# PANEL
 
 screen mm_panel(rows):
     frame:
@@ -4861,8 +4762,6 @@ screen mm_panel(rows):
                     font GFONT
 
 
-# CINEMA
-
 define CINEMA_BAR = 170
 
 screen mm_cinema(rows):
@@ -4901,8 +4800,6 @@ screen mm_cinema(rows):
             use mm_row(lab, act, (30 if primary else 24), ("#e0521f" if primary else "#cfcac0"), ("#ff7a3d" if primary else "#ffffff"), 0.3 + i * 0.04)
         use mm_departures(size=20)
 
-
-# TICKET
 
 define TICKET_W = 1180
 define TICKET_H = 700
@@ -4995,8 +4892,6 @@ label chapter_replay:
     with fade
     jump expression (persistent.replay_to or "carriage_1_start")
 
-
-# QUICK SAVE / LOAD KEYS, and the last tab you had open in EXTRAS and SETTINGS
 
 init python:
     class UI_MEMORY(object):

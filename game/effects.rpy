@@ -1,5 +1,3 @@
-# Fit the game to the player's monitor instead of letterboxing it.
-
 init -100 python:
     DESIGN_W, DESIGN_H = 1920, 1080
 
@@ -55,8 +53,6 @@ init -2 python:
 
 default persistent.jumpscares = True
 
-
-# JUMPSCARE FACES
 
 init python:
     def _pill(color, w, h):
@@ -166,8 +162,6 @@ init python:
             _SCARE.count += 1
             jumpscare(renpy.random.choice(["flicker", "glitch", "eyes", "crawler"]))
 
-
-# MORE KINDS OF SCARE
 
 transform flicker_face:
     alpha 0.0
@@ -352,8 +346,6 @@ screen scare_eyes(hold=1.5):
             add _eye(30, 0, 24, 9)
 
 
-# EYES IN THE DARK
-
 transform eyes_blink(delay=0.0):
     alpha 0.0
     pause delay
@@ -375,8 +367,6 @@ screen dark_eyes(pairs=((0.3, 0.38, 0.0), (0.68, 0.46, 0.9))):
             add _eye(-34, 0, 26, 9)
             add _eye(34, 0, 26, 9)
 
-
-# DO OR DIE
 
 transform ticket_burn:
     alpha 0.0
@@ -405,8 +395,6 @@ init python:
             sfx("static")
         renpy.call_screen("ticket_flash")
 
-
-# SHADOWS ON THE MAP  (Part 2 only)
 
 transform shadow_blip:
     alpha 0.0
