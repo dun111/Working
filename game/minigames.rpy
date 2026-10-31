@@ -1019,11 +1019,11 @@ screen mg_mail():
 
 default mg_required = False
 
-label play_required(scr, reset):
+label play_required(scr, reset_):
     $ renpy.block_rollback()
     $ mg_required = True
     while True:
-        $ reset()
+        $ reset_()
         call screen expression scr
         if _return == "win":
             $ mg_required = False
