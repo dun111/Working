@@ -15,3 +15,6 @@ traceback.txt
 .DS_Store
 **/.DS_Store
 music_source/
+
+# Local saves and editor data; rewritten on every run
+game/saves/
