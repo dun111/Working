@@ -872,7 +872,6 @@ default persistent.brightness = 0
 default persistent.hotspot_labels = "always"
 default persistent.text_color = "light"
 default persistent.line_spacing = 10
-default persistent.text_fx = "full"
 default persistent.quick_menu_shown = True
 default persistent.mg_won = set()
 
@@ -918,7 +917,6 @@ init python:
         persistent.hotspot_labels = "always"
         persistent.text_color = "light"
         persistent.line_spacing = 10
-        persistent.text_fx = "full"
         persistent.quick_menu_shown = True
         persistent.ingame_music = True
         persistent.song_popups = True
@@ -1833,10 +1831,6 @@ screen main_menu():
     if mstyle == "new":
         add left_shade()
 
-        if idle_walk:
-            add Transform("images/louis_neutral.png", matrixcolor=flat_color("#050002"), zoom=0.9):
-                at idle_walker
-
 
     if mstyle == "centered":
         add Solid("#00000070")
@@ -2156,7 +2150,6 @@ screen main_menu():
         timer 2.6 action SetVariable("logo_glitched", False)
     if train_gone:
         timer 3.9 action SetVariable("train_gone", False)
-    timer 60.0 action Function(idle_watch)
 
     if renpy.loadable("images/Blackberry_Studios.webp"):
         button:
@@ -3007,11 +3000,6 @@ screen preferences():
                         use pref_toggle(_("WIDE"), SetField(persistent, "line_spacing", 20), selected=(persistent.line_spacing == 20), w=130)
                         use pref_toggle(_("WIDEST"), SetField(persistent, "line_spacing", 30), selected=(persistent.line_spacing == 30), w=130)
 
-                    use pref_row(_("TEXT EFFECTS"), _("Shaking and waving words. STILL turns the movement off."), 0.11):
-                        use pref_toggle(_("FULL"), SetField(persistent, "text_fx", "full"), selected=(persistent.text_fx == "full"), w=130)
-                        use pref_toggle(_("STILL"), SetField(persistent, "text_fx", "still"), selected=(persistent.text_fx == "still"), w=130)
-                        use pref_toggle(_("OFF"), SetField(persistent, "text_fx", "off"), selected=(persistent.text_fx == "off"), w=130)
-
                     use pref_onoff(_("QUICK MENU BAR"), _("The buttons under the dialogue box."), "quick_menu_shown", 0.12)
 
                     use pref_row(_("DIALOGUE BOX OPACITY"), _("Dialogue box see-through amount."), 0.12):
@@ -3132,7 +3120,6 @@ screen preferences():
                         use pref_toggle(_("NORMAL"), Function(set_rumble, "normal"), selected=(persistent.screen_shake_enabled and not persistent.rumble_extreme), w=120)
                         use pref_toggle(_("EXTREME"), Function(set_rumble, "extreme"), selected=(persistent.screen_shake_enabled and persistent.rumble_extreme), w=120)
 
-                    use pref_onoff(_("JUMPSCARES"), _("Jumpscares and scary sounds."), "jumpscares", 0.24)
                     use pref_onoff(_("REDUCE MOTION"), _("Turns off most movement."), "reduce_motion", 0.30)
 
         showif pref_tab == "access":
