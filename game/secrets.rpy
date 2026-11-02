@@ -684,6 +684,8 @@ default persistent.eric_clicks = 0
 default window_looks = 0
 
 define MORE_SECRET_ACHIEVEMENTS = [
+    {"id": "bond_one", "title": _("You play nice."), "description": _("Fill a passenger's hearts with gifts."), "hidden": False},
+    {"id": "bond_all", "title": _("All of us."), "description": _("Fill every passenger's hearts."), "hidden": False},
     {"id": "timetable", "title": _("There's always a next stop..."), "description": _("Find the timetable on the main menu."), "hidden": True},
     {"id": "golden_tickets", "title": _("Uh… uh… yes, the ticket."), "description": _("Find every golden ticket hidden on the train."), "hidden": False},
     {"id": "credits_all", "title": _("Anyone like who?"), "description": _("Click everyone in the credits."), "hidden": True},
