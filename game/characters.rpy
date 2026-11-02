@@ -232,6 +232,8 @@ init 3 python:
             if isinstance(name, (type(u""), type(""))):
                 if name == "part2_start":
                     store.hs_done = set()
+                    store.coin_found = set()
+                    store.fares_paid = set()
                 elif not main_menu:
                     store.hs_done.add(name)
         except Exception:
@@ -324,12 +326,14 @@ screen hs(rect, act, label="", kind="look", delay=0.0):
     $ hx, hy, hw, hh = rect
     $ hcol, hkind = HS_STYLE.get(kind, HS_STYLE["look"])
     $ checked = kind not in ("door", "back") and hs_checked(act)
+    if kind not in ("door", "back"):
+        $ hs_register(act)
     if checked:
         $ hcol = HS_CHECKED
     button:
         pos map_xy(hx, hy)
         xysize map_wh(hw, hh)
-        action act
+        action Function(hs_press, act, kind)
         background (rbox("#ff00ff40", 6) if persistent.cheat_hotspots else None)
         hover_background rbox(hcol + "26", 22)
         alt (hkind + " " + label)
@@ -496,6 +500,122 @@ transform manifest_thumb(known=True):
     zoom 0.15
     matrixcolor (IdentityMatrix() if known else flat_color("#1a1a22"))
 
+define COIN_FIND = 4
+define FARE = 8
+define GIFT_COST = 5
+define BOND_MAX = 5
+define FARE_DOORS = ["c1_door_to_carriage_2", "carriage_3_start", "carriage_4_start", "carriage_5_start",
+                     "c5_carriage6_door", "part2_chapter_end", "carriage_5_part2_start"]
+
+default coin_found = set()
+default fares_paid = set()
+default hs_spots = {}
+default persistent.bond = {}
+
+define GIFT_LINES = {
+    "Dorothy": ["...Oh...", "Are you fine… sir?", "Excuse me sir, tickets please."],
+    "Fedora": ["Why Hello There! Whaddaya need?", "Now THAT'S a headline.", "Everything's a story if you wait long enough."],
+    "Eduard": ["All the better for me, I reckon…", "Me?? I- I never even left the counter."],
+    "Shunyu": ["JACKKKPOTTTTTTT!", "Yes! I can't stop winning!", "Playing Mahjong! Doncha just love winning!"],
+    "Kimmy": ["Yawns… Hello, are you room service?", "Yeah, it's kinda obvious, matchstick.", "Don't worry Sugar, he's not dangerous… I think."],
+    "Himmel": ["Of course!", "W-what do you want, stranger?", "It's to the left! Now leave me alone!"],
+    "Sebastian": ["May I know your name, sir?", "It is a warning. For your own sake."],
+    "Misha": ["...Oh.", "...Why would you say that?"],
+    "Agatha": ["What, need help too?", "Actual infants…", "C'mon, put the bandage on."],
+    "Ichora": ["Here ya go!", "Hey! I've been waiting for ya, buddy!", "Oh, I know."],
+    "Pattison": ["Hello Sir, you another mailworker?", "It's okay, you will before the end.", "That's what I said, isn't it?"],
+    "Alexander": ["The banned super maple sugar!!!", "Hahahaha… this stuff is so gooddddd….", "Depends? Are you a narc?"],
+}
+
+init python:
+    def hs_register(act):
+        lab = getattr(act, "label", None)
+        if lab and lab not in store.hs_spots.get(DEV.label, ()):
+            spots = dict(store.hs_spots)
+            spots[DEV.label] = set(spots.get(DEV.label, ())) | set([lab])
+            store.hs_spots = spots
+
+    def fare_waived():
+        return all(s in store.coin_found for s in store.hs_spots.get(DEV.label, ()))
+
+    def hs_press(act, kind):
+        lab = getattr(act, "label", None)
+        if kind in ("door", "back"):
+            if lab in FARE_DOORS and lab not in store.fares_paid:
+                if (persistent.coins or 0) >= FARE:
+                    persistent.coins -= FARE
+                    renpy.show_screen("coin_toast", -FARE)
+                elif not fare_waived():
+                    renpy.notify(_("The door costs %d coins. Look around for more.") % FARE)
+                    return
+                store.fares_paid = store.fares_paid | set([lab])
+        elif lab and lab not in store.coin_found:
+            store.coin_found = store.coin_found | set([lab])
+            give_coins(COIN_FIND)
+            renpy.show_screen("coin_toast", COIN_FIND)
+        return renpy.run(act)
+
+    def bond(name):
+        return (persistent.bond or {}).get(name, 0)
+
+    def gift(name):
+        if bond(name) >= BOND_MAX or (persistent.coins or 0) < GIFT_COST:
+            return
+        persistent.coins -= GIFT_COST
+        b = dict(persistent.bond or {})
+        b[name] = bond(name) + 1
+        persistent.bond = b
+        sfx("ui_click")
+        renpy.notify("%s: \"%s\"" % (name, renpy.random.choice(GIFT_LINES.get(name, ["..."]))))
+        if b[name] == BOND_MAX:
+            give_tickets(TICKETS_FOR["secret"])
+            achievement.grant("bond_one")
+            if all(b.get(m[1], 0) >= BOND_MAX for m in MANIFEST[1:]):
+                achievement.grant("bond_all")
+        renpy.restart_interaction()
+
+screen coin_toast(n):
+    zorder 400
+    frame:
+        xpos 40
+        yalign 0.84
+        padding (24, 12)
+        background rbox("#14141aee", 18)
+        at ticket_pop
+        hbox:
+            spacing 12
+            add circ_coin(22):
+                yalign 0.5
+            text (("+%d COINS" if n > 0 else "%d COINS") % n):
+                size 22
+                color ("#ffd76a" if n > 0 else "#e0521f")
+                font GFONT
+    timer 2.0 action Hide("coin_toast")
+
+screen coin_hud():
+    zorder 41
+    if not main_menu and active_map_any():
+        frame:
+            xpos 30
+            ypos 18
+            padding (16, 8)
+            background rbox("#0a0806b0", 10)
+            hbox:
+                spacing 10
+                add circ_coin(18):
+                    yalign 0.5
+                text ("%d" % (persistent.coins or 0)):
+                    yalign 0.5
+                    size 20
+                    color "#ffd76a"
+                    font GFONT
+
+init python:
+    def active_map_any():
+        return any(renpy.get_screen(n) for n in MAP_TITLES)
+
+    config.overlay_screens.append("coin_hud")
+
 screen manifest():
     tag menu
     modal True
@@ -601,6 +721,21 @@ screen manifest():
                 size 20
                 color "#e6a817"
                 font GFONT
+            if cur["known"] and sel > 0:
+                $ hearts = bond(cur["name"])
+                hbox:
+                    spacing 16
+                    text ("♥" * hearts + "♡" * (BOND_MAX - hearts)):
+                        yalign 0.5
+                        size 30
+                        color "#e0521f"
+                        font "DejaVuSans.ttf"
+                    if hearts < BOND_MAX:
+                        use rbtn((_("GIFT %d COINS") % GIFT_COST), (Function(gift, cur["name"]) if (persistent.coins or 0) >= GIFT_COST else None), w=220, h=46, r=14, size=18, bg="#3e2814", hov="#5a3a1c", col="#ffd76a", hcol="#ffffff")
+                text (_("You have %d coins") % (persistent.coins or 0)):
+                    size 16
+                    color "#8888a0"
+                    font GFONT
             null height 16
             if cur["known"]:
                 for n in cur["notes"]:
