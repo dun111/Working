@@ -150,7 +150,6 @@ image door_light:
     ease 1.2 alpha 0.35
     ease 1.6 alpha 0.12
 
-define red_flash = FlashTr("#7a0a0a", 0.06, 0.5)
 
 
 transform clue_card_in:

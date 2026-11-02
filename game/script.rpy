@@ -66,7 +66,6 @@ default c6_q2_correct = False
 default c6_q3_correct = False
 
 default door_c2_open = False
-default door_c2_open_loop = False
 default door_c4_open = False
 
 
@@ -206,13 +205,14 @@ label start:
     $ achievement.grant("first_departure")
 
     show dorothy happy at speaker_focus(xalign=0.9)
-    d "{i}(distant voice){/i} {whisper}Thank you for boarding the Grekhov Express.{/whisper}"
+    d "{i}(distant voice){/i} Thank you for boarding the Grekhov Express."
     "{i}Louis wakes up violently to the sound of train tracks.{/i}"
     show dorothy happy at speaker_background(xalign=0.9)
     show louis confused at speaker_focus(xalign=0.1)
     l "Eugh… augh… guhhh… I feel the ground underneath me moving, and hear the sound of… chugging?"
     "{i}(Chugging){/i}"
     "{i}He opens his eyes.{/i}"
+    l "“Wh-where am I?”{w=1}"
     "{i}He looks around, and sees a ticket woman.{/i}"
     show louis confused at speaker_background(xalign=0.1)
     show dorothy confused at speaker_focus(xalign=0.9)
@@ -252,7 +252,6 @@ label carriage_1_start:
 
 label carriage_1_hub:
     scene bg carriage_1
-    $ random_scare()
     call screen carriage_1_map
     jump carriage_1_hub
 
@@ -263,11 +262,11 @@ label c1_fedora_dialogue:
         l "Uh, excuse me miss?"
         show louis neutral at speaker_background(xalign=0.1)
         show fedora neutral at speaker_focus(xalign=0.9)
-        f "Why Hello There, are you ready for the {shake}CALAMITY{/shake}?"
+        f "Why Hello There, are you ready for the CALAMITY?"
         l "Calamity?"
         f "I boarded this train to speak to the conductor after we arrived in Grekhov, I heard CALAMITY will open up once we reach there. It'll rack NUMBERS for the steamboat. I CAN'T WAIT to interview the KILLER."
         l "Killer?"
-        f "Well, it's been LOVELY talking to you, but my editor Twinkles is calling me. {shake}WATCH OUT.{/shake}"
+        f "Well, it's been LOVELY talking to you, but my editor Twinkles is calling me. WATCH OUT."
         l "OKAY…. or what?"
     else:
         show louis neutral at speaker_focus(xalign=0.1)
@@ -284,14 +283,6 @@ label c1_fedora_dialogue:
     return
 
 label c1_interact_window:
-    if in_loop:
-        show louis confused at speaker_focus(xalign=0.1)
-        l "U-uhm… what?"
-        "Huh… It's dark.."
-        l "Huh??"
-        $ jumpscare("window")
-        hide louis
-        return
     "What a beautiful sight outside! You can see everything from this train!"
     return
 
@@ -313,10 +304,6 @@ label c1_door_to_carriage_2:
         $ dr_bg = "bg carriage_1"
         call play_required("mg_door", door_reset) from _call_play_required_1
         $ door_c2_open = True
-    elif in_loop and not door_c2_open_loop:
-        $ dr_bg = "bg carriage_1"
-        call play_required("mg_door", door_reset) from _call_play_required_2
-        $ door_c2_open_loop = True
     show louis neutral at speaker_focus(xalign=0.5)
     if in_loop:
         l "...It's quiet. Way too quiet."
@@ -372,7 +359,7 @@ label c2_shunyu_dialogue:
     s "Playing Mahjong! Doncha just love winning!"
     "{i}Louis watches Shunyu pick up a tile.{/i}"
     show shunyu excited at speaker_focus(xalign=0.9)
-    s "{wave}JACKKKPOTTTTTTT!{/wave}"
+    s "JACKKKPOTTTTTTT!"
     show shunyu excited at speaker_background(xalign=0.9)
     l "R-right, well, I'll leave you-"
     show louis neutral at speaker_background(xalign=0.1)
@@ -386,7 +373,7 @@ label c2_shunyu_dialogue:
             call screen mahjong_minigame
             if _return == "win":
                 show shunyu excited at speaker_focus(xalign=0.9)
-                s "{wave}JACKKKPOTTTTTTT!{/wave} You win $2! Look at that, beginner's luck!"
+                s "JACKKKPOTTTTTTT! You win $2! Look at that, beginner's luck!"
                 $ played_mahjong = "won"
             else:
                 show shunyu neutral at speaker_focus(xalign=0.9)
@@ -402,10 +389,7 @@ label c2_shunyu_dialogue:
 label c2_interact_window:
     $ window_looks += 1
     if window_looks == 5:
-        $ jumpscare("window")
         $ secret_found("window", "window")
-        l "{tremble}H-hello?? Who said that…{/tremble}"
-        return
     "What a beautiful sight outside! You can see everything from this train!"
     return
 
@@ -433,7 +417,7 @@ label c3_kimmy_dialogue:
     l "N-no, my name is Louis… Nice to meet you."
     show louis neutral at speaker_background(xalign=0.1)
     show himmel neutral at speaker_focus(xalign=0.9)
-    h "{tremble}O-oh my god dear!{/tremble} Why is there a {scream}STRANGER{/scream} here! {tremble}I-I might faint!{/tremble}"
+    h "O-oh my god dear! Why is there a STRANGER here! I-I might faint!"
     show himmel neutral at speaker_background(xalign=0.9)
     k "Don't worry Sugar, he's not dangerous… I think."
     show kimmy neutral at speaker_background(xalign=0.5)
@@ -618,7 +602,6 @@ label c5_pattison_dialogue:
     l "U-uhm… what?"
     show louis neutral at speaker_background(xalign=0.1)
     p "Hello Sir, you another mailworker?"
-    call play_required("mg_mail", mail_reset) from _call_play_required_4
     show pattison neutral at speaker_background(xalign=0.9)
     l "No."
     l "I don't even know anybody on this express."
@@ -686,17 +669,13 @@ label c5_interact_luggage_room:
     return
 
 label c5_carriage6_door:
-    call play_required("mg_lockpick", lockpick_reset) from _call_play_required_5
     $ achievement.grant("carriage_5_complete")
     $ achievement.grant("eyes_in_the_dark")
     show louis confused at speaker_focus(xalign=0.5)
     l "Huh… it's…"
     scene black with dissolve
-    show screen dark_eyes
-    u "Not yet! Try to see the truth before you see the future." with jolt()
+    u "Not yet! Try to see the truth before you see the future."
     "{i}Two pairs of eyes glint in the blackness, watching.{/i}"
-    $ jumpscare("passenger")
-    hide screen dark_eyes
     jump part2_start
 
 
@@ -706,22 +685,33 @@ label part2_start:
     $ in_loop = True
     show screen loop_overlay
     scene Train station
-    with red_flash
+    with Pause(0.3)
     show dorothy neutral at speaker_focus(xalign=0.9)
-    d "{i}(distant voice){/i} {whisper}Thank you for boarding the Grekhov Express.{/whisper}"
+    d "{i}(distant voice){/i} Thank you for boarding the Grekhov Express."
     "{i}Louis wakes up violently to the sound of train tracks.{/i}"
     show dorothy neutral at speaker_background(xalign=0.9)
     show louis neutral at speaker_focus(xalign=0.1)
     l "Man… This seems familiar…"
+    "{i}He opens his eyes.{/i}"
     l "“Here again?”"
+    "{i}He looks around, and sees a ticket woman.{/i}"
     show louis neutral at speaker_background(xalign=0.1)
+    show dorothy neutral at speaker_focus(xalign=0.9)
     d "Excuse me sir, tickets please."
     show dorothy neutral at speaker_background(xalign=0.9)
     show louis confused at speaker_focus(xalign=0.1)
     l "Didn't I already give you my ticket?"
-    "{i}Louis feels something in his pocket, looks down and sees the ticket is still there. Now, it has a word on it: {scream}“DO OR DIE.”{/scream}{/i}"
-    $ ticket_flash()
+    show louis confused at speaker_background(xalign=0.1)
+    show dorothy neutral at speaker_focus(xalign=0.9)
+    d "Are you fine… sir?"
+    show dorothy neutral at speaker_background(xalign=0.9)
+    show louis confused at speaker_focus(xalign=0.1)
+    "{i}Louis feels something in his pocket, looks down and sees the ticket is still there. Now, it has a word on it: “DO OR DIE.”{/i}"
     l "Huh??"
+    show louis confused at speaker_background(xalign=0.1)
+    show dorothy neutral at speaker_focus(xalign=0.9)
+    d "I see. Well sir, welcome aboard the Grekhov Express…"
+    show dorothy neutral at speaker_background(xalign=0.9)
     show louis neutral at speaker_focus(xalign=0.1)
     l "I'm… back at the start?"
     scene bg carriage_1 with dissolve
@@ -737,7 +727,6 @@ label carriage_2_part2_start:
 
 label carriage_2_part2_hub:
     scene bg carriage_2
-    $ random_scare()
     call screen carriage_2_part2_map
     jump carriage_2_part2_hub
 
@@ -753,8 +742,16 @@ label c2_p2_talk_eduard:
     show louis neutral at speaker_focus(xalign=0.1)
     l "Uh… hey, you open?"
     show louis neutral at speaker_background(xalign=0.1)
+    show eduard neutral at speaker_focus(xalign=0.9)
     ed "All the better for me, I reckon…"
     show eduard neutral at speaker_background(xalign=0.9)
+    show louis neutral at speaker_focus(xalign=0.1)
+    l "...What?"
+    show louis neutral at speaker_background(xalign=0.1)
+    show eduard neutral at speaker_focus(xalign=0.9)
+    ed "All the better for me, I reckon…"
+    show eduard neutral at speaker_background(xalign=0.9)
+    show louis neutral at speaker_focus(xalign=0.1)
     l "Are you okay, man?"
     "{i}Eduard stops polishing. He looks up. His eyes don't quite focus on Louis.{/i}"
     show louis neutral at speaker_background(xalign=0.1)
@@ -773,15 +770,13 @@ label c2_p2_broken_glass:
     l "This is the same glass from before… why hasn't anyone cleaned this up?"
     "{i}Louis notices a piece missing from the largest shard - snapped clean off, edges sharp.{/i}"
     u "Can yer shut up?"
-    $ jumpscare("passenger", 0.6)
     show louis confused at speaker_focus(xalign=0.5)
-    l "{tremble}H-hello?? Who said that…{/tremble}"
+    l "H-hello?? Who said that…"
     "{i}No one is there.{/i}"
     return
 
 label c2_p2_bar_counter:
     "{i}There's something dark pooling near the base of the counter, thin, creeping toward the tiles. Louis doesn't want to know what it is yet. He'll find out soon enough.{/i}"
-    $ jumpscare("claws")
     return
 
 label c2_p2_second_table:
@@ -790,11 +785,11 @@ label c2_p2_second_table:
     "{i}Someone is slumped over the table.{/i}"
     l "...Hey. Hey, sir? You okay?"
     "{i}Louis reaches out and turns the figure over.{/i}"
-    "{i}It's Shunyu.{/i}" with red_flash
+    "{i}It's Shunyu.{/i}"
     "{i}There's a jagged shard of glass buried in his side, dark red soaked deep into his shirt around it. His eyes are open. A mahjong tile is placed neatly in his open palm, resting there like it was set on purpose. The rest of the tiles from his winning hand are still fanned out in front of him on the table, undisturbed, as though he simply stopped playing mid-game and never picked it back up.{/i}"
     show louis confused at speaker_focus(xalign=0.5)
-    l "{shake}Shunyu? Shunyu!!{/shake} Hey, wake up. C'mon, this isn't f- oh god, is that- is that {scream}GLASS{/scream}"
-    "{i}Louis stumbles back, knocking into a barstool.{/i}" with jolt("h")
+    l "Shunyu? Shunyu!! Hey, wake up. C'mon, this isn't f- oh god, is that- is that GLASS"
+    "{i}Louis stumbles back, knocking into a barstool.{/i}"
     $ c2_p2_found_body = True
     "{i}The noise brings Dorothy in from the corridor, still holding her ticket punch out of habit.{/i}"
     jump c2_p2_dorothy_arrives
@@ -827,7 +822,7 @@ label c2_p2_fedora_arrives:
     show louis confused at speaker_background(xalign=0.1)
     f "{i}(quiet, unusually so){/i} I told you to watch out."
     show fedora neutral at speaker_background(xalign=0.9)
-    l "{shake}What??{/shake} You knew this would-"
+    l "What?? You knew this would-"
     show louis confused at speaker_background(xalign=0.1)
     f "I said I CAN'T WAIT to interview the killer. I didn't say I knew who they were."
     "{i}She kneels by the body, professional mask sliding back over her face, though her hands are shaking slightly as she jots something down.{/i}"
@@ -904,7 +899,6 @@ label c2_p2_agatha_arrives:
 
 label c2_p2_investigation_hub:
     scene bg carriage_2
-    $ random_scare()
     call screen carriage_2_part2_investigation_map
     jump c2_p2_investigation_hub
 
@@ -974,7 +968,6 @@ label part2_chapter_end:
 
 label carriage_2_part2_return:
     scene bg carriage_2
-    $ random_scare()
     call screen carriage_2_part2_after_map
     jump carriage_2_part2_return
 
@@ -988,7 +981,6 @@ label carriage_3_part2_start:
 
 label carriage_3_part2_hub:
     scene bg carriage_3
-    $ random_scare()
     call screen carriage_3_part2_map
     jump carriage_3_part2_hub
 
@@ -1015,7 +1007,7 @@ label c3_p2_interact_carpet:
         l "This again... It was like this the first time too."
         "{i}He kneels, and this time, pulls at the loose edge.{/i}"
         call play_required("mg_pry", pry_reset) from _call_play_required_8
-        "{i}Underneath, tucked flat against the floorboard, is a single mahjong tile - the exact match to the one missing from Shunyu's winning hand.{/i}" with jolt()
+        "{i}Underneath, tucked flat against the floorboard, is a single mahjong tile - the exact match to the one missing from Shunyu's winning hand.{/i}"
         l "...No. No way."
         l "This was under Misha's carpet the whole time."
         $ found_clue("clue_hidden_tile")
@@ -1131,7 +1123,6 @@ label c3_p2_misha_reinterview:
     "{i}Misha tilts his head, genuinely, unsettlingly confused.{/i}"
     show louis neutral at speaker_background(xalign=0.1)
     mi "He'll come back though. They always come back. Don't they?"
-    $ jumpscare("flicker")
     "{i}Sebastian, from the doorway, sharply:{/i}"
     seb "Mr. Popov. That's enough."
     "{i}Misha goes quiet immediately, returning to his blocks as if nothing happened at all.{/i}"
@@ -1151,7 +1142,6 @@ label carriage_5_part2_start:
 
 label carriage_5_part2_hub:
     scene bg carriage_5
-    $ random_scare()
     call screen carriage_5_part2_map
     jump carriage_5_part2_hub
 
@@ -1215,6 +1205,9 @@ label c5_p2_pattison_dialogue:
     p "That's what I said, isn't it?"
     show pattison neutral at speaker_background(xalign=0.9)
     l "...Right. Thank you, Pattison."
+    show louis neutral at speaker_background(xalign=0.1)
+    show pattison neutral at speaker_focus(xalign=0.9)
+    p "This goes to the clock, while this goes to the end..."
     "{i}He returns to his sorting like the conversation never happened.{/i}"
     $ found_clue("clue_alexander_alibi")
     $ achievement.grant("alibi_confirmed")
@@ -1255,7 +1248,7 @@ label accusation_scene:
 label accusation_eduard:
     hide fedora
     show louis neutral at speaker_focus(xalign=0.1)
-    l "{big}It was you.{/big}"
+    l "It was you."
     show eduard neutral at speaker_focus(xalign=0.9)
     ed "Me?? I- I never even left the counter."
     jump wrong_ending
@@ -1263,7 +1256,7 @@ label accusation_eduard:
 label accusation_alexander:
     hide fedora
     show louis neutral at speaker_focus(xalign=0.1)
-    l "{big}It was you.{/big}"
+    l "It was you."
     show alexander neutral at speaker_focus(xalign=0.9)
     al "Wha? No, no no no, I didn't leave this carriage, ask the postman, ASK HIM!"
     jump wrong_ending
@@ -1271,7 +1264,7 @@ label accusation_alexander:
 label accusation_agatha:
     hide fedora
     show louis neutral at speaker_focus(xalign=0.1)
-    l "{big}It was you.{/big}"
+    l "It was you."
     show agatha neutral at speaker_focus(xalign=0.9)
     a "...You're joking. Tell me you're joking."
     jump wrong_ending
@@ -1285,11 +1278,9 @@ label wrong_ending:
     "The lights die. Every window goes black at once. The train's chugging stops entirely - dead, total silence."
     f "{i}(barely a whisper){/i} That's not... that's not how this works..."
     "Something moves in the dark, fast, wrong-shaped, dragging itself down the length of the carriage. Louis doesn't get a chance to run."
-    $ jumpscare("crawler")
     l "W-wait, I-"
-    $ jumpscare("conductor")
     scene black
-    u "Wrong guess. The train doesn't forgive wrong guesses." with red_flash
+    u "Wrong guess. The train doesn't forgive wrong guesses."
     $ achievement.grant("wrong_guess")
     jump ending_1_death
 
@@ -1308,7 +1299,7 @@ label accusation_misha:
     $ evidence_setup("misha neutral", "Misha", "You found it, didn't you? Under the carpet.", "clue_hidden_tile", "bg carriage_5")
     call play_required("mg_evidence", evidence_reset) from _call_play_required_12
     l "The tile is missing from Shunyu's hand. Hidden under your carpet. The blood at the bar not matching where he was found, someone strong enough, or careless enough, to move a body without thinking twice about what that means. And you kept humming about a 'score.' About people coming back."
-    l "{big}It was you the whole time, wasn't it?{/big}"
+    l "It was you the whole time, wasn't it?"
     "{i}Sebastian steps forward, voice cracking for the first time since Louis met him.{/i}"
     show sebastian neutral at speaker_focus(xalign=0.5)
     seb "Mr. Popov, is this-"
@@ -1321,11 +1312,11 @@ label accusation_misha:
     "{i}Misha's eyes well up, not manipulation, not a performance. Genuine, dawning horror.{/i}"
     show louis neutral at speaker_background(xalign=0.1)
     mi "...Oh."
-    mi "{tremble}Oh, no. No no no,{/tremble} that's not… {shake}that's not how the game is supposed to go!{/shake}"
+    mi "Oh, no. No no no, that's not… that's not how the game is supposed to go!"
     scene black with dissolve
     "The train shudders violently. The key Ichora gave to Louis, now hoisted on his waist, is snatched and shoved into the keyhole of the Carriage 6 door. The door to Carriage 6, sealed the entire journey, creaks open on its own, spilling cold light into the carriage."
     show door_light
-    u "{glitch}Truth accepted. Come see what you've won.{/glitch}" with jolt()
+    u "Truth accepted. Come see what you've won."
     scene bg carriage_5 with dissolve
     show door_light
     show sebastian neutral at speaker_focus(xalign=0.5)
@@ -1347,44 +1338,38 @@ label carriage_6_start:
     scene carriage_6 with fade
     show carriage_6_fog
     "{i}You step through. The temperature drops.{/i}"
-    show screen dark_eyes(((0.22, 0.3, 0.0), (0.8, 0.36, 0.6), (0.5, 0.2, 1.4)))
     l "...It's so quiet. Why is it so quiet."
     "{i}Fedora's voice, distant, echoing, from nowhere and everywhere:{/i}"
     f "...I don't think this carriage was ever meant to be found."
     pause 1.0
     l "...Shunyu?"
-    hide screen dark_eyes
     show shunyu_monster neutral at speaker_focus(xalign=0.2)
     shunyu_monster "{i}(wet, clicking){/i} Wanna play... you can only lose 100[pct]... but win... 100,000[pct]..."
     show shunyu_monster neutral at speaker_background(xalign=0.2)
     show himmel_monster neutral at speaker_focus(xalign=0.8)
-    himmel_monster "{i}(rapid, overlapping with itself){/i} {shake}Next stop, next stop, next stop, there's no next stop, there's no next stop, there's-{/shake}"
+    himmel_monster "{i}(rapid, overlapping with itself){/i} Next stop, next stop, next stop, there's no next stop, there's no next stop, there's-"
     "{i}He doesn't seem to notice you.{/i}"
     show himmel_monster neutral at speaker_background(xalign=0.8)
     show conductor_monster neutral at speaker_focus(xalign=0.5)
-    $ jumpscare("conductor", 0.7)
-    conductor_monster "{wave}Thank you for boarding….{/wave}"
+    conductor_monster "Thank you for boarding…."
     l "The ^#&#(*&?"
-    u "{glitch}You found the truth. Good. Now see what the truth costs.{/glitch}"
+    u "You found the truth. Good. Now see what the truth costs."
     "{i}The three shapes - Shunyu, Himmel, and the Conductor-thing - turn toward you at exactly the same moment.{/i}"
     l "...I figured out who did it. I did what you wanted. Isn't that enough?"
-    u "{glitch}Knowing isn't the same as surviving.{/glitch}"
+    u "Knowing isn't the same as surviving."
     l "What do you want from me?"
-    u "{glitch}Not me. Him.{/glitch}"
+    u "Not me. Him."
     show misha neutral at speaker_focus(xalign=0.5) with dissolve
     mi "This is my game. You have to play it right, or it doesn't end."
     l "...This whole carriage. This is all… this is what you imagine, isn't it? What you think happens when someone 'doesn't come back.'"
     u "A child's mind, given a body big enough to hold it. Everything he doesn't understand about death, it comes here to grow. Answer him truly, and it rests. Lie, or guess, or refuse, and it doesn't."
     l "...What happens if I get it wrong?"
     "{i}The Passenger's grin stretches wider. The Gentleman's shaking speeds up, wrappers peeling further off his skin like scabs. The Conductor-thing unfolds another half-foot taller, the ceiling groaning under it.{/i}"
-    u "{glitch}You'll see.{/glitch} Three questions. Three chances. Choose carefully, Louis."
+    u "You'll see. Three questions. Three chances. Choose carefully, Louis."
     hide misha with dissolve
-    call play_required("mg_survive", survive_reset) from _call_play_required_13
     jump c6_question_1
 
 label c6_question_1:
-    $ reveal_setup("The Passenger", "shunyu_monster neutral", "shunyu neutral", "Shunyu")
-    call play_required("mg_reveal", reveal_reset) from _call_play_required_14
     "{i}The Passenger lurches forward, tiles clicking and clattering out of his throat, arranging themselves on the floor into a crude, shifting sentence only Louis can read.{/i}"
     show shunyu_monster neutral at speaker_focus(xalign=0.2)
     shunyu_monster "{i}(wet, clicking){/i} You can only lose one hundred percent... but you can win one hundred thousand percent... So tell me, matchstick... what did I actually lose?"
@@ -1392,8 +1377,7 @@ label c6_question_1:
         "“Your life.”":
             l "Your life. You lost your life."
             "{i}The Passenger's grin cracks wider, tiles bursting from new places along his arms, his neck, clattering to the floor in a wave.{/i}"
-            shunyu_monster "WRONG. Life isn't at stake. It was never a stake." with jolt()
-            $ jumpscare("claws")
+            shunyu_monster "WRONG. Life isn't at stake. It was never a stake."
             $ c6_q1_correct = False
         "“Your winning streak.”":
             l "I… your winning streak, maybe?"
@@ -1409,8 +1393,6 @@ label c6_question_1:
     jump c6_question_2
 
 label c6_question_2:
-    $ reveal_setup("The Gentleman", "himmel_monster neutral", "himmel neutral", "Himmel")
-    call play_required("mg_reveal", reveal_reset) from _call_play_required_15
     "{i}The Gentleman vibrates closer, wrappers crinkling with every juddering step, hands still clawing at his own chest.{/i}"
     show himmel_monster neutral at speaker_focus(xalign=0.8)
     himmel_monster "{i}(rapid, overlapping){/i} Tell me, tell me, WHAT was I actually running toward? Every time. Every single time. WHAT WAS IT."
@@ -1418,8 +1400,7 @@ label c6_question_2:
         "“Peace.”":
             l "Peace, maybe?"
             "{i}The Gentleman's shaking intensifies violently, veins pulsing black beneath his waxen skin.{/i}"
-            himmel_monster "PEACE ISN'T SOMETHING YOU BUY IN A CORNER OF A STORAGE CART. WRONG." with jolt()
-            $ jumpscare("glitch")
+            himmel_monster "PEACE ISN'T SOMETHING YOU BUY IN A CORNER OF A STORAGE CART. WRONG."
             $ c6_q2_correct = False
         "“Kimmy's approval.”":
             l "Maybe… maybe you wanted Kimmy to notice you more?"
@@ -1436,17 +1417,14 @@ label c6_question_2:
     jump c6_question_3
 
 label c6_question_3:
-    $ reveal_setup("The Conductor", "conductor_monster neutral", "conductor_monster neutral", "The Conductor")
-    call play_required("mg_reveal", reveal_reset) from _call_play_required_16
     "{i}The Conductor-thing unfolds to its full, impossible height, the faceless expanse of fabric-skin tilting down toward Louis. The mouth-hole opens, and Dorothy's stolen voice pours out, layered and wrong.{/i}"
     show conductor_monster neutral at speaker_focus(xalign=0.5)
-    conductor_monster "Thank you for boarding... the Grekhov Express... Tell me, passenger... what is a conductor {scream}FOR{/scream}... if none of you ever truly get off?"
+    conductor_monster "Thank you for boarding... the Grekhov Express... Tell me, passenger... what is a conductor FOR... if none of you ever truly get off?"
     menu:
         "“To keep the train running forever.”":
             l "Maybe… maybe just to keep it moving?"
             "{i}The Conductor-thing's form ripples, limbs multiplying, extra joints bending the wrong way all along its arms.{/i}"
-            conductor_monster "WRONG. Motion without purpose is not a duty. It is a curse." with jolt()
-            $ jumpscare("eyes")
+            conductor_monster "WRONG. Motion without purpose is not a duty. It is a curse."
             $ c6_q3_correct = False
         "“To punish the ones who did wrong.”":
             l "To… to punish people? For what they did?"
@@ -1472,7 +1450,6 @@ label carriage_6_aftermath:
         $ achievement.grant("total_failure")
         scene black with dissolve
         "You found the truth, and still couldn't carry it. That may be worse than never finding it at all."
-        $ jumpscare("conductor")
         "{i}Louis is hit with the darkness.{/i}"
         jump ending_1_death
 
@@ -1540,7 +1517,6 @@ label old_film_to_map:
 
 label c1_interact_cupboard:
     if in_loop:
-        $ shadow_flash()
         u "Be careful, young one. Do you really wanna do that?"
         return
 
@@ -1607,6 +1583,10 @@ label c4_interact_engine:
             $ engine_reset()
             $ renpy.block_rollback()
             call screen mg_engine
+            if _return == "win":
+                ic "Not bad, buddy! Steady hands. You'd make a fine engineer."
+            elif _return == "lose":
+                ic "Whoa-whoa-whoa! Hands off, buddy! …I'll fix it."
         "Not today":
             pass
     return

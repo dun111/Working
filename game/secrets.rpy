@@ -15,9 +15,7 @@ init 1 python:
         ("flashlight", _("Search in the dark"),        "mg_flashlight",     flashlight_reset, _("Part 2, Carriage 2")),
         ("combo",      _("The luggage lock"),          "mg_combo",          combo_reset,      _("Part 2, Carriage 3")),
         ("pry",        _("Pull up the carpet"),        "mg_pry",            pry_reset,        _("Part 2, Carriage 3")),
-        ("survive",    _("Don't let them reach you"),  "mg_survive",        survive_reset,    _("Carriage 6")),
         ("evidence",   _("Present the evidence"),      "mg_evidence",       evidence_reset,   _("Part 2")),
-        ("reveal",     _("Reveal"),                    "mg_reveal",         reveal_reset,     _("Carriage 6")),
     ]
 
     def arcade_play(scr, reset):
@@ -27,9 +25,6 @@ init 1 python:
 
     def play_minigame(scr, reset):
         renpy.invoke_in_new_context(arcade_play, scr, reset)
-
-    def test_scare(kind):
-        renpy.invoke_in_new_context(jumpscare, kind)
 
 init python:
     def cheats_allowed():
@@ -93,7 +88,6 @@ init python:
         for i, flags in enumerate(P2_STEPS):
             for f in flags:
                 setattr(store, f, loop and (i < stage - 5))
-        renpy.hide_screen("dark_eyes")
         if loop:
             renpy.show_screen("loop_overlay")
         else:
@@ -159,8 +153,7 @@ screen cheat_hotkey():
 init python:
     config.always_shown_screens.append("cheat_hotkey")
 
-define CHEAT_TABS = [("jump", _("JUMP")), ("flags", _("FLAGS")), ("scares", _("SCARES")),
-                     ("games", _("MINIGAMES")), ("unlocks", _("UNLOCKS")), ("tools", _("TOOLS"))]
+define CHEAT_TABS = [("jump", _("JUMP")), ("flags", _("FLAGS")), ("games", _("MINIGAMES")), ("unlocks", _("UNLOCKS")), ("tools", _("TOOLS"))]
 
 screen cheat_btn(label, act, w=392, sel=False):
     button:
@@ -254,24 +247,6 @@ screen cheat_menu():
                                            "door_c2_open", "door_c4_open"]:
                                     use cheat_btn(fl, ToggleVariable(fl), sel=bool(getattr(store, fl, False)))
 
-                elif ct == "scares":
-                    vbox:
-                        spacing 12
-                        if not persistent.jumpscares:
-                            text _("Jumpscares are off in Settings > Comfort."):
-                                size 20
-                                color "#e0521f"
-                                font GFONT
-                        hbox:
-                            box_wrap True
-                            box_wrap_spacing 12
-                            xmaximum 1220
-                            spacing 12
-                            for kind in ["passenger", "conductor", "flicker", "crawler", "claws", "glitch", "window", "eyes"]:
-                                use cheat_btn(kind.upper(), Function(test_scare, kind))
-                            use cheat_btn(_("SHADOW FLASH"), Function(shadow_flash))
-                            use cheat_btn(_("DO OR DIE"), Function(renpy.invoke_in_new_context, ticket_flash))
-
                 elif ct == "games":
                     vbox:
                         spacing 12
@@ -299,7 +274,6 @@ screen cheat_menu():
                         use cheat_btn(_("Give 50 tickets"), Function(give_tickets, 50), w=604)
                         use cheat_btn(_("9999 coins"), SetField(persistent, "coins", 9999), w=604)
                         use cheat_btn(_("Show hotspot outlines"), ToggleField(persistent, "cheat_hotspots"), w=604, sel=persistent.cheat_hotspots)
-                        use cheat_btn(_("Jumpscares"), ToggleField(persistent, "jumpscares"), w=604, sel=persistent.jumpscares)
                         use cheat_btn(_("Instant text"), [Preference("text speed", 0)], w=604)
                         use cheat_btn(_("Normal text speed"), [Preference("text speed", 40)], w=604)
 
@@ -731,7 +705,6 @@ define MORE_SECRET_NOTES = [
     ("train", _("\"Wow damn… So… Expensive cabin, huh?\"")),
     ("version", _("\"I'm… back at the start?\"")),
     ("four_hundred", _("\"Thank you for boarding….\"")),
-    ("idle", _("\"Two pairs of eyes glint in the blackness, watching.\"")),
 ]
 
 define CAST_CALLS = [
@@ -847,7 +820,6 @@ init python:
         if now.month == 10 and now.day == 31:
             _SECRET.spooked = True
             secret_found("halloween")
-            renpy.invoke_in_new_context(jumpscare, "eyes")
 
 
 transform peek_in:
@@ -868,7 +840,6 @@ screen cast_peek(img):
 default logo_glitched = False
 default train_gone = False
 default train_trips = 0
-default idle_walk = False
 default version_pokes = 0
 
 init python:
@@ -902,12 +873,6 @@ init python:
             secret_found("version")
         renpy.restart_interaction()
 
-    def idle_watch():
-        if persistent.jumpscares and not store.idle_walk:
-            store.idle_walk = True
-            secret_found("idle")
-            renpy.restart_interaction()
-
 transform logo_glitch:
     alpha 1.0
     block:
@@ -937,23 +902,6 @@ transform train_leave(trip):
         easein 1.8 xoffset 0
     parallel:
         ease 1.4 alpha 1.0 blur 0
-
-transform idle_walker:
-    xanchor 0.5
-    yanchor 1.0
-    ypos 1.12
-    xpos -0.1
-    alpha 0.0
-    parallel:
-        ease 2.0 alpha 0.55
-    parallel:
-        linear 26.0 xpos 1.1
-    parallel:
-        block:
-            ease 0.6 yoffset -8
-            ease 0.6 yoffset 0
-            repeat
-
 
 default persistent.golden_found = set()
 

@@ -1019,11 +1019,11 @@ screen mg_mail():
 
 default mg_required = False
 
-label play_required(scr, reset):
+label play_required(scr, reset_):
     $ renpy.block_rollback()
     $ mg_required = True
     while True:
-        $ reset()
+        $ reset_()
         call screen expression scr
         if _return == "win":
             $ mg_required = False
@@ -1216,8 +1216,6 @@ init python:
         store.fl_lit = store.fl_lit + [i]
         store.fl_battery -= 1
         sfx("ui_click")
-        if i == store.fl_ghost:
-            renpy.invoke_in_new_context(jumpscare, "passenger", 0.6)
         if fl_found() == len(FL_ITEMS):
             store.fl_result = "win"
             mg_record("flashlight")
@@ -1413,109 +1411,6 @@ screen mg_pry():
             use mg_end(_("This again..."), "lose")
 
 
-define SV_TIME = 20.0
-
-default sv_lanes = [0.0, 0.0, 0.0]
-default sv_spawn = 0.0
-default sv_hp = 3
-default sv_t = 20.0
-default sv_flash = 0
-default sv_result = None
-
-init python:
-    def survive_reset():
-        store.sv_lanes = [0.0, 0.0, 0.0]
-        store.sv_spawn = 0.6
-        store.sv_hp = 3 + pass_bonus("extra_life", 1)
-        store.sv_t = SV_TIME
-        store.sv_flash = 0
-        store.sv_result = None
-
-    def survive_tick():
-        if store.sv_result is not None:
-            return
-        dt = 0.05
-        lanes = list(store.sv_lanes)
-        store.sv_spawn -= dt
-        if store.sv_spawn <= 0:
-            store.sv_spawn = [1.5, 1.15, 0.85][persistent.mg_difficulty]
-            empty = [i for i in range(3) if lanes[i] == 0.0]
-            if empty:
-                lanes[renpy.random.choice(empty)] = 0.01
-        for i in range(3):
-            if lanes[i] > 0.0:
-                lanes[i] += dt * 0.28 * mg_mult()
-                if lanes[i] >= 1.0:
-                    lanes[i] = 0.0
-                    store.sv_hp -= 1
-                    store.sv_flash = 6
-                    sfx("thud")
-        store.sv_lanes = lanes
-        if store.sv_flash:
-            store.sv_flash -= 1
-        store.sv_t -= dt
-        if store.sv_hp <= 0:
-            store.sv_result = "lose"
-        elif store.sv_t <= 0:
-            store.sv_result = "win"
-            mg_record("survive")
-        renpy.restart_interaction()
-
-    def survive_banish(i):
-        if store.sv_result is not None or store.sv_lanes[i] == 0.0:
-            return
-        lanes = list(store.sv_lanes)
-        lanes[i] = 0.0
-        store.sv_lanes = lanes
-        sfx("static")
-        renpy.restart_interaction()
-
-screen mg_survive():
-    use mg_scene(_("DON'T LET THEM REACH YOU"), _("Click the shadows before they reach you."), "carriage_6"):
-        if sv_result is None:
-            timer 0.05 repeat True action Function(survive_tick)
-            key "K_1" action Function(survive_banish, 0)
-            key "K_2" action Function(survive_banish, 1)
-            key "K_3" action Function(survive_banish, 2)
-
-        use mg_stats([_("Hold on: %d") % max(0, sv_t), _("Lives: %d") % max(0, sv_hp)])
-
-        use mg_box(1100, 640):
-            hbox:
-                align (0.5, 0.5)
-                spacing 40
-                for i in range(3):
-                    $ near = sv_lanes[i]
-                    button:
-                        padding (0, 0)
-                        xysize (300, 540)
-                        background rbox("#14141a", 20)
-                        hover_background rbox("#24242e", 20)
-                        action Function(survive_banish, i)
-                        if near > 0.0:
-                            add rbox("#8a0000", 20):
-                                xsize 300
-                                yalign 1.0
-                                ysize max(40, int(540 * near))
-                        text str(i + 1):
-                            xalign 0.5
-                            ypos 20
-                            size 40
-                            color "#55556a"
-                            font GFONT
-
-        if sv_flash:
-            add Solid("#8a0000"):
-                pos (-MAP_X0, -MAP_Y0)
-                xysize (config.screen_width, config.screen_height)
-                alpha (sv_flash / 10.0)
-
-        if sv_result == "win":
-            use mg_end(_("Three questions. Three chances."), "win")
-        elif sv_result == "lose":
-            use mg_end(_("You'll see."), "lose")
-
-
 default ev_cfg = ("", "", "", "clue_hidden_tile", "black")
 default ev_result = None
 default ev_pick = None
@@ -1602,96 +1497,3 @@ screen mg_evidence():
             use mg_end(evidence_title(ev_answer), "win")
         elif ev_result == "lose":
             use mg_end(_("WRONG"), "lose")
-
-
-define RV_COLS = 6
-define RV_ROWS = 8
-define RV_CW = 87
-define RV_CH = 70
-
-default rv_cfg = ("The Conductor", "conductor_monster neutral", "conductor_monster neutral", "The Conductor")
-default rv_dark = []
-default rv_t = 25.0
-default rv_thrash = 2.0
-default rv_shake = 0
-default rv_result = None
-
-init python:
-    def reveal_setup(name, monster_img, true_img, true_name):
-        store.rv_cfg = (name, monster_img, true_img, true_name)
-
-    def reveal_reset():
-        store.rv_dark = [True] * (RV_COLS * RV_ROWS)
-        store.rv_t = 25.0 / mg_mult()
-        store.rv_thrash = 2.0
-        store.rv_shake = 0
-        store.rv_result = None
-
-    def reveal_amount():
-        return store.rv_dark.count(False) / float(len(store.rv_dark))
-
-    def reveal_wipe(i):
-        if store.rv_result is not None or not store.rv_dark[i]:
-            return
-        d = list(store.rv_dark)
-        d[i] = False
-        store.rv_dark = d
-        if reveal_amount() >= 0.9:
-            store.rv_result = "win"
-            mg_record("reveal")
-        renpy.restart_interaction()
-
-    def reveal_tick():
-        if store.rv_result is not None:
-            return
-        dt = 0.05
-        store.rv_thrash -= dt
-        if store.rv_thrash <= 0:
-            store.rv_thrash = renpy.random.uniform(1.6, 2.6) / mg_mult()
-            store.rv_shake = 10
-            sfx("screech")
-            d = list(store.rv_dark)
-            for i in renpy.random.sample(range(len(d)), [4, 6, 8][persistent.mg_difficulty]):
-                d[i] = True
-            store.rv_dark = d
-        if store.rv_shake:
-            store.rv_shake -= 1
-        if mg_timed():
-            store.rv_t -= dt
-            if store.rv_t <= 0:
-                store.rv_result = "lose"
-        renpy.restart_interaction()
-
-screen mg_reveal():
-    $ rv_name, rv_monster, rv_true, rv_true_name = rv_cfg
-    use mg_scene(_("REVEAL"), _("Rub the shadow away with the mouse."), "carriage_6"):
-        if rv_result is None:
-            timer 0.05 repeat True action Function(reveal_tick)
-
-        $ stats = [rv_name, _("Revealed: %d%%") % int(reveal_amount() * 100)]
-        if mg_timed():
-            $ stats.append(_("Time: %d") % max(0, rv_t))
-        use mg_stats(stats)
-
-        fixed:
-            xysize (RV_COLS * RV_CW, RV_ROWS * RV_CH)
-            xalign 0.5
-            yalign 0.62
-            xoffset (((rv_shake % 2) * 2 - 1) * rv_shake * 3)
-            add rv_true:
-                fit "contain"
-                xysize (RV_COLS * RV_CW, RV_ROWS * RV_CH)
-            grid RV_COLS RV_ROWS:
-                for i in range(RV_COLS * RV_ROWS):
-                    button:
-                        xysize (RV_CW, RV_CH)
-                        padding (0, 0)
-                        background (Solid("#3a0a10") if rv_dark[i] else None)
-                        hover_background (Solid("#5a1018") if rv_dark[i] else None)
-                        hovered Function(reveal_wipe, i)
-                        action NullAction()
-
-        if rv_result == "win":
-            use mg_end(rv_true_name, "win")
-        elif rv_result == "lose":
-            use mg_end(_("You'll see."), "lose")
