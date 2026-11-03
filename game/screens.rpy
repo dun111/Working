@@ -2,27 +2,9 @@ init offset = -1
 
 
 init -5 python:
-    ROUND_RADII = (2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 30, 34, 38, 40, 48,
-                   64, 96, 128, 160, 200, 256)
-    _rbox_cache = {}
 
     def rbox(color, r=14):
-        key = (color, r)
-        d = _rbox_cache.get(key)
-        if d is None:
-            c = Color(color)
-            if r <= 0:
-                d = Solid(c)
-            else:
-                rr = ROUND_RADII[0]
-                for v in ROUND_RADII:
-                    if abs(v - r) < abs(rr - r):
-                        rr = v
-                d = Transform(Frame("gui/round/r%d.png" % rr, rr, rr),
-                              matrixcolor=TintMatrix(c.replace_opacity(1.0)),
-                              alpha=c.alpha)
-            _rbox_cache[key] = d
-        return d
+        return Solid(color)
 
     def anim_t(t):
         try:
@@ -678,10 +660,6 @@ screen loop_overlay():
     zorder 50
     add Solid("#3a000020")
     add Solid("#ff2a1a") at heartbeat
-    add "gui/vignette.png":
-        xysize (config.screen_width, config.screen_height)
-
-
 init python:
     config.keymap["director"] = []
 
@@ -781,50 +759,34 @@ init python:
     KEY_H = int(KEY_CROP[3] * KEY_ZOOM)
 
     KEY_IMAGE = Transform(Transform("images/Key.webp", crop=KEY_CROP), zoom=KEY_ZOOM)
-    KEY_LOOP_BACK = Transform("gui/key_loop.png", zoom=KEY_LOOP_ZOOM)
-    KEY_LOOP_FRONT = Transform("gui/key_loop_front.png", zoom=KEY_LOOP_ZOOM)
 
     def _save_tag(d):
-        d["story"] = True
+        d["save_version"] = SAVE_VERSION
 
     config.save_json_callbacks.append(_save_tag)
 
+    def save_ok(slot):
+        return (renpy.slot_json(slot) or {}).get("save_version") == SAVE_VERSION
+
     def latest_save():
-        try:
-            slots = [(renpy.slot_mtime(s) or 0, s) for s in renpy.list_slots() if not s.startswith("_")]
-            slots.sort(reverse=True)
-            broken = set(persistent.broken_saves or ())
-            for mtime, slot in slots:
-                info = renpy.slot_json(slot) or {}
-                if (slot, renpy.slot_mtime(slot)) in broken:
-                    continue
-                if info.get("story") and renpy.can_load(slot):
-                    return slot
-        except Exception:
-            pass
+        slots = [(renpy.slot_mtime(s) or 0, s) for s in renpy.list_slots() if not s.startswith("_")]
+        for mtime, slot in sorted(slots, reverse=True):
+            if save_ok(slot) and renpy.can_load(slot):
+                return slot
         return None
+
+    def quick_load():
+        if save_ok("quick-1") and renpy.can_load("quick-1"):
+            renpy.load("quick-1")
+        else:
+            renpy.notify(_("No quick save to load."))
 
     def continue_game():
         slot = latest_save()
         if slot:
-            persistent.cont_trying = (slot, renpy.slot_mtime(slot))
             renpy.load(slot)
         else:
-            persistent.cont_trying = None
             renpy.run(Start())
-
-    def continue_after_fail():
-        if persistent.cont_msg:
-            persistent.cont_msg = False
-            renpy.notify(_("That save is too old to open."))
-        if persistent.cont_retry:
-            persistent.cont_retry = False
-            continue_game()
-
-    def _loaded_ok():
-        persistent.cont_trying = None
-
-    config.after_load_callbacks.append(_loaded_ok)
 
     config.load_failed_label = "save_too_old"
 
@@ -858,10 +820,7 @@ default persistent.mg_difficulty = 1
 default persistent.mg_timers = True
 default persistent.mg_skip_allowed = True
 default persistent.autosave_on = True
-default persistent.broken_saves = set()
-default persistent.cont_trying = None
-default persistent.cont_retry = False
-default persistent.cont_msg = False
+define SAVE_VERSION = 3
 default persistent.film_transition = True
 default persistent.old_map = True
 default persistent.menu_style = "new"
@@ -1733,7 +1692,7 @@ screen main_menu():
     $ fx = persistent.menu_fx and not persistent.reduce_motion
     use secret_listener
     use cheat_hotkey
-    on "show" action [Function(check_departure), Function(continue_after_fail)]
+    on "show" action Function(check_departure)
     timer 15.0 repeat True action Function(check_departure)
     timer 1.0 action Function(check_halloween)
 
@@ -1744,12 +1703,6 @@ screen main_menu():
         at ((menu_bg_drift, menu_rumble_at()) if (persistent.screen_shake_enabled and not persistent.reduce_motion)
             else (menu_bg_drift if not persistent.reduce_motion else menu_bg_still))
     add Solid("#08080cb8")
-
-    if fx:
-        add Transform("gui/glow.png", matrixcolor=TintMatrix("#ffd9a0")):
-            xysize (700, int(config.screen_height * 1.6))
-            yalign 0.5
-            at passing_light
 
     fixed:
         at menu_rumble_at(), Transform(matrixcolor=theme_matrix())
@@ -1778,13 +1731,6 @@ screen main_menu():
                     ysize esz
                     at ember(edur, edelay, esway)
 
-        if not menu_hides_key():
-            add Transform("gui/glow.png", matrixcolor=TintMatrix("#ffb060")):
-                xysize (1100, 1100)
-                xcenter 0.76
-                ycenter 0.36
-                at key_backlight
-
         fixed:
             xpos 0.76
             ypos 0
@@ -1795,10 +1741,6 @@ screen main_menu():
                 xalign 0.5
 
             if renpy.loadable("images/Key.webp"):
-                add KEY_LOOP_BACK:
-                    xalign 0.5
-                    ypos KEY_LOOP_Y
-
                 button:
                     background None
                     padding (0, 0)
@@ -1808,14 +1750,6 @@ screen main_menu():
                     ypos KEY_HANG
                     action Function(key_poke)
                     add KEY_IMAGE
-
-                add KEY_LOOP_FRONT:
-                    xalign 0.5
-                    ypos KEY_LOOP_Y
-
-    add "gui/vignette.png":
-        xysize (config.screen_width, config.screen_height)
-        alpha 0.8
 
     $ rows = [(_("CONTINUE"), Function(continue_game), True), (_("NEW GAME"), Start(), False)]
     $ rows += [(_("LOAD GAME"), ShowMenu("load"), False),
@@ -2461,8 +2395,8 @@ screen quick_menu():
                     (_("Skip"), Skip()),
                     (_("Auto"), Preference("auto-forward", "toggle")),
                     (_("Save"), ShowMenu("save")),
-                    (_("Q.Save"), QuickSave()),
-                    (_("Q.Load"), QuickLoad()),
+                    (_("QSave"), QuickSave()),
+                    (_("QLoad"), Function(quick_load)),
                     (_("Clues"), ShowMenu("clues")),
                     (_("People"), ShowMenu("manifest")),
                     (_("Prefs"), ShowMenu("preferences")),
@@ -2924,16 +2858,9 @@ screen preferences():
                         use pref_toggle(_("PAPER"), SetField(persistent, "dialogue_style", "paper"), selected=(persistent.dialogue_style == "paper"), w=130)
                         use pref_toggle(_("FILM"), SetField(persistent, "dialogue_style", "film"), selected=(persistent.dialogue_style == "film"), w=130)
 
-                    use pref_row(_("THEME PACK DIALOGUE BOXES"), (_("A terminal window or a train ticket.") if has_pass("themes") else _("Needs the THEME PACK gamepass.")), 0.0):
-                        if has_pass("themes"):
-                            use pref_toggle(_("TERMINAL"), SetField(persistent, "dialogue_style", "terminal"), selected=(persistent.dialogue_style == "terminal"), w=150)
-                            use pref_toggle(_("TICKET"), SetField(persistent, "dialogue_style", "ticket"), selected=(persistent.dialogue_style == "ticket"), w=150)
-                        else:
-                            text _("LOCKED"):
-                                yalign 0.5
-                                size 18
-                                color "#55556a"
-                                font GFONT
+                    use pref_row(_("MORE DIALOGUE BOXES"), _("A terminal window or a train ticket."), 0.0):
+                        use pref_toggle(_("TERMINAL"), SetField(persistent, "dialogue_style", "terminal"), selected=(persistent.dialogue_style == "terminal"), w=150)
+                        use pref_toggle(_("TICKET"), SetField(persistent, "dialogue_style", "ticket"), selected=(persistent.dialogue_style == "ticket"), w=150)
 
                     use pref_row(_("MAIN MENU STYLE"), menu_style_info()[1], 0.0):
                         use rbtn("‹", Function(menu_style_step, -1), w=56, h=44, r=14, size=24)
@@ -2950,23 +2877,16 @@ screen preferences():
                         for cid, cname in CREDIT_STYLES:
                             use pref_toggle(cname, Function(set_credits_style, cid), selected=(credits_style_now() == cid), w=(160 if cid == "departures" else 130))
 
-                    use pref_row(_("COLOUR THEME"), (_("Tints the backgrounds and maps.") if has_pass("themes") else _("Needs the THEME PACK gamepass.")), 0.0):
-                        if has_pass("themes"):
-                            use rbtn("‹", Function(theme_step, -1), w=56, h=44, r=14, size=24)
-                            text theme_name():
-                                yalign 0.5
-                                min_width 220
-                                text_align 0.5
-                                size 20
-                                color "#e6a817"
-                                font GFONT
-                            use rbtn("›", Function(theme_step, 1), w=56, h=44, r=14, size=24)
-                        else:
-                            text _("LOCKED"):
-                                yalign 0.5
-                                size 18
-                                color "#55556a"
-                                font GFONT
+                    use pref_row(_("COLOUR THEME"), _("Tints the backgrounds and maps."), 0.0):
+                        use rbtn("‹", Function(theme_step, -1), w=56, h=44, r=14, size=24)
+                        text theme_name():
+                            yalign 0.5
+                            min_width 220
+                            text_align 0.5
+                            size 20
+                            color "#e6a817"
+                            font GFONT
+                        use rbtn("›", Function(theme_step, 1), w=56, h=44, r=14, size=24)
 
                     use pref_row(_("FILL WIDE SCREENS"), _("Use the whole screen on wide monitors. Needs a restart."), 0.0):
                         use pref_toggle(_("ON"), SetField(persistent, "fill_screen", True), selected=(persistent.fill_screen is not False))
@@ -3215,7 +3135,7 @@ screen file_slots(title):
                             yfill True
                             background rbox("#101014", 22)
                             hover_background rbox("#1c1c26", 22)
-                            action FileAction(slot)
+                            action (FileAction(slot) if (title == _("SAVE") or save_ok(slot) or not FileLoadable(slot)) else None)
                             key "save_delete" action FileDelete(slot)
 
                             hbox:
@@ -3235,7 +3155,7 @@ screen file_slots(title):
                                         size 18
                                         color "#e6a817"
                                         font GFONT
-                                    text FileTime(slot, format="%b %d, %H:%M", empty=_("EMPTY SLOT")):
+                                    text (FileTime(slot, format="%b %d, %H:%M", empty=_("EMPTY SLOT")) if (save_ok(slot) or not FileLoadable(slot)) else _("OLD SAVE")):
                                         size 20
                                         color "#c9c9d8"
                                         hover_color "#ffd700"
@@ -3820,7 +3740,7 @@ screen skip_indicator():
 
 define flash = FlashTr("#ffffff", 0.08, 0.35)
 
-define burn_reveal = ImageDissolve(Transform("images/burn_mask.png", xysize=(GAME_W, GAME_H)), 2.4, ramplen=120)
+define burn_reveal = Dissolve(1.6)
 
 transform map_settle:
     xalign 0.5
@@ -4554,13 +4474,7 @@ screen extras_menu():
 
 
 label save_too_old:
-    python:
-        if persistent.cont_trying:
-            persistent.broken_saves = set(persistent.broken_saves or ()) | set([tuple(persistent.cont_trying)])
-            persistent.cont_retry = True
-        persistent.cont_trying = None
-        persistent.cont_msg = True
-        renpy.save_persistent()
+    $ renpy.notify(_("That save is too old to open."))
     $ renpy.full_restart()
 
 
@@ -4574,14 +4488,14 @@ define MENU_STYLES = [
     ("panel",     _("PANEL"),     _("A dark panel on the right.")),
     ("cinema",    _("CINEMA"),    _("Black bars and a big logo.")),
     ("ticket",    _("TICKET"),    _("The menu on a train ticket.")),
-    ("centered",  _("CENTERED"),  _("The menu down the middle. Needs the THEME PACK.")),
+    ("centered",  _("CENTERED"),  _("The menu down the middle.")),
 ]
 
 define MENU_EXTRA = ("minimal", "panel", "cinema", "ticket")
 
 init python:
     def menu_styles_usable():
-        return [m for m in MENU_STYLES if m[0] not in THEME_MENUS or has_pass("themes")]
+        return MENU_STYLES
 
     def menu_style_step(d):
         ids = [m[0] for m in menu_styles_usable()]
@@ -4890,4 +4804,4 @@ init python:
 screen quick_keys():
     if not main_menu and not renpy.get_screen("menu"):
         key "K_F5" action QuickSave()
-        key "K_F8" action QuickLoad()
+        key "K_F8" action Function(quick_load)

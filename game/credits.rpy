@@ -688,9 +688,6 @@ screen credits_scroll():
     add Solid("#000000")
     add ("credits_art_still" if persistent.reduce_motion else "credits_art")
     add Solid("#000000a8")
-    add "gui/vignette.png":
-        xysize (config.screen_width, config.screen_height)
-
     viewport:
         xalign 0.5
         xsize 1600
@@ -1020,11 +1017,6 @@ transform film_flicker:
 screen credits_film():
     default cred_adj = ui.adjustment()
     add Solid("#050505")
-    add Transform("gui/grain.png", xysize=(config.screen_width, config.screen_height)):
-        at (film_flicker if not persistent.reduce_motion else Transform(alpha=0.06))
-    add "gui/vignette.png":
-        xysize (config.screen_width, config.screen_height)
-
     viewport:
         xalign 0.5
         xsize 1700
@@ -1357,10 +1349,6 @@ screen credits_spotlight():
                 ypos (1.04 if kind == "person" else SPOT_Y)
                 at spot_cam(z0, (z1 if not still else z0), x0, (x1 if not still else x0), y0, (y1 if not still else y0), dur, k)
 
-        add "gui/spot_hole.png":
-            xysize (int(sh * SPOT_RX * 2), int(sh * SPOT_RY * 2))
-            xcenter SPOT_X
-            ycenter SPOT_Y
         add Solid("#000000"):
             pos (-100, -100)
             xysize (max(0, int(sw * SPOT_X - sh * SPOT_RX) + 102), sh + 200)
@@ -1373,22 +1361,6 @@ screen credits_spotlight():
         add Solid("#000000"):
             pos (-100, sh - 2)
             xysize (sw + 200, 102)
-
-        add Transform("gui/spotlight.png", alpha=0.10, xysize=(int(sh * 1.1), int(sh * 1.1))):
-            xcenter SPOT_X
-            ycenter SPOT_Y
-        add Transform("gui/spot_cone.png", xysize=(int(sh * 1.0), int(sh * 1.25))):
-            xcenter SPOT_X
-            yanchor 1.0
-            ypos (SPOT_Y + 0.2)
-            at spot_flicker
-        if not still:
-            for k index k in [slide]:
-                add Transform("gui/spot_cone.png", xysize=(int(sh * 1.15), int(sh * 1.3)), blend="add"):
-                    xcenter SPOT_X
-                    yanchor 1.0
-                    ypos (SPOT_Y + 0.2)
-                    at spot_flare(k)
 
     if not still:
         for k index k in [slide]:
@@ -1448,11 +1420,6 @@ screen credits_spotlight():
                     fixed:
                         fit_first True
                         use spot_name(c, 0.35 + pi * 0.35)
-                        if not still:
-                            add Transform("gui/glow.png", xysize=(110, 150), alpha=0.6):
-                                yalign 0.5
-                                blend "add"
-                                at spot_sweep(1.0 + pi * 0.35)
                 add Solid("#e0521f"):
                     xysize (360, 3)
                     at spot_underline(0.9)
