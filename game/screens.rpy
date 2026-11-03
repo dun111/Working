@@ -3,28 +3,37 @@ init offset = -1
 
 init -5 python:
 
+    renpy.register_shader("game.rbox", variables="""
+        uniform vec4 u_color;
+        uniform float u_radius;
+        uniform vec2 u_model_size;
+        attribute vec4 a_position;
+        varying vec2 v_pos;
+    """, vertex_200="""
+        v_pos = a_position.xy;
+    """, fragment_200="""
+        vec2 half_size = u_model_size / 2.0;
+        float r = min(u_radius, min(half_size.x, half_size.y));
+        vec2 corner = abs(v_pos - half_size) - (half_size - r);
+        float outside = length(max(corner, 0.0)) - r;
+        gl_FragColor = u_color * clamp(0.5 - outside, 0.0, 1.0);
+    """)
+
     def rbox(color, r=14):
-        return Solid(color)
+        if r <= 0:
+            return Solid(color)
+        return Model().shader("game.rbox").uniform("u_color", Color(color).premultiplied).uniform("u_radius", float(r))
 
     def anim_t(t):
-        try:
-            return 0.0 if persistent.reduce_motion else t
-        except Exception:
-            return t
+        return 0.0 if persistent.reduce_motion else t
 
     def hover_lift(px):
-        try:
-            return 0 if persistent.reduce_motion else px
-        except Exception:
-            return px
+        return 0 if persistent.reduce_motion else px
 
     def sfx(name):
         path = "audio/%s.wav" % name
-        try:
-            if renpy.loadable(path):
-                renpy.play(path, channel="sound")
-        except Exception:
-            pass
+        if renpy.loadable(path):
+            renpy.play(path, channel="sound")
 
     def sfx_sample():
         sfx("ui_click")
@@ -36,11 +45,8 @@ init -5 python:
 
     def ach_default_icon(unlocked):
         for path in (ACH_ICON_UNLOCK if unlocked else ACH_ICON_LOCK):
-            try:
-                if renpy.loadable(path):
-                    return path
-            except Exception:
-                pass
+            if renpy.loadable(path):
+                return path
         return None
 
 define GFONT = "gui/Graduate-Regular.ttf"
@@ -102,14 +108,11 @@ init python:
     config.overlay_screens.append("quick_menu")
     config.overlay_screens.append("clue_hotkey")
 
-    try:
-        if renpy.loadable("audio/ui_hover.wav"):
-            style.default.hover_sound = "audio/ui_hover.wav"
-        if renpy.loadable("audio/ui_click.wav"):
-            style.default.activate_sound = "audio/ui_click.wav"
-            config.sample_sound = "audio/ui_click.wav"
-    except Exception:
-        pass
+    if renpy.loadable("audio/ui_hover.wav"):
+        style.default.hover_sound = "audio/ui_hover.wav"
+    if renpy.loadable("audio/ui_click.wav"):
+        style.default.activate_sound = "audio/ui_click.wav"
+        config.sample_sound = "audio/ui_click.wav"
 
 
 define gui.sidebar_width = 450
@@ -900,23 +903,14 @@ init python:
         renpy.restart_interaction()
 
     def vol_pct(mixer):
-        try:
-            return str(int(round(_preferences.get_volume(mixer) * 100))) + "%"
-        except Exception:
-            return ""
+        return "%d%%" % round(_preferences.get_volume(mixer) * 100)
 
     def text_speed_label():
-        try:
-            cps = int(_preferences.text_cps)
-            return "INSTANT" if cps <= 0 else str(cps) + " cps"
-        except Exception:
-            return ""
+        cps = int(_preferences.text_cps)
+        return "INSTANT" if cps <= 0 else "%d cps" % cps
 
     def auto_speed_label():
-        try:
-            t = int(_preferences.afm_time)
-        except Exception:
-            return ""
+        t = int(_preferences.afm_time)
         word = _("FAST") if t <= 10 else (_("NORMAL") if t <= 22 else _("SLOW"))
         return "%s  %d" % (word, t)
 
@@ -976,15 +970,7 @@ init python:
             achievement.register(_ach["id"])
 
     def _ach_unlocked(ach_id):
-        try:
-            if achievement.has(ach_id):
-                return True
-        except Exception:
-            pass
-        try:
-            return ach_id in persistent._achievements
-        except Exception:
-            return False
+        return achievement.has(ach_id) or ach_id in (persistent._achievements or ())
 
     def achievement_counts():
         done = 0
@@ -1006,10 +992,7 @@ init python:
             mx = ach.get("stat_max", 0)
             cur = 0
             if mx:
-                try:
-                    cur = int(achievement.get_progress(ach["id"]) or 0)
-                except Exception:
-                    cur = 0
+                cur = int(achievement.get_progress(ach["id"]) or 0)
                 if unlocked:
                     cur = mx
             frac = (float(cur) / mx) if mx else 0.0
@@ -3448,13 +3431,10 @@ define CREW = [
 
 init python:
     def credits_step(adj):
-        try:
-            if adj.value >= adj.range - 2:
-                adj.change(0)
-            else:
-                adj.change(adj.value + 0.9)
-        except Exception:
-            pass
+        if adj.value >= adj.range - 2:
+            adj.change(0)
+        else:
+            adj.change(adj.value + 0.9)
 
 
 init python:
@@ -3934,10 +3914,7 @@ screen old_map_fx():
 init python:
     def autosave_checkpoint():
         if persistent.autosave_on:
-            try:
-                renpy.force_autosave(take_screenshot=True)
-            except Exception:
-                pass
+            renpy.force_autosave(take_screenshot=True)
 
     def apply_rumble(force=False):
         try:
@@ -3977,28 +3954,20 @@ init python:
     config.label_callback = _label_cb
 
     def mg_mult():
-        try:
-            return [0.75, 1.0, 1.35][persistent.mg_difficulty]
-        except Exception:
-            return 1.0
+        return {0: 0.75, 2: 1.35}.get(persistent.mg_difficulty, 1.0)
 
     def mg_timed():
         return bool(persistent.mg_timers)
 
     def mg_record(key, ach=None):
         if ach:
-            try:
-                achievement.grant(ach)
-            except Exception:
-                pass
+            achievement.grant(ach)
         sfx("win")
         if key not in persistent.mg_won:
             give_tickets(TICKETS_FOR["minigame"])
         persistent.mg_won = set(persistent.mg_won) | set([key])
-        try:
-            achievement.progress("game_night", len([k for k in persistent.mg_won if k in [g[0] for g in MINIGAME_LIST]]))
-        except Exception:
-            pass
+        game_ids = [g[0] for g in MINIGAME_LIST]
+        achievement.progress("game_night", len([k for k in persistent.mg_won if k in game_ids]))
 
 
 default persistent.endings_seen = set()
@@ -4084,10 +4053,7 @@ init python:
             give_tickets(TICKETS_FOR["ending"])
         persistent.endings_seen = set(persistent.endings_seen) | set([key])
         if len(persistent.endings_seen) >= len(ENDINGS):
-            try:
-                achievement.grant("all_endings")
-            except Exception:
-                pass
+            achievement.grant("all_endings")
 
     def ending_rows():
         rows = []
@@ -4494,11 +4460,8 @@ define MENU_STYLES = [
 define MENU_EXTRA = ("minimal", "panel", "cinema", "ticket")
 
 init python:
-    def menu_styles_usable():
-        return MENU_STYLES
-
     def menu_style_step(d):
-        ids = [m[0] for m in menu_styles_usable()]
+        ids = [m[0] for m in MENU_STYLES]
         cur = menu_style_now()
         k = ids.index(cur) if cur in ids else 0
         persistent.menu_style = ids[(k + d) % len(ids)]

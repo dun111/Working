@@ -109,10 +109,7 @@ init python:
 
     def cheat_unlock_achievements():
         for a in ACHIEVEMENTS:
-            try:
-                achievement.grant(a["id"])
-            except Exception:
-                pass
+            achievement.grant(a["id"])
         renpy.notify(_("All achievements unlocked."))
 
     def cheat_reset_achievements():
@@ -570,10 +567,7 @@ init python:
             give_tickets(TICKETS_FOR["secret"])
         persistent.secrets = set(persistent.secrets) | set([sid])
         if ach:
-            try:
-                achievement.grant(ach)
-            except Exception:
-                pass
+            achievement.grant(ach)
 
     def secret_notes():
         found = set(persistent.secrets)

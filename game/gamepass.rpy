@@ -514,11 +514,8 @@ default rewind_point = None
 
 init python:
     def rewind_mark():
-        try:
-            if _history_list:
-                store.rewind_point = _history_list[-1].rollback_identifier
-        except Exception:
-            pass
+        if _history_list:
+            store.rewind_point = _history_list[-1].rollback_identifier
 
     def rewind_ready():
         return store.rewind_point is not None

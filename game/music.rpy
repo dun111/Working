@@ -194,10 +194,7 @@ init python:
             renpy.random.shuffle(ids)
             files = song_files(ids)
             _MUSIC.place = "station_" + st
-            try:
-                menu_music_filter_off()
-            except Exception:
-                pass
+            menu_music_filter_off()
             renpy.music.play(files, channel="music", loop=True, fadein=1.0, fadeout=1.0)
 
     def radio_station_step(d=1):
@@ -213,10 +210,7 @@ init python:
         return dict(RADIO_STATIONS)[radio_station_now()]
 
     def radio_paused():
-        try:
-            return renpy.music.get_pause(channel="music")
-        except Exception:
-            return False
+        return renpy.music.get_pause(channel="music")
 
     def radio_toggle_pause():
         if renpy.music.get_playing("music"):
@@ -276,10 +270,7 @@ init python:
         last = None
 
     def now_playing_check():
-        try:
-            cur = renpy.music.get_playing("music")
-        except Exception:
-            cur = None
+        cur = renpy.music.get_playing("music")
         if cur == _NP.last:
             return
         _NP.last = cur
