@@ -6,19 +6,11 @@ default persistent.tickets = 0
 default persistent.passes = set()
 
 define GAMEPASSES = [
-    ("double",       _("DOUBLE TICKETS"), _("Double tickets from now on."), 10),
     ("extra_life",   _("EXTRA LIFE"),     _("More lives, battery and tries in the harder minigames."), 8),
     ("cheats",       _("CHEAT MENU"),     _("Press F9 to open the cheat menu."), 15),
-    ("dlc",          _("DLC"),            _("Adds GALLERY, JUKEBOX and THEATRE to EXTRAS."), 25),
     ("revealer",     _("CHOICE REVEALER"), _("Choices show where they lead."), 18),
-    ("rewind",       _("REWIND"),         _("A REWIND button that takes you back to your last choice."), 14),
-    ("themes",       _("THEME PACK"),     _("Extra colour themes, a centered main menu and two more dialogue boxes."), 16),
     ("high_roller",  _("HIGH ROLLER"),    _("Bigger casino bets and double daily coins."), 10),
 ]
-
-define GAMEPASS_SOON = {}
-
-define GAMEPASS_HIDDEN = {}
 
 init python:
     TICKETS_FOR = {"minigame": 2, "secret": 3, "ending": 5}
@@ -30,14 +22,8 @@ init python:
         return [p for p in GAMEPASSES if p[0] != "cheats" or CHEATS_BUILD]
 
     def give_tickets(n):
-        if has_pass("double"):
-            n *= 2
         persistent.tickets = (persistent.tickets or 0) + n
         renpy.show_screen("ticket_toast", n)
-
-    def pass_hidden(pid):
-        flag = GAMEPASS_HIDDEN.get(pid)
-        return bool(flag) and not getattr(persistent, flag)
 
     def buy_pass(pid, price):
         if has_pass(pid) or (persistent.tickets or 0) < price:
@@ -123,7 +109,6 @@ screen gamepass_list(w):
 
     for idx, (pid, pname, pdesc, price) in enumerate(shown_passes()):
         $ owned = has_pass(pid)
-        $ hidden = pass_hidden(pid)
         $ afford = (persistent.tickets or 0) >= price
         frame:
             xfill True
@@ -137,11 +122,11 @@ screen gamepass_list(w):
                     yalign 0.5
                     spacing 4
                     xmaximum (w - 420)
-                    text ("???" if hidden else pname):
+                    text pname:
                         size 26
                         color ("#ffd700" if owned else "#e8e4dc")
                         font GFONT
-                    text ("???" if hidden else pdesc):
+                    text pdesc:
                         size 16
                         color "#8888a0"
                         font GFONT
@@ -150,12 +135,12 @@ screen gamepass_list(w):
                     yalign 0.5
                     spacing 16
                     if owned:
-                        text GAMEPASS_SOON.get(pid, _("OWNED")):
+                        text _("OWNED"):
                             yalign 0.5
                             size 22
                             color "#6dffa5"
                             font GFONT
-                    elif not hidden:
+                    else:
                         text (_("%d TICKETS") % price):
                             yalign 0.5
                             size 20
@@ -237,8 +222,6 @@ define THEATRE = [
 
 init python:
     def dlc_tabs():
-        if not has_pass("dlc"):
-            return []
         return [("gallery", _("GALLERY")), ("jukebox", _("JUKEBOX")), ("theatre", _("THEATRE"))]
 
     def jukebox_play(f):
@@ -416,8 +399,6 @@ define UI_THEMES = [
     ("dusk",     _("DUSK")),
 ]
 
-define THEME_DIALOGUE = ("terminal", "ticket")
-define THEME_MENUS = ("centered",)
 
 init python:
     THEME_GRADE = {
@@ -435,7 +416,7 @@ init python:
 
     def theme_now():
         t = persistent.ui_theme
-        return t if (t in THEME_GRADE and has_pass("themes")) else "default"
+        return t if t in THEME_GRADE else "default"
 
     def theme_matrix():
         return THEME_GRADE.get(theme_now(), IdentityMatrix())
@@ -466,14 +447,10 @@ init python:
 
     def dialogue_style_now():
         ds = persistent.dialogue_style
-        if ds in THEME_DIALOGUE and not has_pass("themes"):
-            return "classic"
         return ds
 
     def menu_style_now():
         ms = persistent.menu_style
-        if ms in THEME_MENUS and not has_pass("themes"):
-            return "new"
         if ms not in [m[0] for m in MENU_STYLES]:
             return "new"
         return ms
@@ -544,7 +521,7 @@ init python:
             pass
 
     def rewind_ready():
-        return has_pass("rewind") and store.rewind_point is not None
+        return store.rewind_point is not None
 
     def rewind_go():
         n = renpy.get_identifier_checkpoints(store.rewind_point) if store.rewind_point else None

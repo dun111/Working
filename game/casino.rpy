@@ -598,11 +598,7 @@ init python:
         refilled = False
 
     def circ_coin(d):
-        return Fixed(
-            Transform("gui/round/r256.png", xysize=(d, d), matrixcolor=TintMatrix("#c9921a")),
-            At(Transform("gui/round/r256.png", xysize=(d - 6, d - 6), matrixcolor=TintMatrix("#ffd76a")),
-               Transform(pos=(3, 3))),
-            xysize=(d, d))
+        return Text("●", size=d, color="#ffd76a", font="DejaVuSans.ttf")
 
     def give_coins(n):
         persistent.coins = (persistent.coins or 0) + n

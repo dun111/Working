@@ -37,10 +37,6 @@ screen mg_scene(title, hint="", bg="black", who=None, who_x=0.86, skippable=True
     add Solid("#0000004a")
     if who:
         add who at mg_npc(who_x)
-    add "gui/vignette.png":
-        xysize (config.screen_width, config.screen_height)
-        alpha 0.75
-
     fixed:
         pos (MAP_X0, MAP_Y0)
         xysize (DESIGN_W, DESIGN_H)
