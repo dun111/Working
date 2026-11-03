@@ -32,7 +32,6 @@ init python:
 
     def toggle_cheats():
         persistent.cheats_on = not persistent.cheats_on
-        sfx("win")
         renpy.notify(_("Cheats ON (F9)") if persistent.cheats_on else _("Cheats OFF"))
 
     P1_TALKS = [
@@ -369,7 +368,6 @@ init python:
 
     def clock_poke():
         ET_CLOCK.n += 1
-        sfx("lock_click")
         if ET_CLOCK.n >= 4:
             ET_CLOCK.n = 0
             secret_found("timetable", "timetable")
@@ -579,7 +577,6 @@ init python:
         departed = False
 
     def _crew_reveal(c):
-        sfx("win")
         renpy.show_screen("map_stamp", c["name"].upper(), _random.choice(c["roles"]).upper())
         persistent.crew_found = set(persistent.crew_found) | set([c["key"]])
         if len(persistent.crew_found) >= len(CREW):
@@ -623,7 +620,6 @@ init python:
             renpy.notify(BERRY_LINES[n])
         if n >= 13:
             _SECRET.berry_clicks = 0
-            sfx("win")
             renpy.show_screen("pixel_parade")
             secret_found("parade", "pixel_parade")
 
@@ -633,7 +629,6 @@ init python:
         now = _datetime.datetime.now()
         if now.hour % 12 == 4 and now.minute == 0:
             _SECRET.departed = True
-            sfx("win")
             renpy.show_screen("map_stamp", "4:00", _("WELCOME ABOARD"))
             secret_found("on_time", "right_on_time")
 
@@ -732,7 +727,6 @@ init python:
     def more_secret_word(typed):
         if typed.endswith("400"):
             store.board_times = []
-            sfx("win")
             renpy.show_screen("map_stamp", "4:00", _("GREKHOV EXPRESS"))
             renpy.notify(_("\"Thank you for boarding….\""))
             secret_found("four_hundred")
@@ -748,16 +742,14 @@ init python:
         return False
 
     def play_ending_video():
-        if renpy.loadable(ENDING_VIDEO):
-            renpy.music.stop(fadeout=0.5)
-            renpy.invoke_in_new_context(renpy.movie_cutscene, ENDING_VIDEO)
-            persistent.ending_video_seen = True
-            if main_menu:
-                music_menu()
-            renpy.restart_interaction()
+        renpy.music.stop(fadeout=0.5)
+        renpy.invoke_in_new_context(renpy.movie_cutscene, ENDING_VIDEO)
+        persistent.ending_video_seen = True
+        if main_menu:
+            music_menu()
+        renpy.restart_interaction()
 
     def cast_call(name, img, line):
-        sfx("ui_click")
         renpy.show_screen("cast_peek", img)
         renpy.notify("\"" + line + "\"")
         persistent.cast_called = set(persistent.cast_called) | set([name])
@@ -769,19 +761,15 @@ init python:
         c = [x for x in CREW if x["key"] == key][0]
         if key == "eric":
             persistent.eric_clicks = (persistent.eric_clicks or 0) + 1
-            sfx("win")
             renpy.show_screen("eric_surprise")
             renpy.notify(CREDITS_CORNER_TEXT["eric"])
         elif key == "hannah":
-            sfx("win")
             renpy.show_screen("hannah_surprise")
             renpy.notify(CREDITS_CORNER_TEXT["hannah"])
         elif key == "aydin":
-            sfx("win")
             renpy.show_screen("aydin_surprise")
             renpy.notify(CREDITS_CORNER_TEXT["aydin"])
         elif key == "ryan":
-            sfx("win")
             renpy.show_screen("ryan_surprise")
             renpy.notify(CREDITS_CORNER_TEXT["ryan"])
         if len(persistent.credits_clicked) >= len(CREW):
@@ -847,7 +835,6 @@ init python:
         if _MENU_SECRET.logo >= 3:
             _MENU_SECRET.logo = 0
             store.logo_glitched = True
-            sfx("static")
             renpy.notify(_("\"Man… This seems familiar…\""))
             secret_found("logo")
         renpy.restart_interaction()
@@ -857,7 +844,6 @@ init python:
             return
         store.train_gone = True
         store.train_trips += 1
-        sfx("win")
         renpy.notify(_("\"Wow damn… So… Expensive cabin, huh?\""))
         secret_found("train")
         renpy.restart_interaction()
@@ -910,7 +896,6 @@ init python:
             return
         persistent.golden_found = set(persistent.golden_found) | set([gid])
         n = len(persistent.golden_found)
-        sfx("win")
         give_coins(GOLDEN_COINS)
         give_tickets(1)
         renpy.show_screen("map_stamp", _("GOLDEN TICKET"), "%d / %d" % (n, len(GOLDEN_IDS)))

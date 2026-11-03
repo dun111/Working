@@ -27,7 +27,6 @@ init python:
         persistent.casino_won = (persistent.casino_won or 0) + n
         if n > (persistent.casino_best or 0):
             persistent.casino_best = n
-        sfx("win")
         renpy.show_screen("casino_win", n)
         renpy.restart_interaction()
 
@@ -271,7 +270,6 @@ init python:
         b[key] = b.get(key, 0) + store.casino_bet
         store.rl_bets = b
         store.rl_msg = ""
-        sfx("ui_click")
         renpy.restart_interaction()
 
     def rl_pick_step(d):
@@ -292,7 +290,6 @@ init python:
         store.rl_t = 0.0
         store.rl_spinning = True
         store.rl_msg = ""
-        sfx("ui_click")
         renpy.restart_interaction()
 
     def rl_tick():
@@ -317,7 +314,6 @@ init python:
             casino_pay(won)
         else:
             store.rl_msg = (_("%d - YOU LOSE %d") % (n, staked))
-            sfx("lose")
         store.rl_bets = {}
 
     def rl_label(key, lab):
@@ -456,7 +452,6 @@ init python:
             return
         store.hr_stake = store.casino_bet
         store.hr_running = True
-        sfx("ui_click")
         renpy.restart_interaction()
 
     def hr_tick():
@@ -485,7 +480,6 @@ init python:
             casino_pay(win)
         else:
             store.hr_msg = (_("NO.%d WINS. YOURS CAME %s") % (w + 1, hr_place(store.hr_pick)))
-            sfx("lose")
 
     def hr_place(i):
         k = store.hr_order.index(i) + 1 if i in store.hr_order else len(HR_COLORS)
@@ -633,7 +627,6 @@ init python:
         store.slot_spinning = [True, True, True]
         store.slot_msg = ""
         store.slot_win = 0
-        sfx("ui_click")
         renpy.restart_interaction()
 
     def slot_tick():
@@ -647,7 +640,6 @@ init python:
                 if _SLOT.t >= _SLOT.stops[i]:
                     spin[i] = False
                     reels[i] = _SLOT.final[i]
-                    sfx("thud")
                     if i == 1 and reels[0] == reels[1]:
                         store.slot_tease = True
                 else:
@@ -670,8 +662,6 @@ init python:
         store.slot_streak = (store.slot_streak + 1) if win else 0
         if win:
             casino_pay(win)
-        else:
-            sfx("lose")
         if a == b == c == "4:00":
             store.slot_msg = _("JACKKKPOTTTTTTT!")
             secret_found("slots_jackpot")

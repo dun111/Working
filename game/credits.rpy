@@ -168,7 +168,6 @@ init python:
         lines, bug, why = store.dbg_rounds[store.dbg_round]
         if i == bug:
             store.dbg_picked = i
-            sfx("ui_click")
         elif i not in store.dbg_bad:
             store.dbg_bad = store.dbg_bad + [i]
             store.dbg_strikes += 1
@@ -182,7 +181,6 @@ init python:
         store.dbg_bad = []
         if store.dbg_round >= DEBUG_ROUNDS:
             store.dbg_result = "win"
-            sfx("win")
         renpy.restart_interaction()
 
     def debug_tick():
@@ -606,35 +604,7 @@ default persistent.credits_style = "spotlight"
 define CREDIT_MUSIC = [
     ("Grekhov Theme", "Departure at 4:00"),
     ("Rendezvous (Instrumental)", "Carriages 2 and 3"),
-    ("We Do What We Want (Edit)", "Alan Fitzpatrick"),
-    ("We Do What We Want", "Alan Fitzpatrick"),
-    ("The Days (NOTION Remix)", "Chrystal"),
-    ("Dreamin", "PARTYNEXTDOOR"),
-    ("MAKE IT TO THE MORNING", "PARTYNEXTDOOR"),
-    ("Say It", ""),
-    ("still love you (Slowed)", ""),
-    ("TBH", ""),
-    ("LARP Music", "larp music"),
-    ("Stayin' Alive", "Bee Gees"),
-    ("Slide", "Calvin Harris"),
-    ("End Of Beginning", "Djo"),
-    ("Walking On A Dream", "Empire Of The Sun"),
-    ("Pumped Up Kicks", "Foster The People"),
-    ("Grand Theft Auto VI Main Theme", "Rockstar Games"),
-    ("GTA VI: An Extended Look", "Rockstar Games"),
-    ("GTA VI Trailer Song (Edit)", "Rockstar Games"),
     ("Flower In A Hurricane", "Justice ft. Tame Impala, SZA, King Gizzard & the Lizard Wizard"),
-    ("Earrings", "Malcolm Todd"),
-    ("Midnight City", "M83"),
-    ("Sunflower", "Post Malone, Swae Lee"),
-    ("Somebody's Watching Me", "Rockwell"),
-    ("STELLA", "SAINT PEPSI"),
-    ("Music Sounds Better With You", "Stardust"),
-    ("Loser", "Tame Impala"),
-    ("The Less I Know The Better", "Tame Impala"),
-    ("Everybody Wants To Rule The World", "Tears For Fears"),
-    ("Self Aware", "Temper City"),
-    ("RHYNO", "Travis Scott"),
 ]
 
 init python:
@@ -1000,12 +970,6 @@ transform spot_cut(key):
     pause 0.08
     ease 0.55 alpha 0.0
 
-transform spot_flare(key):
-    alpha 0.0
-    pause 0.15
-    easein 0.25 alpha 0.55
-    easeout 1.4 alpha 0.0
-
 transform spot_sway:
     xoffset 0
     yoffset 0
@@ -1015,15 +979,6 @@ transform spot_sway:
         ease 3.4 xoffset 8 yoffset 14
         ease 2.9 xoffset 0 yoffset 0
         repeat
-
-transform spot_flicker:
-    alpha 0.9
-    block:
-        linear 0.12 alpha 1.0
-        linear 0.18 alpha 0.92
-        linear 0.10 alpha 0.98
-        repeat
-
 
 transform spot_letter(d):
     alpha 0.0
@@ -1067,14 +1022,6 @@ transform spot_underline(d):
     xzoom 0.0
     pause d
     easeout 0.6 xzoom 1.0
-
-transform spot_sweep(d):
-    alpha 0.0
-    xpos -0.1
-    pause d
-    alpha 0.5
-    linear 0.7 xpos 1.0
-    alpha 0.0
 
 transform spot_hold(d):
     alpha 1.0

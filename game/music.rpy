@@ -1,42 +1,10 @@
 define SONGS = {
     "main_menu":            ("Songs/main_menu.mp3",               _("Grekhov Theme"),                 "Departure at 4:00"),
     "carriage_3":           ("Songs/carriage_3.opus",             "Rendezvous (Instrumental)",        "Carriages 2 and 3"),
-    "flower_in_a_hurricane": ("Songs/flower_in_a_hurricane.opus", "Flower In A Hurricane",            "Justice ft. Tame Impala, SZA, King Gizzard & the Lizard Wizard (GTA VI)"),
-    "larp":                 ("Songs/larp.opus",                   "We Do What We Want (Edit)",        "Alan Fitzpatrick"),
-    "we_do_what_we_want_full": ("Songs/we_do_what_we_want_full.opus", "We Do What We Want",           "Alan Fitzpatrick"),
-    "larp_music":           ("Songs/larp_music.opus",             "LARP Music",                       "larp music"),
-    "the_days":             ("Songs/the_days.opus",               "The Days (NOTION Remix)",          "Chrystal"),
-    "dreamin":              ("Songs/dreamin.opus",                "Dreamin",                          "PARTYNEXTDOOR"),
-    "make_it_to_the_morning": ("Songs/make_it_to_the_morning.opus", "MAKE IT TO THE MORNING",        "PARTYNEXTDOOR"),
-    "say_it":               ("Songs/say_it.opus",                 "Say It",                           ""),
-    "still_love_you":       ("Songs/still_love_you.opus",         "still love you (Slowed)",          ""),
-    "tbh":                  ("Songs/tbh.opus",                    "TBH",                              ""),
-    "stayin_alive":         ("Songs/stayin_alive.opus",           "Stayin' Alive",                    "Bee Gees"),
-    "slide":                ("Songs/slide.opus",                  "Slide",                            "Calvin Harris"),
-    "end_of_beginning":     ("Songs/end_of_beginning.opus",       "End Of Beginning",                 "Djo"),
-    "walking_on_a_dream":   ("Songs/walking_on_a_dream.opus",     "Walking On A Dream",               "Empire Of The Sun"),
-    "pumped_up_kicks":      ("Songs/pumped_up_kicks.opus",        "Pumped Up Kicks",                  "Foster The People"),
-    "gta6_main_theme":      ("Songs/gta6_main_theme.opus",        "Grand Theft Auto VI Main Theme",   "Rockstar Games"),
-    "gta6_extended_look":   ("Songs/gta6_extended_look.opus",     "GTA VI: An Extended Look",         "Rockstar Games"),
-    "gta6_trailer_song":    ("Songs/gta6_trailer_song.opus",      "GTA VI Trailer Song (Edit)",       "Rockstar Games"),
-    "earrings":             ("Songs/earrings.opus",               "Earrings",                         "Malcolm Todd"),
-    "midnight_city":        ("Songs/midnight_city.opus",          "Midnight City",                    "M83"),
-    "sunflower":            ("Songs/sunflower.opus",              "Sunflower",                        "Post Malone, Swae Lee"),
-    "somebodys_watching_me": ("Songs/somebodys_watching_me.opus", "Somebody's Watching Me",           "Rockwell"),
-    "stella":               ("Songs/stella.opus",                 "STELLA",                           "SAINT PEPSI"),
-    "music_sounds_better":  ("Songs/music_sounds_better.opus",    "Music Sounds Better With You",     "Stardust"),
-    "loser":                ("Songs/loser.opus",                  "Loser",                            "Tame Impala"),
-    "the_less_i_know_the_better": ("Songs/the_less_i_know_the_better.opus", "The Less I Know The Better", "Tame Impala"),
-    "everybody_wants_to_rule_the_world": ("Songs/everybody_wants_to_rule_the_world.opus", "Everybody Wants To Rule The World", "Tears For Fears"),
-    "self_aware":           ("Songs/self_aware.opus",             "Self Aware",                       "Temper City"),
-    "rhyno":                ("Songs/rhyno.opus",                  "RHYNO",                            "Travis Scott"),
+    "flower_in_a_hurricane": ("Songs/flower_in_a_hurricane.opus", "Flower In A Hurricane", "Justice ft. Tame Impala, SZA, King Gizzard & the Lizard Wizard (GTA VI)"),
 }
 
-define GREKHOV_FM = ["main_menu", "carriage_3", "flower_in_a_hurricane"]
-
-define JUKEBOX = [sid for sid in SONGS if sid not in GREKHOV_FM]
-
-define SONG_ORDER = GREKHOV_FM + JUKEBOX
+define SONG_ORDER = ["main_menu", "carriage_3", "flower_in_a_hurricane"]
 
 define MUSIC_FOR = {
     "c1": ["main_menu"],
@@ -56,16 +24,14 @@ define MUSIC_FOR = {
     "credits": ["flower_in_a_hurricane"],
     "credits_tickets": ["flower_in_a_hurricane"],
     "credits_spotlight": ["flower_in_a_hurricane"],
-    "station_all": JUKEBOX,
 }
 
 define RADIO_STATIONS = [
     ("scene", _("GREKHOV FM")),
-    ("all",   _("EDUARD'S JUKEBOX")),
     ("off",   _("OFF AIR")),
 ]
 
-define RADIO_FREQ = {"scene": "88.0", "all": "91.4", "off": "--.-"}
+define RADIO_FREQ = {"scene": "88.0", "off": "--.-"}
 
 define LABEL_MUSIC = {
     "carriage_1_start":        ("c1", "part2"),
@@ -106,7 +72,7 @@ init python:
         SONG_BY_FILE[_f] = (_sid, _title, _artist)
 
     def song_files(ids):
-        return [SONGS[i][0] for i in ids if i in SONGS and renpy.loadable(SONGS[i][0])]
+        return [SONGS[i][0] for i in ids]
 
     class _MUSIC(object):
         place = None
@@ -115,7 +81,7 @@ init python:
     def radio_scene():
         return radio_station_now() == "scene"
 
-    def music_for(place, fade=2.0, carry=False):
+    def music_for(place, fade=2.0):
         if not radio_scene():
             return
         renpy.music.set_pause(False, channel="music")
@@ -140,7 +106,7 @@ init python:
 
     def music_menu():
         if not radio_scene():
-            radio_play_station(restart=False)
+            radio_play_station()
             return
         _MUSIC.place = "menu"
         renpy.music.set_pause(False, channel="music")
@@ -174,28 +140,18 @@ init python:
         st = persistent.radio_station
         return st if st in dict(RADIO_STATIONS) else "scene"
 
-    def radio_play_station(restart=True):
-        st = radio_station_now()
-        if st == "off":
+    def radio_play_station():
+        if radio_station_now() == "off":
             _MUSIC.place = "off"
             renpy.music.stop(channel="music", fadeout=1.0)
-        elif st == "scene":
-            _MUSIC.place = None
-            if main_menu:
-                music_menu()
-            elif persistent.ingame_music and _MUSIC.scene:
-                music_for(_MUSIC.scene, fade=1.0)
-            else:
-                renpy.music.stop(channel="music", fadeout=1.0)
+            return
+        _MUSIC.place = None
+        if main_menu:
+            music_menu()
+        elif persistent.ingame_music and _MUSIC.scene:
+            music_for(_MUSIC.scene, fade=1.0)
         else:
-            if not restart and _MUSIC.place == "station_" + st and renpy.music.is_playing("music"):
-                return
-            ids = MUSIC_FOR["station_" + st][:]
-            renpy.random.shuffle(ids)
-            files = song_files(ids)
-            _MUSIC.place = "station_" + st
-            menu_music_filter_off()
-            renpy.music.play(files, channel="music", loop=True, fadein=1.0, fadeout=1.0)
+            renpy.music.stop(channel="music", fadeout=1.0)
 
     def radio_station_step(d=1):
         ids = [k for k, _n in RADIO_STATIONS]
@@ -243,16 +199,11 @@ init 2 python:
     _old_label_cb_music = config.label_callback
 
     def _music_label_cb(name, abnormal=False):
-        try:
-            if not main_menu and name in LABEL_MUSIC:
-                normal, looped = LABEL_MUSIC[name]
-                _MUSIC.scene = looped if getattr(store, "in_loop", False) else normal
-                if persistent.ingame_music:
-                    music_for(_MUSIC.scene, carry=True)
-            if not main_menu and not radio_scene() and not renpy.music.is_playing("music"):
-                radio_play_station(restart=False)
-        except Exception:
-            pass
+        if not main_menu and name in LABEL_MUSIC:
+            normal, looped = LABEL_MUSIC[name]
+            _MUSIC.scene = looped if store.in_loop else normal
+            if persistent.ingame_music:
+                music_for(_MUSIC.scene)
         if _old_label_cb_music:
             _old_label_cb_music(name, abnormal)
 
@@ -389,10 +340,7 @@ init python:
         return ("%s - %s" % (song[1], song[2])) if song[2] else song[1]
 
     def radio_overflow(t, size, width):
-        try:
-            w = renpy.render(Text(t, size=size, font=GFONT), 4000, 100, 0, 0).width
-        except Exception:
-            w = len(t) * size * 0.62
+        w = renpy.render(Text(t, size=size, font=GFONT), 4000, 100, 0, 0).width
         return max(0, int(w - width))
 
 screen radio_key(label, act, w=74):
@@ -415,7 +363,7 @@ init python:
     def radio_where():
         if not persistent.radio_bar or _RADIOUI.booting:
             return None
-        names = RADIO_AVOID + [g[2] for g in getattr(store, "MINIGAME_LIST", [])] + ["mg_debug"]
+        names = RADIO_AVOID + [g[2] for g in MINIGAME_LIST] + ["mg_debug"]
         for n in names:
             if renpy.get_screen(n):
                 return None

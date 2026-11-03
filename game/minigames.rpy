@@ -196,7 +196,6 @@ init python:
                 store.lp_result = "win"
                 mg_record("lockpick", "tumbler_talent")
             else:
-                sfx("lock_click")
                 store.lp_w = max(0.07, store.lp_w * 0.9)
                 store.lp_speed *= 1.12
                 store.lp_zone = renpy.random.uniform(0.1, 0.9 - store.lp_w)
@@ -204,9 +203,6 @@ init python:
             store.lp_fails += 1
             if store.lp_fails >= 3:
                 store.lp_result = "lose"
-                sfx("lose")
-            else:
-                sfx("lock_snap")
         renpy.restart_interaction()
 
 transform lp_key_turn(start=0.0):
@@ -532,7 +528,6 @@ init python:
         elif store.mj_face[s] == store.mj_face[i]:
             store.mj_gone[s] = store.mj_gone[i] = True
             store.mj_sel = None
-            sfx("ui_click")
             if all(store.mj_gone):
                 store.mj_result = "win"
                 store.mj_end_msg = _("Table cleared!")
@@ -1211,7 +1206,6 @@ init python:
             return
         store.fl_lit = store.fl_lit + [i]
         store.fl_battery -= 1
-        sfx("ui_click")
         if fl_found() == len(FL_ITEMS):
             store.fl_result = "win"
             mg_record("flashlight")
@@ -1286,7 +1280,6 @@ init python:
         d = list(store.cb_digits)
         d[i] = (d[i] + step) % 10
         store.cb_digits = d
-        sfx("ui_click")
         renpy.restart_interaction()
 
     def combo_try():
@@ -1361,7 +1354,6 @@ init python:
             store.pr_tears += 1
             store.pr_tension = 30.0
             store.pr_prog = max(0.0, store.pr_prog - 18.0)
-            sfx("thud")
             if store.pr_tears >= pry_tears_max():
                 store.pr_result = "lose"
         if store.pr_prog >= 100.0 and store.pr_result is None:
@@ -1428,11 +1420,9 @@ init python:
         store.ev_pick = cid
         if cid == store.ev_cfg[3]:
             store.ev_result = "win"
-            sfx("win")
             mg_record("evidence")
         else:
             store.ev_result = "lose"
-            sfx("thud")
         renpy.restart_interaction()
 
     def evidence_title(cid):
