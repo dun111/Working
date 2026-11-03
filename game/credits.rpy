@@ -597,13 +597,11 @@ screen eric_jumpscare():
 
 
 define CREDIT_STYLES = [
-    ("scroll",     _("SCROLL")),
-    ("tickets",    _("TICKETS")),
-    ("film",       _("FILM")),
     ("spotlight",  _("SPOTLIGHT")),
+    ("tickets",    _("TICKETS")),
 ]
 
-default persistent.credits_style = "scroll"
+default persistent.credits_style = "spotlight"
 
 define CREDIT_MUSIC = [
     ("Grekhov Theme", "Departure at 4:00"),
@@ -642,7 +640,7 @@ define CREDIT_MUSIC = [
 init python:
     def credits_style_now():
         s = persistent.credits_style
-        return s if s in dict(CREDIT_STYLES) else "scroll"
+        return s if s in dict(CREDIT_STYLES) else "spotlight"
 
     def credits_style_name():
         return dict(CREDIT_STYLES)[credits_style_now()]
@@ -681,107 +679,6 @@ init python:
             (_("Made with"), [("Ren'Py", renpy.version_only)]),
             (_("Special thanks"), [("Mr Kromo", "")]),
         ]
-
-
-screen credits_scroll():
-    default cred_adj = ui.adjustment()
-    add Solid("#000000")
-    add ("credits_art_still" if persistent.reduce_motion else "credits_art")
-    add Solid("#000000a8")
-    viewport:
-        xalign 0.5
-        xsize 1600
-        ysize config.screen_height
-        yadjustment cred_adj
-        mousewheel True
-        draggable True
-
-        vbox:
-            xsize 1600
-            spacing 0
-
-            null height config.screen_height
-
-            add "game_logo_cycle":
-                xalign 0.5
-                xsize 720
-                ysize 440
-                fit "contain"
-
-            null height 180
-
-            for roles, people in credit_roles():
-                for role in roles:
-                    text role.upper():
-                        xalign 0.5
-                        size 26
-                        color "#e0521f"
-                        font GFONT
-                null height 8
-                for c in people:
-                    textbutton c["name"]:
-                        xalign 0.5
-                        padding (20, 0)
-                        background None
-                        action Function(credits_click, c["key"])
-                        text_size 72
-                        text_color "#f2ead8"
-                        text_hover_color "#e0521f"
-                        text_font CREDIT_FONT
-                        text_outlines [(0, "#00000099", 3, 4)]
-                null height 90
-
-            for heading, lines in credit_sections():
-                text heading.upper():
-                    xalign 0.5
-                    size 26
-                    color "#e0521f"
-                    font GFONT
-                null height 12
-                for ln, sub in lines:
-                    text ln:
-                        xalign 0.5
-                        size 56
-                        color "#f2ead8"
-                        font CREDIT_FONT
-                        outlines [(0, "#00000099", 3, 4)]
-                    if sub:
-                        text sub:
-                            xalign 0.5
-                            size 22
-                            color "#a8a8a8"
-                            font GFONT
-                    null height 14
-                null height 110
-
-            text _("SPECIAL CREDITS"):
-                xalign 0.5
-                size 26
-                color "#e0521f"
-                font GFONT
-            null height 8
-            text _("larp music"):
-                xalign 0.5
-                size 72
-                color "#f2ead8"
-                font CREDIT_FONT
-            null height 200
-
-            text _("THANKS FOR PLAYING!"):
-                xalign 0.5
-                size 80
-                color "#ffffff"
-                font CREDIT_FONT
-            null height 30
-            text _("Version [config.version]   ·   Made with Ren'Py [renpy.version_only]"):
-                xalign 0.5
-                size 18
-                color "#8888a0"
-                font GFONT
-
-            null height config.screen_height
-
-    timer 0.03 repeat True action Function(credits_step, cred_adj)
 
 
 define CREW_BADGES = {"eric": "</>", "hannah": "✎", "aydin": "www", "ryan": "☕"}
@@ -1002,117 +899,6 @@ screen credits_tickets():
                 font GFONT
 
             null height 760
-
-    timer 0.03 repeat True action Function(credits_step, cred_adj)
-
-
-transform film_flicker:
-    alpha 0.05
-    block:
-        linear 0.08 alpha 0.09
-        linear 0.11 alpha 0.04
-        linear 0.07 alpha 0.07
-        repeat
-
-screen credits_film():
-    default cred_adj = ui.adjustment()
-    add Solid("#050505")
-    viewport:
-        xalign 0.5
-        xsize 1700
-        ysize config.screen_height
-        yadjustment cred_adj
-        mousewheel True
-        draggable True
-        vbox:
-            xsize 1700
-            null height config.screen_height
-            text _("A BLACKBERRY STUDIOS GAME"):
-                xalign 0.5
-                size 26
-                color "#9a9a9a"
-                font GFONT
-            null height 40
-            add Transform("images/Game_Logo_Yellow.webp", matrixcolor=SaturationMatrix(0.0)):
-                xalign 0.5
-                xsize 640
-                ysize 400
-                fit "contain"
-            null height 200
-            for roles, people in credit_roles():
-                hbox:
-                    xalign 0.5
-                    spacing 60
-                    vbox:
-                        xsize 800
-                        spacing 6
-                        for role in roles:
-                            text role:
-                                xalign 1.0
-                                text_align 1.0
-                                size 30
-                                color "#a8a8a8"
-                                font GFONT
-                    vbox:
-                        xsize 800
-                        spacing 0
-                        for c in people:
-                            textbutton c["name"]:
-                                padding (0, 0)
-                                background None
-                                action Function(credits_click, c["key"])
-                                text_size 46
-                                text_color "#ededed"
-                                text_hover_color "#e0521f"
-                                text_font CREDIT_FONT
-                null height 70
-            null height 60
-            for heading, lines in credit_sections():
-                hbox:
-                    xalign 0.5
-                    spacing 60
-                    text heading:
-                        xsize 800
-                        text_align 1.0
-                        size 30
-                        color "#a8a8a8"
-                        font GFONT
-                    vbox:
-                        xsize 800
-                        spacing 4
-                        for ln, sub in lines:
-                            text ln:
-                                size 40
-                                color "#ededed"
-                                font CREDIT_FONT
-                            if sub:
-                                text sub:
-                                    size 22
-                                    color "#8a8a8a"
-                                    font GFONT
-                null height 80
-            null height 60
-            hbox:
-                xalign 0.5
-                spacing 60
-                text _("Special credits"):
-                    xsize 800
-                    text_align 1.0
-                    size 30
-                    color "#a8a8a8"
-                    font GFONT
-                text _("larp music"):
-                    xsize 800
-                    size 46
-                    color "#ededed"
-                    font CREDIT_FONT
-            null height 260
-            text _("THE END"):
-                xalign 0.5
-                size 90
-                color "#ededed"
-                font CREDIT_FONT
-            null height config.screen_height
 
     timer 0.03 repeat True action Function(credits_step, cred_adj)
 

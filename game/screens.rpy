@@ -883,7 +883,7 @@ init python:
         persistent.ingame_music = True
         persistent.song_popups = True
         persistent.radio_bar = True
-        persistent.credits_style = "scroll"
+        persistent.credits_style = "spotlight"
         persistent.dialogue_font_size = 30
         persistent.dialogue_opacity = 0.93
         persistent.menu_fx = True
@@ -1718,7 +1718,7 @@ screen main_menu():
             xpos 0.76
             ypos 0
             xysize (int(340 * KEY_SCALE), int(840 * KEY_SCALE))
-            at (key_drop if not persistent.reduce_motion else key_static), Transform(alpha=(0.0 if menu_hides_key() else 1.0))
+            at (key_drop if not persistent.reduce_motion else key_static)
 
             add Solid("#7a7a88", xsize=3, ysize=KEY_STRING_H):
                 xalign 0.5
@@ -1747,10 +1747,6 @@ screen main_menu():
     $ mstyle = menu_style_now()
     if mstyle == "new":
         add left_shade()
-
-
-    if mstyle == "centered":
-        add Solid("#00000070")
 
     if mstyle == "classic":
         fixed:
@@ -1872,55 +1868,6 @@ screen main_menu():
                         color "#55556a"
                         font GFONT
 
-
-    elif mstyle in MENU_EXTRA:
-        use expression ("mm_" + mstyle) pass (rows)
-
-    elif mstyle == "centered":
-        vbox:
-            xalign 0.5
-            yalign 0.5
-            spacing 0
-            button:
-                xalign 0.5
-                xysize (560, int(560 * 808 / 1239.0))
-                padding (0, 0)
-                background None
-                action Function(logo_poke)
-                at fade_slide_in(0.1)
-                add "game_logo_rumble":
-                    xysize (560, int(560 * 808 / 1239.0))
-                    fit "contain"
-            fixed:
-                xsize 900
-                ysize 34
-                at fade_slide_in(0.2)
-                use menu_tagline(0.5, 22)
-            null height 30
-            for i, (lab, act, primary) in enumerate(rows):
-                use mm_row(lab, act, (52 if primary else 34), ("#e0521f" if primary else "#cfcac0"), ("#ff7a3d" if primary else "#ffd76a"), 0.35 + i * 0.05, xa=0.5, pad=(30, 6))
-            null height 20
-            fixed:
-                xalign 0.5
-                xsize 900
-                ysize 48
-                text (GetTooltip() or _("Point at an option to see what it does.")):
-                    xalign 0.5
-                    xmaximum 900
-                    text_align 0.5
-                    size 17
-                    color ("#e6a817" if GetTooltip() else "#55556a")
-                    font GFONT
-            null height 10
-            textbutton _("DEPARTURES"):
-                xalign 0.5
-                padding (10, 4)
-                background None
-                text_size 18
-                text_color "#55556a"
-                text_hover_color "#e6a817"
-                text_font CREDIT_FONT
-                action Function(casino_open)
 
     else:
         vbox:
@@ -2858,7 +2805,7 @@ screen preferences():
 
                     use pref_row(_("CREDITS STYLE"), _("The style of the credits."), 0.0):
                         for cid, cname in CREDIT_STYLES:
-                            use pref_toggle(cname, Function(set_credits_style, cid), selected=(credits_style_now() == cid), w=(160 if cid == "departures" else 130))
+                            use pref_toggle(cname, Function(set_credits_style, cid), selected=(credits_style_now() == cid), w=160)
 
                     use pref_row(_("COLOUR THEME"), _("Tints the backgrounds and maps."), 0.0):
                         use rbtn("‹", Function(theme_step, -1), w=56, h=44, r=14, size=24)
@@ -3454,61 +3401,6 @@ init python:
             else:
                 blocks.append(([r], who[r]))
         return blocks
-
-transform credits_drift(z0, z1, x0, x1):
-    xalign x0
-    yalign 0.5
-    zoom z0
-    linear 9.0 zoom z1 xalign x1
-
-init python:
-    def _credit_slide(bg, who=None, side=1.0):
-        kids = [Transform(bg, fit="cover", xysize=(config.screen_width, config.screen_height))]
-        if who:
-            kids.append(At(Transform(who, fit="contain", ysize=int(config.screen_height * 0.95)),
-                           Transform(xalign=side, yalign=1.0, xoffset=(-160 if side > 0.5 else 160))))
-        return Fixed(*kids, xysize=(config.screen_width, config.screen_height))
-
-    CREDIT_SLIDES = [
-        _credit_slide("images/1st_carriage_Visualnovel_Background.webp"),
-        _credit_slide("images/bg_carriage_1.webp", "images/louis_neutral.png", 1.0),
-        _credit_slide("images/Carriage_1_With_CharacterS.webp"),
-        _credit_slide("images/bg_carriage_5.webp", "images/fedora.png", 0.0),
-        _credit_slide("images/PT2_Carriage_1_With_CharacterS.webp"),
-        _credit_slide("images/bg_carriage_1.webp", "images/dorothy_normal.png", 1.0),
-        _credit_slide("images/Train_BP.webp"),
-        _credit_slide("images/bg_carriage_5.webp", "images/Kimmy_Idle.png", 0.0),
-    ]
-
-image credits_art:
-    At(CREDIT_SLIDES[0], credits_drift(1.05, 1.15, 0.3, 0.7)) with Dissolve(2.0)
-    pause 7.0
-    At(CREDIT_SLIDES[1], credits_drift(1.15, 1.05, 0.6, 0.4)) with Dissolve(2.0)
-    pause 7.0
-    At(CREDIT_SLIDES[2], credits_drift(1.05, 1.15, 0.7, 0.3)) with Dissolve(2.0)
-    pause 7.0
-    At(CREDIT_SLIDES[3], credits_drift(1.15, 1.05, 0.4, 0.6)) with Dissolve(2.0)
-    pause 7.0
-    At(CREDIT_SLIDES[4], credits_drift(1.05, 1.15, 0.3, 0.7)) with Dissolve(2.0)
-    pause 7.0
-    At(CREDIT_SLIDES[5], credits_drift(1.15, 1.05, 0.6, 0.4)) with Dissolve(2.0)
-    pause 7.0
-    At(CREDIT_SLIDES[6], credits_drift(1.0, 1.1, 0.5, 0.5)) with Dissolve(2.0)
-    pause 7.0
-    At(CREDIT_SLIDES[7], credits_drift(1.15, 1.05, 0.4, 0.6)) with Dissolve(2.0)
-    pause 7.0
-    repeat
-
-image credits_art_still:
-    CREDIT_SLIDES[0] with Dissolve(2.0)
-    pause 7.0
-    CREDIT_SLIDES[2] with Dissolve(2.0)
-    pause 7.0
-    CREDIT_SLIDES[4] with Dissolve(2.0)
-    pause 7.0
-    CREDIT_SLIDES[6] with Dissolve(2.0)
-    pause 7.0
-    repeat
 
 transform logo_float:
     yoffset 0
@@ -4450,14 +4342,7 @@ init offset = 0
 define MENU_STYLES = [
     ("new",       _("BOARD"),     _("The departure board.")),
     ("classic",   _("CLASSIC"),   _("The rounded sidebar.")),
-    ("minimal",   _("MINIMAL"),   _("Just the logo and a list.")),
-    ("panel",     _("PANEL"),     _("A dark panel on the right.")),
-    ("cinema",    _("CINEMA"),    _("Black bars and a big logo.")),
-    ("ticket",    _("TICKET"),    _("The menu on a train ticket.")),
-    ("centered",  _("CENTERED"),  _("The menu down the middle.")),
 ]
-
-define MENU_EXTRA = ("minimal", "panel", "cinema", "ticket")
 
 init python:
     def menu_style_step(d):
@@ -4472,280 +4357,6 @@ init python:
             if sid == menu_style_now():
                 return name, desc
         return MENU_STYLES[0][1], MENU_STYLES[0][2]
-
-    def menu_hides_key():
-        return menu_style_now() == "panel"
-
-transform mm_lift:
-    on idle:
-        ease 0.15 yoffset 0
-    on hover:
-        ease 0.15 yoffset -5
-
-screen mm_row(lab, act, size, col, hcol, delay=None, xa=0.0, pad=(0, 4)):
-    button:
-        xalign xa
-        padding pad
-        background None
-        action act
-        tooltip MENU_HELP.get(lab, "")
-        at (mm_in(delay) if delay is not None else Transform())
-        text lab:
-            size size
-            color col
-            hover_color hcol
-            font GFONT
-            at mm_lift
-
-transform mm_in(d=0.0):
-    alpha 0.0
-    yoffset 16
-    pause d
-    easein 0.35 alpha 1.0 yoffset 0
-
-screen mm_logo(w):
-    button:
-        xysize (w, int(w * 808 / 1239.0))
-        padding (0, 0)
-        background None
-        action Function(logo_poke)
-        if logo_glitched:
-            add Transform("images/Game_Logo_Purple.webp", fit="contain", xysize=(w, int(w * 808 / 1239.0))) at logo_glitch
-        else:
-            add "game_logo_rumble":
-                xysize (w, int(w * 808 / 1239.0))
-                fit "contain"
-
-screen mm_help(col="#e6a817", dim="#55556a", size=16, xa=0.0, w=900, font=None):
-    fixed:
-        xalign xa
-        xsize w
-        ysize int(size * 2.8)
-        text (GetTooltip() or _("Point at an option to see what it does.")):
-            xalign xa
-            xmaximum w
-            text_align xa
-            size size
-            color (col if GetTooltip() else dim)
-            font (font or GFONT)
-
-screen mm_departures(col="#55556a", size=16):
-    textbutton _("DEPARTURES"):
-        padding (0, 4)
-        background None
-        text_size size
-        text_color col
-        text_hover_color "#e6a817"
-        text_font CREDIT_FONT
-        action Function(casino_open)
-
-
-screen mm_minimal(rows):
-    add Solid("#00000050")
-    vbox:
-        xpos 120
-        yalign 0.5
-        xsize 560
-        spacing 0
-        hbox:
-            xalign 0.5
-            at mm_in(0.1)
-            use mm_logo(520)
-        fixed:
-            xsize 560
-            ysize 34
-            use menu_tagline(0.5, 18)
-        null height 40
-        for i, (lab, act, primary) in enumerate(rows):
-            use mm_row(lab, act, (46 if primary else 32), ("#e0521f" if primary else "#cfcac0"), ("#ff7a3d" if primary else "#ffffff"), 0.25 + i * 0.04, xa=0.5)
-        null height 18
-        use mm_help(xa=0.5, w=560)
-        null height 6
-        hbox:
-            xalign 0.5
-            spacing 30
-            use mm_departures
-            text "v[config.version]":
-                yalign 0.5
-                size 14
-                color "#44445a"
-                font GFONT
-
-
-screen mm_panel(rows):
-    frame:
-        xalign 1.0
-        yfill True
-        xsize 640
-        padding (56, 120, 56, 50)
-        background Solid("#08080ce6")
-        at mm_in(0.0)
-        add Solid("#e0521f"):
-            xpos -60
-            xysize (4, config.screen_height)
-        vbox:
-            xfill True
-            yalign 0.5
-            spacing 8
-            hbox:
-                xalign 0.5
-                use mm_logo(380)
-            fixed:
-                xfill True
-                ysize 30
-                use menu_tagline(0.5, 18)
-            null height 18
-            for i, (lab, act, primary) in enumerate(rows):
-                button:
-                    xfill True
-                    ysize (64 if primary else 50)
-                    padding (26, 0)
-                    background rbox(("#e0521f" if primary else "#16161c"), 16)
-                    hover_background rbox(("#ff7a3d" if primary else "#26262f"), 16)
-                    action act
-                    tooltip MENU_HELP.get(lab, "")
-                    at mm_in(0.2 + i * 0.04)
-                    text lab:
-                        yalign 0.5
-                        size (30 if primary else 22)
-                        color ("#0a0a0e" if primary else "#e8e4dc")
-                        hover_color ("#0a0a0e" if primary else "#ffd76a")
-                        font GFONT
-                        at mm_lift
-            null height 12
-            use mm_help(w=520)
-            null height 6
-            hbox:
-                xfill True
-                use mm_departures
-                text "v[config.version]":
-                    xalign 1.0
-                    yalign 0.5
-                    size 14
-                    color "#44445a"
-                    font GFONT
-
-
-define CINEMA_BAR = 170
-
-screen mm_cinema(rows):
-    add Solid("#00000060")
-    add Solid("#000000"):
-        xysize (config.screen_width, CINEMA_BAR)
-        at mm_in(0.0)
-    add Solid("#000000"):
-        yalign 1.0
-        xysize (config.screen_width, CINEMA_BAR)
-        at mm_in(0.0)
-
-    vbox:
-        xalign 0.5
-        yalign 0.42
-        at mm_in(0.15)
-        use mm_logo(760)
-        fixed:
-            xsize 760
-            ysize 34
-            use menu_tagline(0.5, 22)
-
-    fixed:
-        xalign 0.5
-        yalign 1.0
-        yoffset -(CINEMA_BAR + 16)
-        xysize (config.screen_width, 30)
-        use mm_help(xa=0.5, w=config.screen_width - 200)
-
-    hbox:
-        xalign 0.5
-        yalign 1.0
-        yoffset -(CINEMA_BAR // 2 - 24)
-        spacing 54
-        for i, (lab, act, primary) in enumerate(rows):
-            use mm_row(lab, act, (30 if primary else 24), ("#e0521f" if primary else "#cfcac0"), ("#ff7a3d" if primary else "#ffffff"), 0.3 + i * 0.04)
-        use mm_departures(size=20)
-
-
-define TICKET_W = 1180
-define TICKET_H = 700
-
-screen mm_ticket(rows):
-    add Solid("#00000060")
-    fixed:
-        xpos 140
-        yalign 0.5
-        xysize (TICKET_W, TICKET_H)
-        at mm_in(0.1)
-        add rbox("#00000088", 30):
-            pos (14, 18)
-            xysize (TICKET_W, TICKET_H)
-        add rbox("#efe3c4", 30):
-            xysize (TICKET_W, TICKET_H)
-        for k in range(26):
-            add Solid("#9a8a66"):
-                pos (300, 26 + k * 26)
-                xysize (3, 12)
-        text "4:00":
-            xcenter 150
-            ycenter TICKET_H // 2
-            size 110
-            color "#b0201a"
-            font CREDIT_FONT
-            at Transform(rotate=-90)
-        text "GREKHOV EXPRESS":
-            xcenter 150
-            ypos TICKET_H - 60
-            size 16
-            color "#7a6a4a"
-            font GFONT
-        vbox:
-            xpos 350
-            ypos 40
-            xsize TICKET_W - 400
-            spacing 6
-            hbox:
-                xfill True
-                use mm_logo(330)
-                vbox:
-                    xalign 1.0
-                    yalign 0.5
-                    spacing 4
-                    text _("DEPARTS"):
-                        xalign 1.0
-                        size 16
-                        color "#7a6a4a"
-                        font GFONT
-                    text "4:00":
-                        xalign 1.0
-                        size 64
-                        color "#2a1f10"
-                        font CREDIT_FONT
-            add Solid("#2a1f1033"):
-                xysize (TICKET_W - 400, 2)
-            null height 10
-            text _("DESTINATION"):
-                size 16
-                color "#7a6a4a"
-                font GFONT
-            $ half = (len(rows) + 1) // 2
-            hbox:
-                spacing 60
-                for col in (rows[:half], rows[half:]):
-                    vbox:
-                        xsize 360
-                        spacing 8
-                        for lab, act, primary in col:
-                            use mm_row(lab, act, (36 if primary else 28), ("#b0201a" if primary else "#2a1f10"), "#e0521f")
-            null height 10
-            add Solid("#2a1f1033"):
-                xysize (TICKET_W - 400, 2)
-            null height 6
-            hbox:
-                xfill True
-                use mm_help(col="#7a1f12", dim="#7a6a4a", size=16, w=TICKET_W - 600)
-                hbox:
-                    xalign 1.0
-                    use mm_departures(col="#7a6a4a")
-
 
 label chapter_replay:
     $ menu_music_filter_off()
