@@ -3,45 +3,35 @@ init offset = -1
 
 init -5 python:
 
+    renpy.register_shader("game.rbox", variables="""
+        uniform vec4 u_color;
+        uniform float u_radius;
+        uniform vec2 u_model_size;
+        attribute vec4 a_position;
+        varying vec2 v_pos;
+    """, vertex_200="""
+        v_pos = a_position.xy;
+    """, fragment_200="""
+        vec2 half_size = u_model_size / 2.0;
+        float r = min(u_radius, min(half_size.x, half_size.y));
+        vec2 corner = abs(v_pos - half_size) - (half_size - r);
+        float outside = length(max(corner, 0.0)) - r;
+        gl_FragColor = u_color * clamp(0.5 - outside, 0.0, 1.0);
+    """)
+
     def rbox(color, r=14):
-        return Solid(color)
+        if r <= 0:
+            return Solid(color)
+        return Model().shader("game.rbox").uniform("u_color", Color(color).premultiplied).uniform("u_radius", float(r))
 
     def anim_t(t):
-        try:
-            return 0.0 if persistent.reduce_motion else t
-        except Exception:
-            return t
+        return 0.0 if persistent.reduce_motion else t
 
     def hover_lift(px):
-        try:
-            return 0 if persistent.reduce_motion else px
-        except Exception:
-            return px
-
-    def sfx(name):
-        path = "audio/%s.wav" % name
-        try:
-            if renpy.loadable(path):
-                renpy.play(path, channel="sound")
-        except Exception:
-            pass
-
-    def sfx_sample():
-        sfx("ui_click")
-
-    ACH_ICON_UNLOCK = ["images/Achievement_Unlock.webp", "images/achievements/Achievement_Unlock.webp",
-                       "gui/Achievement_Unlock.webp", "Achievement_Unlock.webp"]
-    ACH_ICON_LOCK = ["images/Achievement_Lock.webp", "images/achievements/Achievement_Lock.webp",
-                     "gui/Achievement_Lock.webp", "Achievement_Lock.webp"]
+        return 0 if persistent.reduce_motion else px
 
     def ach_default_icon(unlocked):
-        for path in (ACH_ICON_UNLOCK if unlocked else ACH_ICON_LOCK):
-            try:
-                if renpy.loadable(path):
-                    return path
-            except Exception:
-                pass
-        return None
+        return "images/Achievement_Unlock.webp" if unlocked else "images/Achievement_Lock.webp"
 
 define GFONT = "gui/Graduate-Regular.ttf"
 
@@ -102,15 +92,6 @@ init python:
     config.overlay_screens.append("quick_menu")
     config.overlay_screens.append("clue_hotkey")
 
-    try:
-        if renpy.loadable("audio/ui_hover.wav"):
-            style.default.hover_sound = "audio/ui_hover.wav"
-        if renpy.loadable("audio/ui_click.wav"):
-            style.default.activate_sound = "audio/ui_click.wav"
-            config.sample_sound = "audio/ui_click.wav"
-    except Exception:
-        pass
-
 
 define gui.sidebar_width = 450
 define gui.sidebar_margin = 28
@@ -123,18 +104,10 @@ define PREF_PANEL_H = GAME_H - 280
 define KEY_SCALE = 2.35
 
 
-transform key_backlight:
-    alpha 0.12
-    block:
-        ease 3.0 alpha 0.22
-        ease 3.0 alpha 0.12
-        repeat
-
 init python:
-    import time as _btime
 
     def _board_clock(st, at):
-        return Text(_btime.strftime("%H:%M"), size=18, color="#ffd76a", font=CREDIT_FONT), 1.0
+        return Text(_time.strftime("%H:%M"), size=18, color="#ffd76a", font=CREDIT_FONT), 1.0
 
     BOARD_CLOCK = DynamicDisplayable(_board_clock)
 
@@ -508,7 +481,7 @@ init python:
                     if not tag:
                         nm = name if isinstance(name, (tuple, list)) else str(name).split()
                         tag = nm[0]
-                    info = getattr(store, "sprite_info", None)
+                    info = store.sprite_info
                     if info is not None:
                         info[tag] = _sp_pending["val"]
             _sp_pending.clear()
@@ -533,12 +506,9 @@ init python:
 
         TALK.changed = (who != TALK.who)
         TALK.who = who
+        apply_rumble()
         try:
-            apply_rumble()
-        except Exception:
-            pass
-        try:
-            info = getattr(store, "sprite_info", None)
+            info = store.sprite_info
             if not tag or info is None:
                 return
             if renpy.get_attributes(tag) is None:
@@ -560,8 +530,7 @@ init python:
         except Exception:
             pass
 
-    config.all_character_callbacks = [c for c in config.all_character_callbacks
-                                      if getattr(c, "__name__", "") != "_focus_cb"] + [_focus_cb]
+    config.all_character_callbacks.append(_focus_cb)
 
 transform monster_shudder:
     yoffset 0
@@ -858,17 +827,12 @@ init python:
             Preference("text speed", 40),
             Preference("auto-forward time", 15),
             Preference("music volume", 1.0),
-            Preference("sound volume", 1.0),
-            Preference("voice volume", 1.0),
             Preference("skip", "seen"),
             Preference("after choices", "stop"),
             Preference("all mute", "disable"),
         ]
         for act in acts:
-            try:
-                renpy.run(act)
-            except Exception:
-                pass
+            renpy.run(act)
         persistent.screen_shake_enabled = True
         persistent.rumble_extreme = False
         persistent.reduce_flashes = False
@@ -880,7 +844,7 @@ init python:
         persistent.ingame_music = True
         persistent.song_popups = True
         persistent.radio_bar = True
-        persistent.credits_style = "scroll"
+        persistent.credits_style = "spotlight"
         persistent.dialogue_font_size = 30
         persistent.dialogue_opacity = 0.93
         persistent.menu_fx = True
@@ -900,23 +864,14 @@ init python:
         renpy.restart_interaction()
 
     def vol_pct(mixer):
-        try:
-            return str(int(round(_preferences.get_volume(mixer) * 100))) + "%"
-        except Exception:
-            return ""
+        return "%d%%" % round(_preferences.get_volume(mixer) * 100)
 
     def text_speed_label():
-        try:
-            cps = int(_preferences.text_cps)
-            return "INSTANT" if cps <= 0 else str(cps) + " cps"
-        except Exception:
-            return ""
+        cps = int(_preferences.text_cps)
+        return "INSTANT" if cps <= 0 else "%d cps" % cps
 
     def auto_speed_label():
-        try:
-            t = int(_preferences.afm_time)
-        except Exception:
-            return ""
+        t = int(_preferences.afm_time)
         word = _("FAST") if t <= 10 else (_("NORMAL") if t <= 22 else _("SLOW"))
         return "%s  %d" % (word, t)
 
@@ -976,15 +931,7 @@ init python:
             achievement.register(_ach["id"])
 
     def _ach_unlocked(ach_id):
-        try:
-            if achievement.has(ach_id):
-                return True
-        except Exception:
-            pass
-        try:
-            return ach_id in persistent._achievements
-        except Exception:
-            return False
+        return achievement.has(ach_id) or ach_id in (persistent._achievements or ())
 
     def achievement_counts():
         done = 0
@@ -1006,17 +953,12 @@ init python:
             mx = ach.get("stat_max", 0)
             cur = 0
             if mx:
-                try:
-                    cur = int(achievement.get_progress(ach["id"]) or 0)
-                except Exception:
-                    cur = 0
+                cur = int(achievement.get_progress(ach["id"]) or 0)
                 if unlocked:
                     cur = mx
             frac = (float(cur) / mx) if mx else 0.0
 
-            icon = "images/achievements/%s.png" % ach["id"]
-            if not renpy.loadable(icon):
-                icon = ach_default_icon(unlocked)
+            icon = ach_default_icon(unlocked)
 
             rows.append({
                 "title": "???" if secret else ach["title"],
@@ -1031,62 +973,47 @@ init python:
         return rows
 
     def ach_poll():
-        try:
-            s = renpy.session
-            now = _time.time()
-            if now - s.get("ach_polled", 0) < 0.5 and not s.get("ach_queue"):
-                return
-            s["ach_polled"] = now
-            have = set([a["id"] for a in ACHIEVEMENTS if _ach_unlocked(a["id"])])
-            seen = s.get("ach_seen")
-            if seen is None:
-                s["ach_seen"] = have
-                s["ach_queue"] = []
-                return
-            new = have - seen
-            if new:
-                s["ach_seen"] = have
-                for a in ACHIEVEMENTS:
-                    if a["id"] in new:
-                        s["ach_queue"].append((a["title"], a["description"]))
-            q = s.get("ach_queue")
-            if q and persistent.ach_toasts and not renpy.get_screen("ach_toast"):
-                t, d = q.pop(0)
-                renpy.show_screen("ach_toast", t, d)
-                renpy.restart_interaction()
-            elif q and not persistent.ach_toasts:
-                del q[:]
-        except Exception:
-            pass
+        s = renpy.session
+        now = _time.time()
+        if now - s.get("ach_polled", 0) < 0.5 and not s.get("ach_queue"):
+            return
+        s["ach_polled"] = now
+        have = set([a["id"] for a in ACHIEVEMENTS if _ach_unlocked(a["id"])])
+        seen = s.get("ach_seen")
+        if seen is None:
+            s["ach_seen"] = have
+            s["ach_queue"] = []
+            return
+        new = have - seen
+        if new:
+            s["ach_seen"] = have
+            for a in ACHIEVEMENTS:
+                if a["id"] in new:
+                    s["ach_queue"].append((a["title"], a["description"]))
+        q = s.get("ach_queue")
+        if q and persistent.ach_toasts and not renpy.get_screen("ach_toast"):
+            t, d = q.pop(0)
+            renpy.show_screen("ach_toast", t, d)
+            renpy.restart_interaction()
+        elif q and not persistent.ach_toasts:
+            del q[:]
 
-    if ach_poll not in config.periodic_callbacks:
-        config.periodic_callbacks.append(ach_poll)
+    config.periodic_callbacks.append(ach_poll)
 
     def ui_periodic():
-        try:
-            s = renpy.session
-            if getattr(store, "main_menu", False):
-                want = bool(persistent.menu_echo)
-                if s.get("echo_state") != want:
-                    s["echo_state"] = want
-                    if want:
-                        menu_music_filter_on()
-                    else:
-                        menu_music_filter_off()
-            else:
-                s["echo_state"] = None
+        s = renpy.session
+        if main_menu:
+            want = bool(persistent.menu_echo)
+            if s.get("echo_state") != want:
+                s["echo_state"] = want
+                if want:
+                    menu_music_filter_on()
+                else:
+                    menu_music_filter_off()
+        else:
+            s["echo_state"] = None
 
-            for scr, snd in (("ach_toast", "ach"), ("map_stamp", "stamp")):
-                on = bool(renpy.get_screen(scr))
-                key = "snd_" + scr
-                if on and not s.get(key):
-                    sfx(snd)
-                s[key] = on
-        except Exception:
-            pass
-
-    config.periodic_callbacks = [c for c in config.periodic_callbacks
-                                 if getattr(c, "__name__", "") != "ui_periodic"] + [ui_periodic]
+    config.periodic_callbacks.append(ui_periodic)
 
 
 screen rbtn(label, act, w=200, h=50, r=14, size=22, bg="#101014", hov="#2a2a35", edge="#33334a", col="#8888a0", hcol="#ffd700", sel=False):
@@ -1371,40 +1298,14 @@ image game_logo_cycle:
     repeat
 
 
-screen loading():
-    zorder 200
-    add Solid("#0a0a0e")
-    frame:
-        xalign 0.5
-        yalign 0.5
-        background None
-        vbox:
-            xalign 0.5
-            spacing 16
-            text _("LOADING"):
-                xalign 0.5
-                size 36
-                color "#e0521f"
-                font "gui/Telegraphem.otf"
-                at loading_pulse
-            add rbox("#e0521f", 2):
-                xsize 240
-                ysize 6
-                xalign 0.5
-
 label splashscreen:
     $ _RADIOUI.booting = True
     scene black
     with Pause(0.3)
 
-    if renpy.loadable("images/Blackberry_Studios_Full.webp"):
-        show expression "images/Blackberry_Studios_Full.webp" as boot_logo at boot_logo_anim
-        pause 3.3
-        hide boot_logo
-    else:
-        show text "{size=50}BLACKBERRY STUDIOS{/size}" at boot_logo_anim
-        pause 3.3
-        hide text
+    show expression "images/Blackberry_Studios_Full.webp" as boot_logo at boot_logo_anim
+    pause 3.3
+    hide boot_logo
 
     scene black
     with Pause(0.3)
@@ -1518,17 +1419,7 @@ init python:
         return _LEFT_SHADE[0]
 define CINE_TIME_W = 120
 
-transform passing_light:
-    xpos -900
-    alpha 0.0
-    block:
-        pause 4.0
-        alpha 0.12
-        linear 2.6 xpos (config.screen_width + 200)
-        alpha 0.0
-        xpos -900
-        pause 5.0
-        repeat
+
 
 transform board_flip(key, d=0.0):
     yzoom 0.0
@@ -1668,23 +1559,22 @@ screen menu_train():
     add Solid("#e6a81766"):
         ypos CINE_RAIL_H - 12
         xysize (CINE_COL_W, 2)
-    if renpy.loadable("images/Train_BP.webp"):
-        button:
-            pos (tx, CINE_RAIL_H - 12 - th)
+    button:
+        pos (tx, CINE_RAIL_H - 12 - th)
+        xysize (CINE_TRAIN_W, th)
+        padding (0, 0)
+        background None
+        action Function(train_poke)
+        at (train_leave(train_trips) if train_trips else train_arrive)
+        fixed:
             xysize (CINE_TRAIN_W, th)
-            padding (0, 0)
-            background None
-            action Function(train_poke)
-            at (train_leave(train_trips) if train_trips else train_arrive)
-            fixed:
-                xysize (CINE_TRAIN_W, th)
-                at train_rock
-                add Transform("images/Train_BP.webp", crop=TRAIN_CROP, xysize=(CINE_TRAIN_W, th), alpha=0.85)
-                for k in range(3):
-                    add rbox("#cfcac0", 9):
-                        xysize (18, 18)
-                        pos (int(CINE_TRAIN_W * 0.75), int(th * 0.02))
-                        at smoke_puff(k * 0.7)
+            at train_rock
+            add Transform("images/Train_BP.webp", crop=TRAIN_CROP, xysize=(CINE_TRAIN_W, th), alpha=0.85)
+            for k in range(3):
+                add rbox("#cfcac0", 9):
+                    xysize (18, 18)
+                    pos (int(CINE_TRAIN_W * 0.75), int(th * 0.02))
+                    at smoke_puff(k * 0.7)
 
 screen main_menu():
     tag menu
@@ -1735,21 +1625,20 @@ screen main_menu():
             xpos 0.76
             ypos 0
             xysize (int(340 * KEY_SCALE), int(840 * KEY_SCALE))
-            at (key_drop if not persistent.reduce_motion else key_static), Transform(alpha=(0.0 if menu_hides_key() else 1.0))
+            at (key_drop if not persistent.reduce_motion else key_static)
 
             add Solid("#7a7a88", xsize=3, ysize=KEY_STRING_H):
                 xalign 0.5
 
-            if renpy.loadable("images/Key.webp"):
-                button:
-                    background None
-                    padding (0, 0)
-                    xysize (KEY_W, KEY_H)
-                    xpos 0.5
-                    xoffset KEY_IMG_X
-                    ypos KEY_HANG
-                    action Function(key_poke)
-                    add KEY_IMAGE
+            button:
+                background None
+                padding (0, 0)
+                xysize (KEY_W, KEY_H)
+                xpos 0.5
+                xoffset KEY_IMG_X
+                ypos KEY_HANG
+                action Function(key_poke)
+                add KEY_IMAGE
 
     $ rows = [(_("CONTINUE"), Function(continue_game), True), (_("NEW GAME"), Start(), False)]
     $ rows += [(_("LOAD GAME"), ShowMenu("load"), False),
@@ -1764,10 +1653,6 @@ screen main_menu():
     $ mstyle = menu_style_now()
     if mstyle == "new":
         add left_shade()
-
-
-    if mstyle == "centered":
-        add Solid("#00000070")
 
     if mstyle == "classic":
         fixed:
@@ -1796,23 +1681,22 @@ screen main_menu():
                     padding (0, 0)
                     clipping True
 
-                    if renpy.loadable("images/Train_BP.webp"):
-                        frame:
-                            xpos 18
-                            yalign 1.0
-                            yoffset 40
+                    frame:
+                        xpos 18
+                        yalign 1.0
+                        yoffset 40
+                        xysize (380, 380)
+                        background None
+                        padding (0, 0)
+                        clipping True
+                        at fade_slide_in(0.7, xoff=-60)
+                        add "images/Train_BP.webp":
                             xysize (380, 380)
-                            background None
-                            padding (0, 0)
-                            clipping True
-                            at fade_slide_in(0.7, xoff=-60)
-                            add "images/Train_BP.webp":
-                                xysize (380, 380)
-                                fit "contain"
-                                align (0.0, 1.0)
-                                xoffset -30
-                                rotate -12
-                                alpha 0.3
+                            fit "contain"
+                            align (0.0, 1.0)
+                            xoffset -30
+                            rotate -12
+                            alpha 0.3
 
                     vbox:
                         xpos gui.sidebar_padding - 2
@@ -1889,55 +1773,6 @@ screen main_menu():
                         color "#55556a"
                         font GFONT
 
-
-    elif mstyle in MENU_EXTRA:
-        use expression ("mm_" + mstyle) pass (rows)
-
-    elif mstyle == "centered":
-        vbox:
-            xalign 0.5
-            yalign 0.5
-            spacing 0
-            button:
-                xalign 0.5
-                xysize (560, int(560 * 808 / 1239.0))
-                padding (0, 0)
-                background None
-                action Function(logo_poke)
-                at fade_slide_in(0.1)
-                add "game_logo_rumble":
-                    xysize (560, int(560 * 808 / 1239.0))
-                    fit "contain"
-            fixed:
-                xsize 900
-                ysize 34
-                at fade_slide_in(0.2)
-                use menu_tagline(0.5, 22)
-            null height 30
-            for i, (lab, act, primary) in enumerate(rows):
-                use mm_row(lab, act, (52 if primary else 34), ("#e0521f" if primary else "#cfcac0"), ("#ff7a3d" if primary else "#ffd76a"), 0.35 + i * 0.05, xa=0.5, pad=(30, 6))
-            null height 20
-            fixed:
-                xalign 0.5
-                xsize 900
-                ysize 48
-                text (GetTooltip() or _("Point at an option to see what it does.")):
-                    xalign 0.5
-                    xmaximum 900
-                    text_align 0.5
-                    size 17
-                    color ("#e6a817" if GetTooltip() else "#55556a")
-                    font GFONT
-            null height 10
-            textbutton _("DEPARTURES"):
-                xalign 0.5
-                padding (10, 4)
-                background None
-                text_size 18
-                text_color "#55556a"
-                text_hover_color "#e6a817"
-                text_font CREDIT_FONT
-                action Function(casino_open)
 
     else:
         vbox:
@@ -2085,33 +1920,23 @@ screen main_menu():
     if train_gone:
         timer 3.9 action SetVariable("train_gone", False)
 
-    if renpy.loadable("images/Blackberry_Studios.webp"):
-        button:
-            xalign 1.0
-            yalign 1.0
-            xoffset 30
-            yoffset -30
+    button:
+        xalign 1.0
+        yalign 1.0
+        xoffset 30
+        yoffset -30
+        xsize 180
+        ysize 90
+        background None
+        action Function(blackberry_secret_action)
+        at fade_slide_in(0.9, xoff=70, final_xoff=30)
+
+        add autocrop_image("images/Blackberry_Studios.webp"):
             xsize 180
             ysize 90
-            background None
-            action Function(blackberry_secret_action)
-            at fade_slide_in(0.9, xoff=70, final_xoff=30)
-
-            add autocrop_image("images/Blackberry_Studios.webp"):
-                xsize 180
-                ysize 90
-                fit "contain"
-                rotate -18
-                at button_hover_anim
-    else:
-        text "Blackberry":
-            size 40
-            xalign 1.0
-            yalign 1.0
-            xoffset -20
-            yoffset -20
-            at fade_slide_in(0.9, xoff=60, final_xoff=-20)
-
+            fit "contain"
+            rotate -18
+            at button_hover_anim
 
 transform plate_pop:
     xoffset hover_lift(-30)
@@ -2450,39 +2275,6 @@ screen quick_menu():
                                 action Function(afm_adjust, 3)
 
 
-screen navigation():
-    vbox:
-        xpos 0.05
-        yalign 0.5
-        spacing 12
-        if main_menu:
-            textbutton _("Play"):
-                action Start()
-        else:
-            textbutton _("History"):
-                action ShowMenu("history")
-            textbutton _("Save"):
-                action ShowMenu("save")
-        textbutton _("Load"):
-            action ShowMenu("load")
-        textbutton _("Preferences"):
-            action ShowMenu("preferences")
-        if _in_replay:
-            textbutton _("End Replay"):
-                action EndReplay(confirm=True)
-        elif not main_menu:
-            textbutton _("Main Menu"):
-                action MainMenu()
-        textbutton _("About"):
-            action ShowMenu("about")
-        if renpy.variant("pc") or renpy.variant("web"):
-            textbutton _("Help"):
-                action ShowMenu("help")
-        if renpy.variant("pc"):
-            textbutton _("Quit"):
-                action Quit(confirm=not main_menu)
-
-
 screen game_menu_header(title):
     text title:
         size 40
@@ -2687,7 +2479,6 @@ screen pref_slider(val, readout=""):
             style "pref_bar"
             value val
             yalign 0.5
-            released Function(sfx_sample)
         text readout:
             size 18
             color "#e6a817"
@@ -2713,19 +2504,6 @@ define TEXT_COLORS = {"light": "#e8e4dc", "white": "#ffffff", "yellow": "#ffe39a
 
 init python:
     config.always_shown_screens.append("brightness_fx")
-
-    class FlashTr(object):
-        def __init__(self, color, out_t, in_t):
-            self.color = color
-            self.out_t = out_t
-            self.in_t = in_t
-
-        def __call__(self, old_widget=None, new_widget=None):
-            if persistent.reduce_flashes:
-                tr = Dissolve(self.in_t)
-            else:
-                tr = Fade(self.out_t, 0.0, self.in_t, color=self.color)
-            return tr(old_widget=old_widget, new_widget=new_widget)
 
     def brightness_label():
         return {-2: _("DARKEST"), -1: _("DARKER"), 0: _("NORMAL"), 1: _("BRIGHTER"), 2: _("BRIGHTEST")}.get(persistent.brightness, _("NORMAL"))
@@ -2875,7 +2653,7 @@ screen preferences():
 
                     use pref_row(_("CREDITS STYLE"), _("The style of the credits."), 0.0):
                         for cid, cname in CREDIT_STYLES:
-                            use pref_toggle(cname, Function(set_credits_style, cid), selected=(credits_style_now() == cid), w=(160 if cid == "departures" else 130))
+                            use pref_toggle(cname, Function(set_credits_style, cid), selected=(credits_style_now() == cid), w=160)
 
                     use pref_row(_("COLOUR THEME"), _("Tints the backgrounds and maps."), 0.0):
                         use rbtn("‹", Function(theme_step, -1), w=56, h=44, r=14, size=24)
@@ -2946,13 +2724,7 @@ screen preferences():
                     use pref_row(_("MUSIC VOLUME"), _("Music volume."), 0.0):
                         use pref_slider(Preference("music volume"), vol_pct("music"))
 
-                    use pref_row(_("SOUND VOLUME"), _("Sound effects level."), 0.06):
-                        use pref_slider(Preference("sound volume"), vol_pct("sfx"))
-
-                    use pref_row(_("VOICE VOLUME"), _("Voice volume."), 0.12):
-                        use pref_slider(Preference("voice volume"), vol_pct("voice"))
-
-                    use pref_row(_("MUTE ALL AUDIO"), _("Mute all sound."), 0.18):
+                    use pref_row(_("MUTE ALL AUDIO"), _("Mute all sound."), 0.06):
                         use pref_toggle(_("MUTED"), Preference("all mute", "enable"))
                         use pref_toggle(_("SOUND ON"), Preference("all mute", "disable"))
 
@@ -3448,13 +3220,10 @@ define CREW = [
 
 init python:
     def credits_step(adj):
-        try:
-            if adj.value >= adj.range - 2:
-                adj.change(0)
-            else:
-                adj.change(adj.value + 0.9)
-        except Exception:
-            pass
+        if adj.value >= adj.range - 2:
+            adj.change(0)
+        else:
+            adj.change(adj.value + 0.9)
 
 
 init python:
@@ -3474,61 +3243,6 @@ init python:
             else:
                 blocks.append(([r], who[r]))
         return blocks
-
-transform credits_drift(z0, z1, x0, x1):
-    xalign x0
-    yalign 0.5
-    zoom z0
-    linear 9.0 zoom z1 xalign x1
-
-init python:
-    def _credit_slide(bg, who=None, side=1.0):
-        kids = [Transform(bg, fit="cover", xysize=(config.screen_width, config.screen_height))]
-        if who:
-            kids.append(At(Transform(who, fit="contain", ysize=int(config.screen_height * 0.95)),
-                           Transform(xalign=side, yalign=1.0, xoffset=(-160 if side > 0.5 else 160))))
-        return Fixed(*kids, xysize=(config.screen_width, config.screen_height))
-
-    CREDIT_SLIDES = [
-        _credit_slide("images/1st_carriage_Visualnovel_Background.webp"),
-        _credit_slide("images/bg_carriage_1.webp", "images/louis_neutral.png", 1.0),
-        _credit_slide("images/Carriage_1_With_CharacterS.webp"),
-        _credit_slide("images/bg_carriage_5.webp", "images/fedora.png", 0.0),
-        _credit_slide("images/PT2_Carriage_1_With_CharacterS.webp"),
-        _credit_slide("images/bg_carriage_1.webp", "images/dorothy_normal.png", 1.0),
-        _credit_slide("images/Train_BP.webp"),
-        _credit_slide("images/bg_carriage_5.webp", "images/Kimmy_Idle.png", 0.0),
-    ]
-
-image credits_art:
-    At(CREDIT_SLIDES[0], credits_drift(1.05, 1.15, 0.3, 0.7)) with Dissolve(2.0)
-    pause 7.0
-    At(CREDIT_SLIDES[1], credits_drift(1.15, 1.05, 0.6, 0.4)) with Dissolve(2.0)
-    pause 7.0
-    At(CREDIT_SLIDES[2], credits_drift(1.05, 1.15, 0.7, 0.3)) with Dissolve(2.0)
-    pause 7.0
-    At(CREDIT_SLIDES[3], credits_drift(1.15, 1.05, 0.4, 0.6)) with Dissolve(2.0)
-    pause 7.0
-    At(CREDIT_SLIDES[4], credits_drift(1.05, 1.15, 0.3, 0.7)) with Dissolve(2.0)
-    pause 7.0
-    At(CREDIT_SLIDES[5], credits_drift(1.15, 1.05, 0.6, 0.4)) with Dissolve(2.0)
-    pause 7.0
-    At(CREDIT_SLIDES[6], credits_drift(1.0, 1.1, 0.5, 0.5)) with Dissolve(2.0)
-    pause 7.0
-    At(CREDIT_SLIDES[7], credits_drift(1.15, 1.05, 0.4, 0.6)) with Dissolve(2.0)
-    pause 7.0
-    repeat
-
-image credits_art_still:
-    CREDIT_SLIDES[0] with Dissolve(2.0)
-    pause 7.0
-    CREDIT_SLIDES[2] with Dissolve(2.0)
-    pause 7.0
-    CREDIT_SLIDES[4] with Dissolve(2.0)
-    pause 7.0
-    CREDIT_SLIDES[6] with Dissolve(2.0)
-    pause 7.0
-    repeat
 
 transform logo_float:
     yoffset 0
@@ -3738,8 +3452,6 @@ screen skip_indicator():
             font GFONT
 
 
-define flash = FlashTr("#ffffff", 0.08, 0.35)
-
 define burn_reveal = Dissolve(1.6)
 
 transform map_settle:
@@ -3934,24 +3646,18 @@ screen old_map_fx():
 init python:
     def autosave_checkpoint():
         if persistent.autosave_on:
-            try:
-                renpy.force_autosave(take_screenshot=True)
-            except Exception:
-                pass
+            renpy.force_autosave(take_screenshot=True)
 
     def apply_rumble(force=False):
-        try:
-            if getattr(store, "main_menu", False):
-                return
-            want = None
-            if persistent.screen_shake_enabled and not persistent.reduce_motion:
-                want = "extreme" if persistent.rumble_extreme else "normal"
-            if force or store.rumble_on != want:
-                t = {"normal": [train_rumble], "extreme": [train_rumble_extreme]}.get(want, [])
-                renpy.show_layer_at(t, layer="master", reset=False)
-                store.rumble_on = want
-        except Exception:
-            pass
+        if main_menu:
+            return
+        want = None
+        if persistent.screen_shake_enabled and not persistent.reduce_motion:
+            want = "extreme" if persistent.rumble_extreme else "normal"
+        if force or store.rumble_on != want:
+            t = {"normal": [train_rumble], "extreme": [train_rumble_extreme]}.get(want, [])
+            renpy.show_layer_at(t, layer="master", reset=False)
+            store.rumble_on = want
 
     ENDING_LABELS = {
         "ending_1_death": "death",
@@ -3960,45 +3666,31 @@ init python:
     }
 
     def _label_cb(name, abnormal=False):
-        try:
-            if not isinstance(name, (type(u""), type(""))):
-                return
-            if name in CHAPTER_LABELS and not main_menu:
-                persistent.chapters_seen = set(persistent.chapters_seen) | set([name])
-            if name.endswith("_hub"):
-                apply_rumble(True)
-            elif name == "start":
-                persistent.runs = (persistent.runs or 0) + 1
-            elif name in ENDING_LABELS:
-                unlock_ending(ENDING_LABELS[name])
-        except Exception:
-            pass
+        if name in CHAPTER_LABELS and not main_menu:
+            persistent.chapters_seen = set(persistent.chapters_seen) | set([name])
+        if name.endswith("_hub"):
+            apply_rumble(True)
+        elif name == "start":
+            persistent.runs = (persistent.runs or 0) + 1
+        elif name in ENDING_LABELS:
+            unlock_ending(ENDING_LABELS[name])
 
     config.label_callback = _label_cb
 
     def mg_mult():
-        try:
-            return [0.75, 1.0, 1.35][persistent.mg_difficulty]
-        except Exception:
-            return 1.0
+        return {0: 0.75, 2: 1.35}.get(persistent.mg_difficulty, 1.0)
 
     def mg_timed():
         return bool(persistent.mg_timers)
 
     def mg_record(key, ach=None):
         if ach:
-            try:
-                achievement.grant(ach)
-            except Exception:
-                pass
-        sfx("win")
+            achievement.grant(ach)
         if key not in persistent.mg_won:
             give_tickets(TICKETS_FOR["minigame"])
         persistent.mg_won = set(persistent.mg_won) | set([key])
-        try:
-            achievement.progress("game_night", len([k for k in persistent.mg_won if k in [g[0] for g in MINIGAME_LIST]]))
-        except Exception:
-            pass
+        game_ids = [g[0] for g in MINIGAME_LIST]
+        achievement.progress("game_night", len([k for k in persistent.mg_won if k in game_ids]))
 
 
 default persistent.endings_seen = set()
@@ -4084,10 +3776,7 @@ init python:
             give_tickets(TICKETS_FOR["ending"])
         persistent.endings_seen = set(persistent.endings_seen) | set([key])
         if len(persistent.endings_seen) >= len(ENDINGS):
-            try:
-                achievement.grant("all_endings")
-            except Exception:
-                pass
+            achievement.grant("all_endings")
 
     def ending_rows():
         rows = []
@@ -4137,20 +3826,15 @@ init python:
     _pt_last = [None]
 
     def playtime_poll():
-        try:
-            import time
-            now = time.time()
-            last = _pt_last[0]
-            _pt_last[0] = now
-            if last is not None and not getattr(store, "main_menu", False):
-                dt = now - last
-                if 0 < dt < 5:
-                    persistent.playtime = (persistent.playtime or 0.0) + dt
-        except Exception:
-            pass
+        now = _time.time()
+        last = _pt_last[0]
+        _pt_last[0] = now
+        if last is not None and not main_menu:
+            dt = now - last
+            if 0 < dt < 5:
+                persistent.playtime = (persistent.playtime or 0.0) + dt
 
-    if playtime_poll not in config.periodic_callbacks:
-        config.periodic_callbacks.append(playtime_poll)
+    config.periodic_callbacks.append(playtime_poll)
 
     def format_time(sec):
         sec = int(sec or 0)
@@ -4210,11 +3894,7 @@ init python:
             del _konami_buf[:]
             if "konami" not in persistent.secrets:
                 persistent.secrets = set(persistent.secrets) | set(["konami"])
-                try:
-                    achievement.grant("konami")
-                except Exception:
-                    pass
-            sfx("win")
+                achievement.grant("konami")
             renpy.show_screen("map_stamp", "4:01", "ONE MORE STOP")
             renpy.notify("New tab in EXTRAS.")
             renpy.restart_interaction()
@@ -4222,15 +3902,11 @@ init python:
     def key_poke():
         persistent.key_pokes = (persistent.key_pokes or 0) + 1
         n = persistent.key_pokes
-        sfx("lock_click")
         if n == 10:
             renpy.notify("Stop poking the key. Please.")
         elif n == 25:
             persistent.secrets = set(persistent.secrets) | set(["key_cut"])
-            try:
-                achievement.grant("key_cut")
-            except Exception:
-                pass
+            achievement.grant("key_cut")
             renpy.notify("The string creaks.")
         elif n == 50:
             renpy.notify("Ichora says: 'Hey! That is MY key!'")
@@ -4484,21 +4160,11 @@ init offset = 0
 define MENU_STYLES = [
     ("new",       _("BOARD"),     _("The departure board.")),
     ("classic",   _("CLASSIC"),   _("The rounded sidebar.")),
-    ("minimal",   _("MINIMAL"),   _("Just the logo and a list.")),
-    ("panel",     _("PANEL"),     _("A dark panel on the right.")),
-    ("cinema",    _("CINEMA"),    _("Black bars and a big logo.")),
-    ("ticket",    _("TICKET"),    _("The menu on a train ticket.")),
-    ("centered",  _("CENTERED"),  _("The menu down the middle.")),
 ]
 
-define MENU_EXTRA = ("minimal", "panel", "cinema", "ticket")
-
 init python:
-    def menu_styles_usable():
-        return MENU_STYLES
-
     def menu_style_step(d):
-        ids = [m[0] for m in menu_styles_usable()]
+        ids = [m[0] for m in MENU_STYLES]
         cur = menu_style_now()
         k = ids.index(cur) if cur in ids else 0
         persistent.menu_style = ids[(k + d) % len(ids)]
@@ -4509,280 +4175,6 @@ init python:
             if sid == menu_style_now():
                 return name, desc
         return MENU_STYLES[0][1], MENU_STYLES[0][2]
-
-    def menu_hides_key():
-        return menu_style_now() == "panel"
-
-transform mm_lift:
-    on idle:
-        ease 0.15 yoffset 0
-    on hover:
-        ease 0.15 yoffset -5
-
-screen mm_row(lab, act, size, col, hcol, delay=None, xa=0.0, pad=(0, 4)):
-    button:
-        xalign xa
-        padding pad
-        background None
-        action act
-        tooltip MENU_HELP.get(lab, "")
-        at (mm_in(delay) if delay is not None else Transform())
-        text lab:
-            size size
-            color col
-            hover_color hcol
-            font GFONT
-            at mm_lift
-
-transform mm_in(d=0.0):
-    alpha 0.0
-    yoffset 16
-    pause d
-    easein 0.35 alpha 1.0 yoffset 0
-
-screen mm_logo(w):
-    button:
-        xysize (w, int(w * 808 / 1239.0))
-        padding (0, 0)
-        background None
-        action Function(logo_poke)
-        if logo_glitched:
-            add Transform("images/Game_Logo_Purple.webp", fit="contain", xysize=(w, int(w * 808 / 1239.0))) at logo_glitch
-        else:
-            add "game_logo_rumble":
-                xysize (w, int(w * 808 / 1239.0))
-                fit "contain"
-
-screen mm_help(col="#e6a817", dim="#55556a", size=16, xa=0.0, w=900, font=None):
-    fixed:
-        xalign xa
-        xsize w
-        ysize int(size * 2.8)
-        text (GetTooltip() or _("Point at an option to see what it does.")):
-            xalign xa
-            xmaximum w
-            text_align xa
-            size size
-            color (col if GetTooltip() else dim)
-            font (font or GFONT)
-
-screen mm_departures(col="#55556a", size=16):
-    textbutton _("DEPARTURES"):
-        padding (0, 4)
-        background None
-        text_size size
-        text_color col
-        text_hover_color "#e6a817"
-        text_font CREDIT_FONT
-        action Function(casino_open)
-
-
-screen mm_minimal(rows):
-    add Solid("#00000050")
-    vbox:
-        xpos 120
-        yalign 0.5
-        xsize 560
-        spacing 0
-        hbox:
-            xalign 0.5
-            at mm_in(0.1)
-            use mm_logo(520)
-        fixed:
-            xsize 560
-            ysize 34
-            use menu_tagline(0.5, 18)
-        null height 40
-        for i, (lab, act, primary) in enumerate(rows):
-            use mm_row(lab, act, (46 if primary else 32), ("#e0521f" if primary else "#cfcac0"), ("#ff7a3d" if primary else "#ffffff"), 0.25 + i * 0.04, xa=0.5)
-        null height 18
-        use mm_help(xa=0.5, w=560)
-        null height 6
-        hbox:
-            xalign 0.5
-            spacing 30
-            use mm_departures
-            text "v[config.version]":
-                yalign 0.5
-                size 14
-                color "#44445a"
-                font GFONT
-
-
-screen mm_panel(rows):
-    frame:
-        xalign 1.0
-        yfill True
-        xsize 640
-        padding (56, 120, 56, 50)
-        background Solid("#08080ce6")
-        at mm_in(0.0)
-        add Solid("#e0521f"):
-            xpos -60
-            xysize (4, config.screen_height)
-        vbox:
-            xfill True
-            yalign 0.5
-            spacing 8
-            hbox:
-                xalign 0.5
-                use mm_logo(380)
-            fixed:
-                xfill True
-                ysize 30
-                use menu_tagline(0.5, 18)
-            null height 18
-            for i, (lab, act, primary) in enumerate(rows):
-                button:
-                    xfill True
-                    ysize (64 if primary else 50)
-                    padding (26, 0)
-                    background rbox(("#e0521f" if primary else "#16161c"), 16)
-                    hover_background rbox(("#ff7a3d" if primary else "#26262f"), 16)
-                    action act
-                    tooltip MENU_HELP.get(lab, "")
-                    at mm_in(0.2 + i * 0.04)
-                    text lab:
-                        yalign 0.5
-                        size (30 if primary else 22)
-                        color ("#0a0a0e" if primary else "#e8e4dc")
-                        hover_color ("#0a0a0e" if primary else "#ffd76a")
-                        font GFONT
-                        at mm_lift
-            null height 12
-            use mm_help(w=520)
-            null height 6
-            hbox:
-                xfill True
-                use mm_departures
-                text "v[config.version]":
-                    xalign 1.0
-                    yalign 0.5
-                    size 14
-                    color "#44445a"
-                    font GFONT
-
-
-define CINEMA_BAR = 170
-
-screen mm_cinema(rows):
-    add Solid("#00000060")
-    add Solid("#000000"):
-        xysize (config.screen_width, CINEMA_BAR)
-        at mm_in(0.0)
-    add Solid("#000000"):
-        yalign 1.0
-        xysize (config.screen_width, CINEMA_BAR)
-        at mm_in(0.0)
-
-    vbox:
-        xalign 0.5
-        yalign 0.42
-        at mm_in(0.15)
-        use mm_logo(760)
-        fixed:
-            xsize 760
-            ysize 34
-            use menu_tagline(0.5, 22)
-
-    fixed:
-        xalign 0.5
-        yalign 1.0
-        yoffset -(CINEMA_BAR + 16)
-        xysize (config.screen_width, 30)
-        use mm_help(xa=0.5, w=config.screen_width - 200)
-
-    hbox:
-        xalign 0.5
-        yalign 1.0
-        yoffset -(CINEMA_BAR // 2 - 24)
-        spacing 54
-        for i, (lab, act, primary) in enumerate(rows):
-            use mm_row(lab, act, (30 if primary else 24), ("#e0521f" if primary else "#cfcac0"), ("#ff7a3d" if primary else "#ffffff"), 0.3 + i * 0.04)
-        use mm_departures(size=20)
-
-
-define TICKET_W = 1180
-define TICKET_H = 700
-
-screen mm_ticket(rows):
-    add Solid("#00000060")
-    fixed:
-        xpos 140
-        yalign 0.5
-        xysize (TICKET_W, TICKET_H)
-        at mm_in(0.1)
-        add rbox("#00000088", 30):
-            pos (14, 18)
-            xysize (TICKET_W, TICKET_H)
-        add rbox("#efe3c4", 30):
-            xysize (TICKET_W, TICKET_H)
-        for k in range(26):
-            add Solid("#9a8a66"):
-                pos (300, 26 + k * 26)
-                xysize (3, 12)
-        text "4:00":
-            xcenter 150
-            ycenter TICKET_H // 2
-            size 110
-            color "#b0201a"
-            font CREDIT_FONT
-            at Transform(rotate=-90)
-        text "GREKHOV EXPRESS":
-            xcenter 150
-            ypos TICKET_H - 60
-            size 16
-            color "#7a6a4a"
-            font GFONT
-        vbox:
-            xpos 350
-            ypos 40
-            xsize TICKET_W - 400
-            spacing 6
-            hbox:
-                xfill True
-                use mm_logo(330)
-                vbox:
-                    xalign 1.0
-                    yalign 0.5
-                    spacing 4
-                    text _("DEPARTS"):
-                        xalign 1.0
-                        size 16
-                        color "#7a6a4a"
-                        font GFONT
-                    text "4:00":
-                        xalign 1.0
-                        size 64
-                        color "#2a1f10"
-                        font CREDIT_FONT
-            add Solid("#2a1f1033"):
-                xysize (TICKET_W - 400, 2)
-            null height 10
-            text _("DESTINATION"):
-                size 16
-                color "#7a6a4a"
-                font GFONT
-            $ half = (len(rows) + 1) // 2
-            hbox:
-                spacing 60
-                for col in (rows[:half], rows[half:]):
-                    vbox:
-                        xsize 360
-                        spacing 8
-                        for lab, act, primary in col:
-                            use mm_row(lab, act, (36 if primary else 28), ("#b0201a" if primary else "#2a1f10"), "#e0521f")
-            null height 10
-            add Solid("#2a1f1033"):
-                xysize (TICKET_W - 400, 2)
-            null height 6
-            hbox:
-                xfill True
-                use mm_help(col="#7a1f12", dim="#7a6a4a", size=16, w=TICKET_W - 600)
-                hbox:
-                    xalign 1.0
-                    use mm_departures(col="#7a6a4a")
-
 
 label chapter_replay:
     $ menu_music_filter_off()

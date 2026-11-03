@@ -18,7 +18,7 @@ define build.version = "2.1-beta"
 
 define config.has_sound = True
 define config.has_music = True
-define config.has_voice = True
+define config.has_voice = False
 
 
 define config.window = "auto"

@@ -124,12 +124,6 @@ image talk to alexander = "talk_bg"
 image engine room       = "bg carriage_4"
 
 
-init python:
-    def jolt(kind="v"):
-        if persistent.reduce_motion or not persistent.screen_shake_enabled:
-            return None
-        return hpunch if kind == "h" else vpunch
-
 image lights_dying:
     Solid("#000000")
     alpha 0.0
@@ -206,11 +200,9 @@ init python:
         if already:
             return
         title, text = _clue_text(var)
-        sfx("clue") if renpy.loadable("audio/clue.wav") else sfx("win")
         renpy.show_screen("clue_popup", _("NEW CLUE  (press J)"), title or var, text)
 
     def got_item(name, desc=""):
-        sfx("win")
         renpy.show_screen("clue_popup", _("GOT ITEM"), name, desc)
 
 
@@ -228,16 +220,12 @@ init 3 python:
     _old_label_cb_hs = config.label_callback
 
     def _hs_label_cb(name, abnormal=False):
-        try:
-            if isinstance(name, (type(u""), type(""))):
-                if name == "part2_start":
-                    store.hs_done = set()
-                    store.coin_found = set()
-                    store.fares_paid = set()
-                elif not main_menu:
-                    store.hs_done.add(name)
-        except Exception:
-            pass
+        if name == "part2_start":
+            store.hs_done = set()
+            store.coin_found = set()
+            store.fares_paid = set()
+        elif not main_menu and not name.startswith("_"):
+            store.hs_done.add(name)
         if _old_label_cb_hs:
             _old_label_cb_hs(name, abnormal)
 
@@ -565,7 +553,6 @@ init python:
         b = dict(persistent.bond or {})
         b[name] = bond(name) + 1
         persistent.bond = b
-        sfx("ui_click")
         renpy.notify("%s: \"%s\"" % (name, renpy.random.choice(GIFT_LINES.get(name, ["..."]))))
         if b[name] == BOND_MAX:
             give_tickets(TICKETS_FOR["secret"])

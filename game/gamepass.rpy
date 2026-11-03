@@ -30,7 +30,6 @@ init python:
             return
         persistent.tickets -= price
         persistent.passes = set(persistent.passes) | set([pid])
-        sfx("win")
         renpy.restart_interaction()
 
     def pass_bonus(pid, amount):
@@ -175,7 +174,7 @@ init python:
         clues = [c for c, _t, _x in CLUE_LIST if getattr(store, c, False)]
         return [
             ("label", DEV.label),
-            ("part", "2" if getattr(store, "in_loop", False) else "1"),
+            ("part", "2" if store.in_loop else "1"),
             ("clues", "%d / %d" % (len(clues), len(CLUE_LIST))),
             ("music", renpy.music.get_playing("music") or "-"),
             ("coins / tickets", "%d / %d" % (persistent.coins or 0, persistent.tickets or 0)),
@@ -248,11 +247,10 @@ init python:
         renpy.restart_interaction()
 
     def theatre_play(f):
-        if renpy.loadable(f):
-            renpy.invoke_in_new_context(renpy.movie_cutscene, f)
-            if main_menu and config.main_menu_music:
-                renpy.music.play(config.main_menu_music, fadein=1.0)
-            renpy.restart_interaction()
+        renpy.invoke_in_new_context(renpy.movie_cutscene, f)
+        if main_menu and config.main_menu_music:
+            renpy.music.play(config.main_menu_music, fadein=1.0)
+        renpy.restart_interaction()
 
 transform gallery_pan:
     xalign 0.5
@@ -363,7 +361,7 @@ screen jukebox_list(w):
                         use rbtn(_("PLAY"), Function(jukebox_play, f), w=130, h=44, r=14, size=18, bg="#8a4a22", hov="#b8631f", col="#f2e6d8", hcol="#ffffff")
 
 screen theatre_list(w):
-    for idx, (title, f) in enumerate([(t, f) for t, f in THEATRE if renpy.loadable(f)]):
+    for idx, (title, f) in enumerate(THEATRE):
         frame:
             xfill True
             background rbox("#101014", 22)
@@ -514,11 +512,8 @@ default rewind_point = None
 
 init python:
     def rewind_mark():
-        try:
-            if _history_list:
-                store.rewind_point = _history_list[-1].rollback_identifier
-        except Exception:
-            pass
+        if _history_list:
+            store.rewind_point = _history_list[-1].rollback_identifier
 
     def rewind_ready():
         return store.rewind_point is not None

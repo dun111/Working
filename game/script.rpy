@@ -1489,10 +1489,9 @@ label ending_3_true:
 
 
 label ending_video:
-    if renpy.loadable(ENDING_VIDEO):
-        stop music fadeout 1.0
-        $ renpy.movie_cutscene(ENDING_VIDEO, stop_music=True)
-        $ persistent.ending_video_seen = True
+    stop music fadeout 1.0
+    $ renpy.movie_cutscene(ENDING_VIDEO, stop_music=True)
+    $ persistent.ending_video_seen = True
     return
 
 
