@@ -46,8 +46,9 @@ transform ticket_pop:
 screen ticket_toast(n):
     zorder 400
     frame:
-        xpos 40
-        yalign 0.93
+        xpos 28
+        yanchor 1.0
+        ypos (TOAST_BOTTOM - 72)
         padding (24, 12)
         background rbox("#14141aee", 18)
         at ticket_pop
@@ -381,7 +382,6 @@ screen theatre_list(w):
                     use rbtn(_("WATCH"), Function(theatre_play, f), w=150, h=50, r=16, size=22, bg="#8a4a22", hov="#b8631f", col="#f2e6d8", hcol="#ffffff")
 
 
-default persistent.ui_theme = "default"
 
 define UI_THEMES = [
     ("default",  _("DEFAULT")),
@@ -445,7 +445,7 @@ init python:
 
     def dialogue_style_now():
         ds = persistent.dialogue_style
-        return ds
+        return ds if ds in dict(DIALOGUE_STYLES) else "classic"
 
     def menu_style_now():
         ms = persistent.menu_style

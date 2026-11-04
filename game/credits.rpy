@@ -223,7 +223,7 @@ init python:
         renpy.restart_interaction()
 
 screen mg_debug():
-    use mg_scene(_("DEBUG"), _("Click the broken line."), "black", skippable=False):
+    use mg_scene(_("DEBUG"), _("Click the broken line."), "black", skippable=False, reward=False):
         if dbg_result is None:
             timer 0.1 repeat True action Function(debug_tick)
             if dbg_picked is not None:
@@ -599,11 +599,11 @@ define CREDIT_STYLES = [
     ("tickets",    _("TICKETS")),
 ]
 
-default persistent.credits_style = "spotlight"
 
 define CREDIT_MUSIC = [
     ("Grekhov Theme", "Departure at 4:00"),
     ("Rendezvous (Instrumental)", "Carriages 2 and 3"),
+    ("Let's All Do the Conga", "Colin Sheen"),
     ("Flower In A Hurricane", "Justice ft. Tame Impala, SZA, King Gizzard & the Lizard Wizard"),
 ]
 
@@ -880,34 +880,34 @@ define SPOT_RX = 0.85
 define SPOT_RY = 1.25
 
 define SPOT_SLIDES = [
-    ("images/Carriage_1_With_CharacterS.webp", "place"),
-    ("images/Game_Logo_Yellow.webp", "thing"),
+    ("images/bg_carriage_1_passengers.webp", "place"),
+    ("images/logo_game_yellow.webp", "thing"),
     ("images/louis_neutral.png", "person"),
-    ("images/dorothy_normal.png", "person"),
-    ("images/fedora.png", "person"),
-    ("images/Train_BP.webp", "place"),
+    ("images/dorothy_neutral.png", "person"),
+    ("images/fedora_neutral.png", "person"),
+    ("images/train_blueprint.webp", "place"),
     ("eduard neutral", "person"),
     ("shunyu neutral", "person"),
-    ("images/Kimmy_Idle.png", "person"),
+    ("images/kimmy_neutral.png", "person"),
     ("himmel neutral", "person"),
     ("images/bg_carriage_5.webp", "place"),
     ("sebastian neutral", "person"),
     ("misha neutral", "person"),
     ("agatha neutral", "person"),
     ("ichora neutral", "person"),
-    ("images/PT2_Carriage_1_With_CharacterS.webp", "place"),
+    ("images/bg_carriage_1_passengers_part2.webp", "place"),
     ("pattison neutral", "person"),
     ("alexander neutral", "person"),
     ("images/dorothy_sad.png", "person"),
-    ("images/1st_carriage_Visualnovel_Background.webp", "place"),
-    ("images/Key.webp", "thing"),
+    ("images/bg_first_class.webp", "place"),
+    ("images/key.webp", "thing"),
     ("shunyu_monster neutral", "person"),
     ("himmel_monster neutral", "person"),
     ("conductor_monster neutral", "person"),
     ("images/bg_carriage_1.webp", "place"),
-    ("images/cfr27dc3e0e7c6aws3.webp", "thing"),
-    ("images/Achievement_Unlock.webp", "thing"),
-    ("images/Blackberry_Studios_Full.webp", "thing"),
+    ("images/pixel_sprites.webp", "thing"),
+    ("images/ui_achievement_unlocked.webp", "thing"),
+    ("images/logo_studio_full.webp", "thing"),
 ]
 
 init python:
@@ -1119,7 +1119,7 @@ screen credits_spotlight():
                 yalign 0.5
                 spacing 14
                 at spot_logo_in(dur)
-                add Transform("images/Game_Logo_Yellow.webp", fit="contain", xysize=(620, 400))
+                add Transform("images/logo_game_yellow.webp", fit="contain", xysize=(620, 400))
                 text _("A BLACKBERRY STUDIOS GAME"):
                     size 22
                     color "#8a8a8a"

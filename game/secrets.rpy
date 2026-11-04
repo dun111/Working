@@ -12,7 +12,6 @@ init 1 python:
         ("blocks",     _("Misha's blocks"),            "mg_blocks",         blocks_reset,     _("Carriage 3")),
         ("engine",     _("Keep steam pressure steady"), "mg_engine",        engine_reset,     _("Carriage 4")),
         ("mail",       _("Sort the mail"),             "mg_mail",           mail_reset,       _("Carriage 5")),
-        ("flashlight", _("Search in the dark"),        "mg_flashlight",     flashlight_reset, _("Part 2, Carriage 2")),
         ("combo",      _("The luggage lock"),          "mg_combo",          combo_reset,      _("Part 2, Carriage 3")),
         ("pry",        _("Pull up the carpet"),        "mg_pry",            pry_reset,        _("Part 2, Carriage 3")),
         ("evidence",   _("Present the evidence"),      "mg_evidence",       evidence_reset,   _("Part 2")),

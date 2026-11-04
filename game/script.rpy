@@ -212,7 +212,7 @@ label start:
     l "Eugh… augh… guhhh… I feel the ground underneath me moving, and hear the sound of… chugging?"
     "{i}(Chugging){/i}"
     "{i}He opens his eyes.{/i}"
-    l "“Wh-where am I?”{w=1}"
+    l "“Wh-where am I?”"
     "{i}He looks around, and sees a ticket woman.{/i}"
     show louis confused at speaker_background(xalign=0.1)
     show dorothy confused at speaker_focus(xalign=0.9)
@@ -238,7 +238,7 @@ label start:
     l "O-oh, sorry, I think I might have gotten a bit light headed…"
     show louis neutral at speaker_background(xalign=0.1)
     show dorothy neutral at speaker_focus(xalign=0.9)
-    d "I see. Well sir, welcome aboard the Grekhov Express…{w=1}"
+    d "I see. Well sir, welcome aboard the Grekhov Express…"
     show dorothy neutral at speaker_background(xalign=0.9)
     show louis confused at speaker_focus(xalign=0.1)
     l "Huh, I don't remember how I got here… That's right, I was tryna go home… But… what happened?"
@@ -780,7 +780,6 @@ label c2_p2_bar_counter:
     return
 
 label c2_p2_second_table:
-    call play_required("mg_flashlight", flashlight_reset) from _call_play_required_6
     show louis neutral at speaker_focus(xalign=0.5)
     "{i}Someone is slumped over the table.{/i}"
     l "...Hey. Hey, sir? You okay?"
@@ -1457,7 +1456,7 @@ label carriage_6_aftermath:
 label ending_1_death:
     hide screen loop_overlay
     scene black with dissolve
-    call screen ending_card(_("ENDING 1"), _("WRONG GUESS"), _("The train doesn't forgive wrong guesses."), "#a8281a")
+    call screen ending_card(_("ENDING 1"), _("WRONG GUESS"), _("The train doesn't forgive wrong guesses."))
     call ending_video from _call_ending_video
     $ MainMenu(confirm=False)()
     return
@@ -1466,7 +1465,7 @@ label ending_2_escape:
     hide screen loop_overlay
     scene black with dissolve
     "Nice, you escaped!"
-    call screen ending_card(_("ENDING 2"), _("PARTIAL TRUTH"), _("You escaped, but not everything was resolved."), "#e6a817")
+    call screen ending_card(_("ENDING 2"), _("PARTIAL TRUTH"), _("You escaped, but not everything was resolved."))
     call ending_video from _call_ending_video_1
     $ MainMenu(confirm=False)()
     return
@@ -1482,7 +1481,7 @@ label ending_3_true:
     show louis neutral at speaker_background(xalign=0.1)
     d "Yes. The train is free. All of us."
     scene black with dissolve
-    call screen ending_card(_("ENDING 3"), _("THE TRUE LINE"), _("You solved the mystery and freed everyone from the loop."), "#e0521f")
+    call screen ending_card(_("ENDING 3"), _("THE TRUE LINE"), _("You solved the mystery and freed everyone from the loop."))
     call ending_video from _call_ending_video_2
     $ MainMenu(confirm=False)()
     return
@@ -1498,7 +1497,7 @@ label ending_video:
 label old_film_to_map:
     window hide
 
-    if (not persistent.film_transition) or persistent.reduce_motion:
+    if persistent.reduce_motion:
         scene bg carriage_1 with fade
         jump carriage_1_start
 

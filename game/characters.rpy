@@ -14,7 +14,7 @@ init -2 python:
                 return None
             trans.yzoom = 1.0 + 0.005 * math.sin(st * math.pi / 2.0)
             if TALK.typing == self.tag:
-                trans.yoffset = -abs(math.sin(st * 9.0)) * 6.0
+                trans.yoffset = -abs(math.sin(st * 6.0)) * 2.0
             else:
                 trans.yoffset = 0
             return 1.0 / 30
@@ -43,9 +43,11 @@ init -2 python:
         return Transform(shadow, function=IdleAnim(tag))
 
 define LOUIS_PNG       = ("images/louis_neutral.png", 1323)
-define FEDORA_PNG      = ("images/fedora.png", 1314)
-define DOROTHY_PNG     = ("images/dorothy_normal.png", 1305)
+define FEDORA_PNG      = ("images/fedora_neutral.png", 1314)
+define DOROTHY_PNG     = ("images/dorothy_neutral.png", 1305)
 define DOROTHY_SAD_PNG = ("images/dorothy_sad.png", 1298)
+define SHUNYU_PNG      = ("images/shunyu_neutral.png", 1341)
+define ICHORA_PNG      = ("images/ichora_neutral.png", 1288)
 
 
 image louis neutral        = sprite("louis", *LOUIS_PNG)
@@ -61,21 +63,24 @@ image dorothy surprised = sprite("dorothy", *DOROTHY_PNG)
 image dorothy sad       = sprite("dorothy", *DOROTHY_SAD_PNG)
 
 
+image shunyu neutral = sprite("shunyu", *SHUNYU_PNG)
+image shunyu excited = sprite("shunyu", *SHUNYU_PNG)
+
+image ichora neutral = sprite("ichora", *ICHORA_PNG)
+
+
 image eduard neutral    = silhouette("eduard", "Eduard", *LOUIS_PNG, color="#3b2a20")
-image shunyu neutral    = silhouette("shunyu", "Shunyu", *LOUIS_PNG, color="#2e2a40")
-image shunyu excited    = silhouette("shunyu", "Shunyu", *LOUIS_PNG, color="#3c3456")
 image kimmy neutral     = silhouette("kimmy", "Kimmy", *DOROTHY_PNG, color="#4a2026")
 image himmel neutral    = silhouette("himmel", "Himmel", *LOUIS_PNG, color="#203040")
 image sebastian neutral = silhouette("sebastian", "Sebastian", *LOUIS_PNG, color="#202428")
 image misha neutral     = silhouette("misha", "Misha", *LOUIS_PNG, color="#2a3a2a", scale=0.72)
 image misha stares      = silhouette("misha", "Misha", *LOUIS_PNG, color="#2a3a2a", scale=0.72)
 image agatha neutral    = silhouette("agatha", "Agatha", *FEDORA_PNG, color="#2a3438")
-image ichora neutral    = silhouette("ichora", "Ichora", *LOUIS_PNG, color="#3a3020")
 image pattison neutral  = silhouette("pattison", "Pattison", *LOUIS_PNG, color="#30283a")
 image alexander neutral = silhouette("alexander", "Alexander", *LOUIS_PNG, color="#3a3a1e")
 
 image shunyu_monster neutral = At(
-    silhouette("shunyu_monster", "", *LOUIS_PNG, color="#2a0c18", scale=1.08, label=False),
+    silhouette("shunyu_monster", "", *SHUNYU_PNG, color="#2a0c18", scale=1.08, label=False),
     monster_shudder, monster_glow)
 image himmel_monster neutral = At(
     silhouette("himmel_monster", "", *LOUIS_PNG, color="#0c1e24", scale=1.04, label=False),
@@ -96,27 +101,25 @@ transform talk_drift:
         ease anim_t(14.0) xalign 0.58 zoom 1.12
         repeat
 
-image talk_mosaic = Fixed(
-    At(full_cover("images/1st_carriage_Visualnovel_Background.webp"), talk_drift),
-    Solid("#0a0a0e66"))
+init python:
+    def talk_backdrop(path):
+        normal = Fixed(At(full_cover(path), talk_drift), Solid("#0a0a0e66"))
+        looped = Fixed(
+            At(full_cover(path, matrixcolor=TintMatrix("#ff6a5a") * SaturationMatrix(0.5)), talk_drift),
+            Solid("#1a000088"))
+        return ConditionSwitch("in_loop", looped, "True", normal)
 
-image talk_mosaic_loop = Fixed(
-    At(full_cover("images/1st_carriage_Visualnovel_Background.webp",
-                  matrixcolor=TintMatrix("#ff6a5a") * SaturationMatrix(0.5)),
-       talk_drift),
-    Solid("#1a000088"))
-
-image talk_bg = ConditionSwitch(
-    "in_loop", "talk_mosaic_loop",
-    "True", "talk_mosaic")
+image talk_bg = talk_backdrop("images/bg_first_class.webp")
+image talk_bar = talk_backdrop("images/bg_bar.webp")
+image talk_sleeper = talk_backdrop("images/bg_sleeper.webp")
 
 image talk to fedora    = "talk_bg"
-image talk to eduard    = "talk_bg"
-image talk to shunyu    = "talk_bg"
-image talk to kimmy     = "talk_bg"
-image talk to himmel    = "talk_bg"
-image talk to sebastian = "talk_bg"
-image talk to misha     = "talk_bg"
+image talk to eduard    = "talk_bar"
+image talk to shunyu    = "talk_bar"
+image talk to kimmy     = "talk_sleeper"
+image talk to himmel    = "talk_sleeper"
+image talk to sebastian = "talk_sleeper"
+image talk to misha     = "talk_sleeper"
 image talk to agatha    = "talk_bg"
 image talk to ichora    = "talk_bg"
 image talk to pattison  = "talk_bg"
@@ -239,7 +242,7 @@ define HS_STYLE = {
     "decide": ("#a8281a", _("ACCUSE")),
 }
 
-define PIXEL_SHEET = "images/cfr27dc3e0e7c6aws3.webp"
+define PIXEL_SHEET = "images/pixel_sprites.webp"
 define PIXEL_CROPS = [
     (141, 45, 96, 134), (301, 51, 96, 128), (429, 38, 102, 141),
     (141, 198, 96, 154), (301, 218, 96, 128), (429, 205, 102, 141),
@@ -561,11 +564,14 @@ init python:
                 achievement.grant("bond_all")
         renpy.restart_interaction()
 
+define TOAST_BOTTOM = config.screen_height - 18 - 290 - 14
+
 screen coin_toast(n):
     zorder 400
     frame:
-        xpos 40
-        yalign 0.84
+        xpos 28
+        yanchor 1.0
+        ypos TOAST_BOTTOM
         padding (24, 12)
         background rbox("#14141aee", 18)
         at ticket_pop
