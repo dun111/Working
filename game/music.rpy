@@ -196,18 +196,14 @@ init python:
     _menu_music_config()
 
 init 2 python:
-    _old_label_cb_music = config.label_callback
-
     def _music_label_cb(name, abnormal=False):
         if not main_menu and name in LABEL_MUSIC:
             normal, looped = LABEL_MUSIC[name]
             _MUSIC.scene = looped if store.in_loop else normal
             if persistent.ingame_music:
                 music_for(_MUSIC.scene)
-        if _old_label_cb_music:
-            _old_label_cb_music(name, abnormal)
 
-    config.label_callback = _music_label_cb
+    config.label_callbacks.append(_music_label_cb)
 
 init python:
     def set_ingame_music(on):

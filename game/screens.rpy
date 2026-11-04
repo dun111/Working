@@ -532,15 +532,13 @@ default sprite_info = {}
 default rumble_on = False
 
 init python:
-    _STRING_TYPES = (type(u""), type(""))
-
     class TALK(object):
         typing = None
         who = None
         changed = True
 
     def speaker_tag(who):
-        if not isinstance(who, _STRING_TYPES):
+        if not isinstance(who, str):
             return None
         return getattr(getattr(store, who, None), "image_tag", None)
 
@@ -2050,6 +2048,9 @@ init python:
             _SAY_FADE.append(Fixed(*strips, xysize=(config.screen_width, h)))
         return _SAY_FADE[0]
 
+define SAY_TEXT_X = {"film": 0.5, "minimal": 60, "ticket": 310}
+define SAY_TEXT_Y = {"ticket": 40, "terminal": 100}
+
 screen say(who, what, plate="#8a4a22", creepy=False):
     $ ds = dialogue_style_now()
     $ op = persistent.dialogue_opacity
@@ -2177,11 +2178,11 @@ screen say(who, what, plate="#8a4a22", creepy=False):
 
         text what:
             id "what"
-            xpos (0.5 if ds == "film" else (60 if ds == "minimal" else (310 if ds == "ticket" else 40)))
+            xpos SAY_TEXT_X.get(ds, 40)
             xanchor (0.5 if ds == "film" else 0.0)
             xsize (0.8 if ds == "film" else (box_w - 380 if ds == "ticket" else 0.85))
             text_align (0.5 if ds == "film" else 0.0)
-            ypos (72 if not boxed else (40 if ds == "ticket" else (100 if ds == "terminal" else 104)))
+            ypos (SAY_TEXT_Y.get(ds, 104) if boxed else 72)
             size persistent.dialogue_font_size
             color say_ink(ds)
             font ("DejaVuSans.ttf" if ds == "terminal" else say_font())
@@ -3741,7 +3742,7 @@ init python:
             store.hc.on = False
             unlock_ending(ENDING_LABELS[name])
 
-    config.label_callback = _label_cb
+    config.label_callbacks.append(_label_cb)
 
     def mg_mult():
         return {0: 0.75, 2: 1.35}.get(persistent.mg_difficulty, 1.0)

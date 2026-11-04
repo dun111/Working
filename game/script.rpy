@@ -76,7 +76,7 @@ screen carriage_1_map():
         use hs((1185, 625, 125, 180), Call("c1_fedora_dialogue"), "Fedora", "talk")
     use hs((860, 240, 200, 150), Call("c1_interact_window"), "Window", delay=0.05)
     use hs((30, 740, 110, 110), Call("c1_interact_cupboard"), "Cupboard", delay=0.1)
-    use hs((30, 560, 110, 130), Call("c1_interact_admin_door"), "Admin door", delay=0.15)
+    use hs((30, 560, 110, 130), Call("c1_interact_mysterious_door"), "Mysterious door", delay=0.15)
     use hs((560, 600, 160, 90), Call("c1_interact_tea_stain"), "Tea stain", delay=0.2)
     if in_loop or c1_talked_fedora:
         use hs(DOOR_RIGHT, Jump("c1_door_to_carriage_2"), "Carriage 2", "door", 0.25)
@@ -287,7 +287,10 @@ label c1_interact_window:
     return
 
 
-label c1_interact_admin_door:
+label c1_interact_mysterious_door:
+    if has_pass("door_key"):
+        call screen mysterious_room
+        return
     "I'm not supposed to enter this carriage, am I…"
     return
 

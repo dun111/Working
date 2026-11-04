@@ -220,8 +220,6 @@ init python:
         return bool(lab) and lab in store.hs_done
 
 init 3 python:
-    _old_label_cb_hs = config.label_callback
-
     def _hs_label_cb(name, abnormal=False):
         if name == "part2_start":
             store.hs_done = set()
@@ -229,10 +227,8 @@ init 3 python:
             store.fares_paid = set()
         elif not main_menu and not name.startswith("_"):
             store.hs_done.add(name)
-        if _old_label_cb_hs:
-            _old_label_cb_hs(name, abnormal)
 
-    config.label_callback = _hs_label_cb
+    config.label_callbacks.append(_hs_label_cb)
 
 define HS_STYLE = {
     "talk": ("#e0521f", _("TALK")),

@@ -1,4 +1,3 @@
-default persistent.cheats_on = False
 default persistent.cheat_autowin = False
 default persistent.cheat_hotspots = False
 
@@ -27,11 +26,11 @@ init 1 python:
 
 init python:
     def cheats_allowed():
-        return bool(config.developer or has_pass("cheats") or (CHEATS_BUILD and persistent.cheats_on))
+        return bool(config.developer or has_pass("cheats"))
 
     def toggle_cheats():
-        persistent.cheats_on = not persistent.cheats_on
-        renpy.notify(_("Cheats ON (F9)") if persistent.cheats_on else _("Cheats OFF"))
+        toggle_pass("cheats")
+        renpy.notify(_("Cheats ON (F9)") if has_pass("cheats") else _("Cheats OFF"))
 
     P1_TALKS = [
         ["c1_talked_fedora", "door_c2_open"],
@@ -131,6 +130,7 @@ init python:
         persistent.coins = 50
         persistent.golden_found = set()
         persistent.passes = set()
+        persistent.passes_off = set()
         persistent.cast_called = set()
         persistent.eric_clicks = 0
         persistent.key_pokes = 0
