@@ -112,6 +112,7 @@ init python:
 image talk_bg = talk_backdrop("images/bg_first_class.webp")
 image talk_bar = talk_backdrop("images/bg_bar.webp")
 image talk_sleeper = talk_backdrop("images/bg_sleeper.webp")
+image shunyu_dead = full_cover("images/shunyu_dead.webp")
 
 image talk to fedora    = "talk_bg"
 image talk to eduard    = "talk_bar"

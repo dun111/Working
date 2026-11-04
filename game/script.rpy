@@ -788,7 +788,9 @@ label c2_p2_second_table:
     l "...Hey. Hey, sir? You okay?"
     "{i}Louis reaches out and turns the figure over.{/i}"
     "{i}It's Shunyu.{/i}"
+    show shunyu_dead with dissolve
     "{i}There's a jagged shard of glass buried in his side, dark red soaked deep into his shirt around it. His eyes are open. A mahjong tile is placed neatly in his open palm, resting there like it was set on purpose. The rest of the tiles from his winning hand are still fanned out in front of him on the table, undisturbed, as though he simply stopped playing mid-game and never picked it back up.{/i}"
+    hide shunyu_dead with dissolve
     show louis confused at speaker_focus(xalign=0.5)
     l "Shunyu? Shunyu!! Hey, wake up. C'mon, this isn't f- oh god, is that- is that GLASS"
     "{i}Louis stumbles back, knocking into a barstool.{/i}"
