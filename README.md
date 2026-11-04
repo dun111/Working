@@ -19,7 +19,7 @@ The builds are on the [Releases](../../releases) page.
 - **Latest** is the normal public build.
 - **Pre-release (dev)** has the cheat menu on F9. It's for testing.
 
-Download the zip for your system (`pc` for Windows and Linux, `mac` for Mac), unzip it and run `Working.exe`, `Working.sh` or `Working.app`.
+Download the zip for your system (`pc` for Windows and Linux, `mac` for Mac), unzip it and run `Departure at 4.00.exe`, `Departure at 4.00.sh` or `Departure at 4.00.app`.
 
 ## How it plays
 
