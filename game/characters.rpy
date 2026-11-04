@@ -48,6 +48,10 @@ define DOROTHY_PNG     = ("images/dorothy_neutral.png", 1305)
 define DOROTHY_SAD_PNG = ("images/dorothy_sad.png", 1298)
 define SHUNYU_PNG      = ("images/shunyu_neutral.png", 1341)
 define ICHORA_PNG      = ("images/ichora_neutral.png", 1288)
+define EDUARD_PNG      = ("images/eduard_neutral.png", 1477)
+define SEBASTION_PNG   = ("images/sebastion_neutral.png", 1384)
+define MISHA_PNG       = ("images/misha_neutral.png", 1067)
+define ALEXANDER_PNG   = ("images/alexander_neutral.png", 1352)
 
 
 image louis neutral        = sprite("louis", *LOUIS_PNG)
@@ -69,15 +73,15 @@ image shunyu excited = sprite("shunyu", *SHUNYU_PNG)
 image ichora neutral = sprite("ichora", *ICHORA_PNG)
 
 
-image eduard neutral    = silhouette("eduard", "Eduard", *LOUIS_PNG, color="#3b2a20")
+image eduard neutral    = silhouette("eduard", "Eduard", *EDUARD_PNG, color="#3b2a20")
 image kimmy neutral     = silhouette("kimmy", "Kimmy", *DOROTHY_PNG, color="#4a2026")
-image himmel neutral    = silhouette("himmel", "Himmel", *LOUIS_PNG, color="#203040")
-image sebastian neutral = silhouette("sebastian", "Sebastian", *LOUIS_PNG, color="#202428")
-image misha neutral     = silhouette("misha", "Misha", *LOUIS_PNG, color="#2a3a2a", scale=0.72)
-image misha stares      = silhouette("misha", "Misha", *LOUIS_PNG, color="#2a3a2a", scale=0.72)
+image himmel neutral    = silhouette("himmel", "Himmel", *DOROTHY_PNG, color="#203040")
+image sebastian neutral = silhouette("sebastian", "Sebastian", *SEBASTION_PNG, color="#202428")
+image misha neutral     = silhouette("misha", "Misha", *MISHA_PNG, color="#2a3a2a", scale=0.72)
+image misha stares      = silhouette("misha", "Misha", *MISHA_PNG, color="#2a3a2a", scale=0.72)
 image agatha neutral    = silhouette("agatha", "Agatha", *FEDORA_PNG, color="#2a3438")
 image pattison neutral  = silhouette("pattison", "Pattison", *LOUIS_PNG, color="#30283a")
-image alexander neutral = silhouette("alexander", "Alexander", *LOUIS_PNG, color="#3a3a1e")
+image alexander neutral = silhouette("alexander", "Alexander", *ALEXANDER_PNG, color="#3a3a1e")
 
 image shunyu_monster neutral = At(
     silhouette("shunyu_monster", "", *SHUNYU_PNG, color="#2a0c18", scale=1.08, label=False),
@@ -97,8 +101,8 @@ transform talk_drift:
     yalign 0.5
     zoom 1.12
     block:
-        ease anim_t(14.0) xalign 0.42 zoom 1.16
-        ease anim_t(14.0) xalign 0.58 zoom 1.12
+        ease 14.0 xalign (0.5 if persistent.reduce_motion else 0.42) zoom (1.12 if persistent.reduce_motion else 1.16)
+        ease 14.0 xalign (0.5 if persistent.reduce_motion else 0.58) zoom 1.12
         repeat
 
 init python:
@@ -252,8 +256,8 @@ transform hs_pulse:
     rotate 45
     zoom 1.0
     block:
-        ease anim_t(0.9) zoom 1.25
-        ease anim_t(0.9) zoom 1.0
+        ease 0.9 zoom (1.0 if persistent.reduce_motion else 1.25)
+        ease 0.9 zoom 1.0
         repeat
 
 transform hs_ring:
@@ -296,8 +300,8 @@ define DOOR_LEFT = (0, 340, 100, 400)
 transform door_nudge(dx):
     xoffset 0
     block:
-        ease anim_t(0.7) xoffset dx
-        ease anim_t(0.7) xoffset 0
+        ease 0.7 xoffset (0 if persistent.reduce_motion else dx)
+        ease 0.7 xoffset 0
         repeat
 
 transform hs_tag_always:
