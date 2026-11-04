@@ -1,4 +1,3 @@
-default persistent.cheats_on = False
 default persistent.cheat_autowin = False
 default persistent.cheat_hotspots = False
 
@@ -12,7 +11,6 @@ init 1 python:
         ("blocks",     _("Misha's blocks"),            "mg_blocks",         blocks_reset,     _("Carriage 3")),
         ("engine",     _("Keep steam pressure steady"), "mg_engine",        engine_reset,     _("Carriage 4")),
         ("mail",       _("Sort the mail"),             "mg_mail",           mail_reset,       _("Carriage 5")),
-        ("flashlight", _("Search in the dark"),        "mg_flashlight",     flashlight_reset, _("Part 2, Carriage 2")),
         ("combo",      _("The luggage lock"),          "mg_combo",          combo_reset,      _("Part 2, Carriage 3")),
         ("pry",        _("Pull up the carpet"),        "mg_pry",            pry_reset,        _("Part 2, Carriage 3")),
         ("evidence",   _("Present the evidence"),      "mg_evidence",       evidence_reset,   _("Part 2")),
@@ -28,11 +26,11 @@ init 1 python:
 
 init python:
     def cheats_allowed():
-        return bool(config.developer or has_pass("cheats") or (CHEATS_BUILD and persistent.cheats_on))
+        return bool(config.developer or has_pass("cheats"))
 
     def toggle_cheats():
-        persistent.cheats_on = not persistent.cheats_on
-        renpy.notify(_("Cheats ON (F9)") if persistent.cheats_on else _("Cheats OFF"))
+        toggle_pass("cheats")
+        renpy.notify(_("Cheats ON (F9)") if has_pass("cheats") else _("Cheats OFF"))
 
     P1_TALKS = [
         ["c1_talked_fedora", "door_c2_open"],
@@ -132,6 +130,7 @@ init python:
         persistent.coins = 50
         persistent.golden_found = set()
         persistent.passes = set()
+        persistent.passes_off = set()
         persistent.cast_called = set()
         persistent.eric_clicks = 0
         persistent.key_pokes = 0

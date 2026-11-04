@@ -75,7 +75,7 @@ init python:
 
     SCARE_FACES = {
         "passenger": scare_face("images/louis_neutral.png", (150, 0, 480, 560), [(205, 232), (310, 232)]),
-        "conductor": scare_face("images/dorothy_normal.png", (90, 0, 400, 540), [(133, 220), (238, 220)]),
+        "conductor": scare_face("images/dorothy_neutral.png", (90, 0, 400, 540), [(133, 220), (238, 220)]),
     }
 
 

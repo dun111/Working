@@ -4,19 +4,31 @@ init -10 python:
 
 default persistent.tickets = 0
 default persistent.passes = set()
+default persistent.passes_off = set()
 
 define GAMEPASSES = [
     ("extra_life",   _("EXTRA LIFE"),     _("More lives, battery and tries in the harder minigames."), 8),
     ("cheats",       _("CHEAT MENU"),     _("Press F9 to open the cheat menu."), 15),
     ("revealer",     _("CHOICE REVEALER"), _("Choices show where they lead."), 18),
     ("high_roller",  _("HIGH ROLLER"),    _("Bigger casino bets and double daily coins."), 10),
+    ("door_key",     _("MYSTERIOUS KEY"), _("Opens the mysterious door in Carriage 1."), 12),
 ]
 
 init python:
     TICKETS_FOR = {"minigame": 2, "secret": 3, "ending": 5}
 
-    def has_pass(pid):
+    def owns_pass(pid):
         return pid in persistent.passes or (pid == "cheats" and CHEATS_BUILD)
+
+    def has_pass(pid):
+        return owns_pass(pid) and pid not in persistent.passes_off
+
+    def toggle_pass(pid):
+        if pid in persistent.passes_off:
+            persistent.passes_off = persistent.passes_off - set([pid])
+        else:
+            persistent.passes_off = persistent.passes_off | set([pid])
+        renpy.restart_interaction()
 
     def shown_passes():
         return [p for p in GAMEPASSES if p[0] != "cheats" or CHEATS_BUILD]
@@ -26,7 +38,7 @@ init python:
         renpy.show_screen("ticket_toast", n)
 
     def buy_pass(pid, price):
-        if has_pass(pid) or (persistent.tickets or 0) < price:
+        if owns_pass(pid) or (persistent.tickets or 0) < price:
             return
         persistent.tickets -= price
         persistent.passes = set(persistent.passes) | set([pid])
@@ -46,8 +58,9 @@ transform ticket_pop:
 screen ticket_toast(n):
     zorder 400
     frame:
-        xpos 40
-        yalign 0.93
+        xpos 28
+        yanchor 1.0
+        ypos (TOAST_BOTTOM - 72)
         padding (24, 12)
         background rbox("#14141aee", 18)
         at ticket_pop
@@ -107,11 +120,12 @@ screen gamepass_list(w):
                 use rbtn((_("TRADE %d COINS FOR 1 TICKET") % COINS_PER_TICKET), (Function(coins_to_ticket) if (persistent.coins or 0) >= COINS_PER_TICKET else None), w=420, h=50, r=16, size=18, bg="#8a4a22", hov="#b8631f", col="#f2e6d8", hcol="#ffffff")
 
     for idx, (pid, pname, pdesc, price) in enumerate(shown_passes()):
-        $ owned = has_pass(pid)
+        $ owned = owns_pass(pid)
+        $ on = has_pass(pid)
         $ afford = (persistent.tickets or 0) >= price
         frame:
             xfill True
-            background rbox("#1a170c" if owned else "#101014", 22)
+            background rbox("#1a170c" if on else "#101014", 22)
             padding (26, 14)
             at row_pop(min(idx * 0.05, 0.5))
             fixed:
@@ -123,7 +137,7 @@ screen gamepass_list(w):
                     xmaximum (w - 420)
                     text pname:
                         size 26
-                        color ("#ffd700" if owned else "#e8e4dc")
+                        color ("#ffd700" if on else "#e8e4dc")
                         font GFONT
                     text pdesc:
                         size 16
@@ -134,11 +148,8 @@ screen gamepass_list(w):
                     yalign 0.5
                     spacing 16
                     if owned:
-                        text _("OWNED"):
-                            yalign 0.5
-                            size 22
-                            color "#6dffa5"
-                            font GFONT
+                        use pref_toggle(_("ON"), (None if on else Function(toggle_pass, pid)), selected=on, w=110)
+                        use pref_toggle(_("OFF"), (Function(toggle_pass, pid) if on else None), selected=not on, w=110)
                     else:
                         text (_("%d TICKETS") % price):
                             yalign 0.5
@@ -148,6 +159,22 @@ screen gamepass_list(w):
                         use rbtn(_("BUY"), (Function(buy_pass, pid, price) if afford else None), w=140, h=50, r=16, size=22, bg="#8a4a22", hov="#b8631f", col="#f2e6d8", hcol="#ffffff")
 
 
+screen mysterious_room():
+    modal True
+    add Solid("#0b0b0f")
+    text _("MYSTERIOUS ROOM"):
+        xalign 0.5
+        ypos 40
+        size 22
+        color "#55556a"
+        font GFONT
+    hbox:
+        xalign 0.5
+        yalign 1.0
+        yoffset -60
+        use rbtn(_("LEAVE"), Return(), w=200, h=50)
+
+
 default persistent.dev_coords = False
 
 init python:
@@ -155,15 +182,11 @@ init python:
         label = "-"
 
 init 1 python:
-    _old_label_cb = config.label_callback
-
     def _dev_label_cb(name, abnormal=False):
-        if isinstance(name, (type(u""), type(""))) and not name.startswith("_"):
+        if not name.startswith("_"):
             DEV.label = name
-        if _old_label_cb:
-            _old_label_cb(name, abnormal)
 
-    config.label_callback = _dev_label_cb
+    config.label_callbacks.append(_dev_label_cb)
 
 init python:
     def dev_all_passes():
@@ -381,7 +404,6 @@ screen theatre_list(w):
                     use rbtn(_("WATCH"), Function(theatre_play, f), w=150, h=50, r=16, size=22, bg="#8a4a22", hov="#b8631f", col="#f2e6d8", hcol="#ffffff")
 
 
-default persistent.ui_theme = "default"
 
 define UI_THEMES = [
     ("default",  _("DEFAULT")),
@@ -445,7 +467,7 @@ init python:
 
     def dialogue_style_now():
         ds = persistent.dialogue_style
-        return ds
+        return ds if ds in dict(DIALOGUE_STYLES) else "classic"
 
     def menu_style_now():
         ms = persistent.menu_style

@@ -1,3 +1,5 @@
+define MG_COIN_REWARD = 10
+
 init python:
     import math as _mgmath
 
@@ -29,7 +31,7 @@ transform mg_pop:
     zoom 0.92
     easein 0.25 alpha 1.0 zoom 1.0
 
-screen mg_scene(title, hint="", bg="black", who=None, who_x=0.86, skippable=True):
+screen mg_scene(title, hint="", bg="black", who=None, who_x=0.86, skippable=True, reward=True):
     modal True
     zorder 300
 
@@ -58,10 +60,16 @@ screen mg_scene(title, hint="", bg="black", who=None, who_x=0.86, skippable=True
                 font GFONT
             if hint:
                 text hint:
-                    size 16
-                    color "#c9c9d8"
+                    size 21
+                    line_spacing 6
+                    color "#e8e4dc"
+                    font say_font()
+                    xmaximum 820
+            if reward:
+                text (_("WIN: +%d COINS") % MG_COIN_REWARD):
+                    size 18
+                    color "#ffd76a"
                     font GFONT
-                    xmaximum 760
 
     if skippable and persistent.mg_skip_allowed:
         fixed:
@@ -157,7 +165,7 @@ default lp_speed = 0.9
 default lp_result = None
 
 init python:
-    LP_KEY = Transform(Transform("images/Key.webp", crop=KEY_CROP), zoom=0.3)
+    LP_KEY = Transform(Transform("images/key.webp", crop=KEY_CROP), zoom=0.3)
     LP_KEY_TIP = (307.0 / KEY_CROP[2], 0.97)
     LP_TICKS = _ring_points(LP_CX, LP_CY, 150, range(-LP_SWING, LP_SWING + 1, 7))
 
@@ -210,7 +218,7 @@ transform lp_key_turn(start=0.0):
     ease 0.5 rotate 90
 
 screen mg_lockpick():
-    use mg_scene(_("PICK THE LOCK"), _("Press TURN or SPACE when it's in the green. Set 3 pins."), "bg carriage_1"):
+    use mg_scene(_("PICK THE LOCK"), _("1. The pick swings left and right.\n2. Press TURN (or SPACE) while it is inside the green zone.\n3. Do it 3 times to open the lock."), "bg carriage_1"):
         if lp_result is None:
             timer 0.025 repeat True action Function(lockpick_tick)
             key "K_SPACE" action Function(lockpick_turn)
@@ -324,7 +332,7 @@ transform shard_glint(delay=0.0):
         repeat
 
 screen mg_shards():
-    use mg_scene(_("SWEEP UP THE GLASS"), _("Click all the shards before time runs out."), "bg carriage_2", "eduard neutral", 0.88):
+    use mg_scene(_("SWEEP UP THE GLASS"), _("1. Find the shiny glass shards on the floor.\n2. Click each shard to pick it up.\n3. Pick up all of them before the time runs out."), "bg carriage_2", "eduard neutral", 0.88):
         if sh_result is None and mg_timed():
             timer 1.0 repeat True action Function(shards_tick)
 
@@ -531,6 +539,7 @@ init python:
             if all(store.mj_gone):
                 store.mj_result = "win"
                 store.mj_end_msg = _("Table cleared!")
+                renpy.show_screen("mahjong_jackpot")
                 if not mj_casino:
                     mg_record("mahjong", "high_roller_win")
             elif not mj_moves_left():
@@ -550,8 +559,26 @@ init python:
             store.mj_end_msg = _("Out of time!")
         renpy.restart_interaction()
 
+transform jackpot_pop:
+    alpha 0.0
+    zoom (1.5 if persistent.reduce_motion else 1.2)
+    easein 0.25 alpha 1.0 zoom 1.5
+    pause 2.2
+    easeout 0.4 alpha 0.0
+
+screen mahjong_jackpot():
+    zorder 300
+    button:
+        xysize (config.screen_width, config.screen_height)
+        background Solid("#000000b0")
+        action Hide("mahjong_jackpot")
+        add "images/shunyu_jackpot.webp":
+            align (0.5, 0.5)
+            at jackpot_pop
+    timer 2.9 action Hide("mahjong_jackpot")
+
 screen mahjong_minigame():
-    use mg_scene(_("MAHJONG"), _("Match pairs of free tiles."), "bg carriage_2", "shunyu neutral", 0.9, skippable=False):
+    use mg_scene(_("MAHJONG"), _("1. Click a tile, then click another tile with the same picture.\n2. Matching pairs disappear. Blocked tiles can't be picked yet.\n3. Clear the whole table to win."), "bg carriage_2", "shunyu neutral", 0.9, skippable=False, reward=(not mj_casino)):
         if mj_result is None and mg_timed():
             timer 1.0 repeat True action Function(mahjong_tick)
 
@@ -669,7 +696,7 @@ init python:
         renpy.restart_interaction()
 
 screen mg_blocks():
-    use mg_scene(_("MISHA'S BLOCKS"), _("Watch the blocks light up, then repeat the order."), "bg carriage_3", "misha neutral", 0.86):
+    use mg_scene(_("MISHA'S BLOCKS"), _("1. Watch which blocks light up, and in what order.\n2. Click the blocks in that same order.\n3. Get through every round to win."), "bg carriage_3", "misha neutral", 0.86):
         if ms_phase == "show" and ms_result is None:
             timer (0.6 / mg_mult()) repeat True action Function(blocks_show_step)
         if ms_phase == "input" and ms_lit_i is not None:
@@ -770,7 +797,7 @@ init python:
         renpy.restart_interaction()
 
 screen mg_engine():
-    use mg_scene(_("KEEP STEAM PRESSURE STEADY"), _("UP to stoke, DOWN to vent. Keep the needle in the green."), "bg carriage_4", "ichora neutral", 0.88):
+    use mg_scene(_("KEEP STEAM PRESSURE STEADY"), _("1. Keep the needle inside the green area.\n2. Too low? Press UP or STOKE.\n3. Too high? Press DOWN or VENT.\n4. Stay in the green for 12 seconds."), "bg carriage_4", "ichora neutral", 0.88):
         if ep_result is None:
             timer 0.1 repeat True action Function(engine_tick)
             key "K_UP" action Function(engine_push, 9)
@@ -837,30 +864,15 @@ screen mg_engine():
             use mg_end(_("The boiler shrieks."), "lose")
 
 
-define ML_LETTERS = [
-    ("Pendulum order #44 - rush", "clock"),
-    ("Invoice: 800 brass cogs", "clock"),
-    ("Clockwork quarterly report", "clock"),
-    ("Mainspring parts, fragile", "clock"),
-    ("FINAL NOTICE: last stop", "end"),
-    ("Terminal arrival timetable", "end"),
-    ("\"Open only at the end\"", "end"),
-    ("Memorial service invitation", "end"),
-    ("Counterfeit ticket stamps", "fake"),
-    ("Forged wax seal: OFFICIAL", "fake"),
-    ("Fake perkel notes x2000", "fake"),
-    ("Return to sender: no such person", "fake"),
-    ("Postcard: Wish you were here!", "friend"),
-    ("Birthday card for Dorothy", "friend"),
-    ("Letter from an old pal", "friend"),
-    ("Thank-you note from a friend", "friend"),
+define ML_CITIES = [
+    ("france", _("FRANCE"), ["Paris", "Lyon", "Marseille", "Nice"]),
+    ("italy", _("ITALY"), ["Rome", "Milan", "Venice", "Naples"]),
+    ("germany", _("GERMANY"), ["Berlin", "Munich", "Hamburg", "Cologne"]),
+    ("spain", _("SPAIN"), ["Madrid", "Barcelona", "Seville", "Valencia"]),
 ]
-define ML_BINS = [
-    ("clock", _("CLOCK"), _("Clock parts\nand orders")),
-    ("end", _("END"), _("The last stop\nand endings")),
-    ("fake", _("FAKE"), _("Forged or\ncounterfeit")),
-    ("friend", _("FRIEND"), _("Cards and\npersonal letters")),
-]
+
+define ML_LETTERS = [("To: " + city, key) for key, _name, cities in ML_CITIES for city in cities]
+define ML_BINS = [(key, name, "\n".join(cities)) for key, name, cities in ML_CITIES]
 
 default ml_letters = []
 default ml_idx = 0
@@ -930,7 +942,7 @@ transform letter_in:
         linear 0.1 alpha 0.0
 
 screen mg_mail():
-    use mg_scene(_("SORT THE MAIL"), _("Put each letter in the right pile.") + "  " + _("\"This goes to the clock, while this goes to the end. This goes to the fake ones and this goes to the friend.\""), "bg carriage_5", "pattison neutral", 0.9):
+    use mg_scene(_("SORT THE MAIL"), _("1. Read the city on the letter.\n2. Click the pile for that city's country.\n3. Sort all 10 letters."), "bg carriage_5", "pattison neutral", 0.9):
         if ml_result is None and mg_timed():
             timer 0.1 repeat True action Function(mail_tick)
 
@@ -957,7 +969,8 @@ screen mg_mail():
                     xalign 0.5
                     ycenter 101
                     text_align 0.5
-                    size 22
+                    size 24
+                    line_spacing 4
                     color "#e6dcc0"
                     font GFONT
                 add rbox("#c9a24a", 8):
@@ -1068,7 +1081,7 @@ transform tk_slide(x):
     ease 0.3 xcenter x
 
 screen mg_ticket():
-    use mg_scene(_("FIND YOUR TICKET"), _("Follow the ticket and click its card."), "Train station", "dorothy neutral", 0.88):
+    use mg_scene(_("FIND YOUR TICKET"), _("1. Remember which card has the 4:00 ticket.\n2. The cards flip over and shuffle. Keep your eyes on that card.\n3. Click the card with the ticket."), "Train station", "dorothy neutral", 0.88):
         if tk_phase == "show":
             timer 1.6 action Function(ticket_begin)
         elif tk_phase == "shuffle":
@@ -1084,7 +1097,6 @@ screen mg_ticket():
                     yalign 0.5
                     xysize (220, 320)
                     background rbox(("#efe3c4" if face_up else "#7a1f12"), 18)
-                    hover_background rbox(("#efe3c4" if face_up else "#a02a18"), 18)
                     action Function(ticket_pick, i)
                     at tk_slide(TK_X[tk_slot[i]])
                     text ("4:00" if (face_up and i == tk_ticket) else ("" if face_up else "?")):
@@ -1136,7 +1148,7 @@ init python:
         renpy.restart_interaction()
 
 screen mg_door():
-    use mg_scene(_("OPEN THE DOOR"), _("Press LEFT and RIGHT in turn to open the wheel."), dr_bg):
+    use mg_scene(_("OPEN THE DOOR"), _("1. Press the LEFT arrow, then the RIGHT arrow, then LEFT again.\n2. Keep switching to turn the wheel.\n3. Fill the bar to 100% to open the door."), dr_bg):
         if dr_result is None:
             timer 0.1 repeat True action Function(door_tick)
             key "K_LEFT" action Function(door_push, "L")
@@ -1172,88 +1184,6 @@ screen mg_door():
             use mg_end(_("OPEN"), "win")
         elif dr_result == "lose":
             use mg_end(_("LOCKED"), "lose")
-
-
-define FL_COLS = 6
-define FL_ROWS = 3
-define FL_ITEMS = [_("TILE"), _("GLASS"), _("BLOOD")]
-
-default fl_items = {}
-default fl_ghost = 0
-default fl_lit = []
-default fl_battery = 12
-default fl_t = 40.0
-default fl_result = None
-
-init python:
-    def fl_battery_max():
-        return [14, 11, 8][persistent.mg_difficulty] + pass_bonus("extra_life", 4)
-
-    def flashlight_reset():
-        spots = renpy.random.sample(range(FL_COLS * FL_ROWS), len(FL_ITEMS) + 1)
-        store.fl_items = dict(zip(spots[:-1], FL_ITEMS))
-        store.fl_ghost = spots[-1]
-        store.fl_lit = []
-        store.fl_battery = fl_battery_max()
-        store.fl_t = 40.0 / mg_mult()
-        store.fl_result = None
-
-    def fl_found():
-        return len([i for i in store.fl_lit if i in store.fl_items])
-
-    def flashlight_click(i):
-        if store.fl_result is not None or i in store.fl_lit:
-            return
-        store.fl_lit = store.fl_lit + [i]
-        store.fl_battery -= 1
-        if fl_found() == len(FL_ITEMS):
-            store.fl_result = "win"
-            mg_record("flashlight")
-        elif store.fl_battery <= 0:
-            store.fl_result = "lose"
-        renpy.restart_interaction()
-
-    def flashlight_tick():
-        if store.fl_result is not None or not mg_timed():
-            return
-        store.fl_t -= 0.1
-        if store.fl_t <= 0:
-            store.fl_result = "lose"
-        renpy.restart_interaction()
-
-screen mg_flashlight():
-    use mg_scene(_("SEARCH IN THE DARK"), _("Shine the light around. Find the tile, the glass and the blood."), "bg carriage_2"):
-        if fl_result is None and mg_timed():
-            timer 0.1 repeat True action Function(flashlight_tick)
-
-        $ stats = [_("Found: %d / %d") % (fl_found(), len(FL_ITEMS)), _("Battery: %d") % fl_battery]
-        if mg_timed():
-            $ stats.append(_("Time: %d") % max(0, fl_t))
-        use mg_stats(stats)
-
-        use mg_box(1200, 620):
-            grid FL_COLS FL_ROWS:
-                align (0.5, 0.5)
-                spacing 16
-                for i in range(FL_COLS * FL_ROWS):
-                    $ lit = i in fl_lit
-                    button:
-                        padding (0, 0)
-                        xysize (170, 160)
-                        background rbox(("#3a3428" if lit else "#050507"), 16)
-                        hover_background rbox(("#3a3428" if lit else "#1a1a22"), 16)
-                        action Function(flashlight_click, i)
-                        if lit:
-                            text (fl_items.get(i, "") if i != fl_ghost else "?"):
-                                align (0.5, 0.5)
-                                size 30
-                                color ("#ff3d3d" if i == fl_ghost else "#ffd76a")
-                                font GFONT
-
-        if fl_result == "win":
-            use mg_end(_("Ooh, I thought this was blood for a second…"), "win")
-        elif fl_result == "lose":
-            use mg_end(_("Huh… It's dark.."), "lose")
 
 
 define CB_CODE = [4, 0, 0]
@@ -1296,7 +1226,7 @@ init python:
         renpy.restart_interaction()
 
 screen mg_combo():
-    $ cb_hint = _("Set the wheels and press OPEN.")
+    $ cb_hint = _("1. Press + or - to change each wheel's number.\n2. Press OPEN to try the code.\n3. RIGHT shows how many wheels are correct.")
     if found_timetable:
         $ cb_hint = cb_hint + "  \"" + _("Every departure on it is printed the same way: 4:00.") + "\""
     use mg_scene(_("THE LUGGAGE LOCK"), cb_hint, "bg carriage_3"):
@@ -1368,7 +1298,7 @@ init python:
         renpy.restart_interaction()
 
 screen mg_pry():
-    use mg_scene(_("PULL UP THE CARPET"), _("Press PULL, then wait before pulling again."), "bg carriage_3", "misha stares", 0.88):
+    use mg_scene(_("PULL UP THE CARPET"), _("1. Press PULL (or SPACE) to pull the carpet up.\n2. Each pull fills the tension bar. If it fills up, the carpet tears.\n3. Wait for the tension to drop, then pull again."), "bg carriage_3", "misha stares", 0.88):
         if pr_result is None:
             timer 0.1 repeat True action Function(pry_tick)
             key "K_SPACE" action Function(pry_pull)
@@ -1433,7 +1363,7 @@ init python:
 
 screen mg_evidence():
     $ ev_img, ev_name, ev_line, ev_answer, ev_bg = ev_cfg
-    use mg_scene(_("PRESENT THE EVIDENCE"), _("Pick the clue that proves this wrong."), ev_bg, (ev_img or None), 0.86):
+    use mg_scene(_("PRESENT THE EVIDENCE"), _("1. Read what they are claiming.\n2. Click the clue that proves them wrong."), ev_bg, (ev_img or None), 0.86):
 
         frame:
             xalign 0.5

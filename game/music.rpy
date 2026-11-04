@@ -1,21 +1,25 @@
 define SONGS = {
-    "main_menu":            ("Songs/main_menu.mp3",               _("Grekhov Theme"),                 "Departure at 4:00"),
-    "carriage_3":           ("Songs/carriage_3.opus",             "Rendezvous (Instrumental)",        "Carriages 2 and 3"),
-    "flower_in_a_hurricane": ("Songs/flower_in_a_hurricane.opus", "Flower In A Hurricane", "Justice ft. Tame Impala, SZA, King Gizzard & the Lizard Wizard (GTA VI)"),
+    "main_menu":            ("music/grekhov_theme.mp3",               _("Grekhov Theme"),                 "Departure at 4:00"),
+    "carriage_3":           ("music/rendezvous.opus",             "Rendezvous (Instrumental)",        "Carriages 2 and 3"),
+    "carriage_4":           ("music/lets_all_do_the_conga.m4a",              "Let's All Do the Conga",           "Colin Sheen"),
+    "carriage_5":           ("music/carriage_5_clip.mp3",              None,                               None),
+    "flower_in_a_hurricane": ("music/flower_in_a_hurricane.opus", "Flower In A Hurricane", "Justice ft. Tame Impala, SZA, King Gizzard & the Lizard Wizard (GTA VI)"),
 }
 
-define SONG_ORDER = ["main_menu", "carriage_3", "flower_in_a_hurricane"]
+define config.main_menu_music_fadein = 2.0
+
+define SONG_ORDER = ["main_menu", "carriage_3", "carriage_4", "flower_in_a_hurricane"]
 
 define MUSIC_FOR = {
     "c1": ["main_menu"],
     "c2": ["carriage_3"],
     "c3": ["carriage_3"],
-    "c4": ["main_menu"],
-    "c5": ["main_menu"],
+    "c4": ["carriage_4"],
+    "c5": ["carriage_5"],
     "part2": ["main_menu"],
     "part2_c2": ["carriage_3"],
     "part2_c3": ["carriage_3"],
-    "part2_c5": ["main_menu"],
+    "part2_c5": ["carriage_5"],
     "silence": None,
     "escape": ["main_menu"],
     "true": ["main_menu"],
@@ -60,16 +64,12 @@ define LABEL_MUSIC = {
     "ending_3_true":           ("true", "true"),
 }
 
-default persistent.ingame_music = True
-default persistent.menu_music = "theme"
-default persistent.song_popups = True
-default persistent.radio_station = "scene"
-default persistent.radio_bar = True
 
 init python:
     SONG_BY_FILE = {}
     for _sid, (_f, _title, _artist) in SONGS.items():
-        SONG_BY_FILE[_f] = (_sid, _title, _artist)
+        if _title:
+            SONG_BY_FILE[_f] = (_sid, _title, _artist)
 
     def song_files(ids):
         return [SONGS[i][0] for i in ids]
@@ -112,7 +112,7 @@ init python:
         renpy.music.set_pause(False, channel="music")
         files = menu_music_files()
         if files:
-            renpy.music.play(files, channel="music", loop=True, fadein=1.0, if_changed=True)
+            renpy.music.play(files, channel="music", loop=True, fadein=2.0, if_changed=True)
 
     def set_menu_music(mode):
         persistent.menu_music = mode
@@ -196,18 +196,14 @@ init python:
     _menu_music_config()
 
 init 2 python:
-    _old_label_cb_music = config.label_callback
-
     def _music_label_cb(name, abnormal=False):
         if not main_menu and name in LABEL_MUSIC:
             normal, looped = LABEL_MUSIC[name]
             _MUSIC.scene = looped if store.in_loop else normal
             if persistent.ingame_music:
                 music_for(_MUSIC.scene)
-        if _old_label_cb_music:
-            _old_label_cb_music(name, abnormal)
 
-    config.label_callback = _music_label_cb
+    config.label_callbacks.append(_music_label_cb)
 
 init python:
     def set_ingame_music(on):
@@ -334,14 +330,21 @@ transform radio_still:
 init python:
     def radio_song_text():
         cur = renpy.music.get_playing("music")
+        if not cur:
+            return _("Nothing on air")
         song = SONG_BY_FILE.get(cur)
         if not song:
-            return _("Nothing on air")
+            return _("Untitled")
         return ("%s - %s" % (song[1], song[2])) if song[2] else song[1]
 
+    _overflow_cache = {}
+
     def radio_overflow(t, size, width):
-        w = renpy.render(Text(t, size=size, font=GFONT), 4000, 100, 0, 0).width
-        return max(0, int(w - width))
+        key = (t, size, width)
+        if key not in _overflow_cache:
+            w = renpy.render(Text(t, size=size, font=GFONT), 4000, 100, 0, 0).width
+            _overflow_cache[key] = max(0, int(w - width))
+        return _overflow_cache[key]
 
 screen radio_key(label, act, w=74):
     button:

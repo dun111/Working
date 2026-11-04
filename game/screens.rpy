@@ -19,10 +19,18 @@ init -5 python:
         gl_FragColor = u_color * clamp(0.5 - outside, 0.0, 1.0);
     """)
 
+    _rbox_cache = {}
+
     def rbox(color, r=14):
-        if r <= 0:
-            return Solid(color)
-        return Model().shader("game.rbox").uniform("u_color", Color(color).premultiplied).uniform("u_radius", float(r))
+        key = (color, r)
+        d = _rbox_cache.get(key)
+        if d is None:
+            if r <= 0:
+                d = Solid(color)
+            else:
+                d = Model().shader("game.rbox").uniform("u_color", Color(color).premultiplied).uniform("u_radius", float(r))
+            _rbox_cache[key] = d
+        return d
 
     def anim_t(t):
         return 0.0 if persistent.reduce_motion else t
@@ -31,7 +39,7 @@ init -5 python:
         return 0 if persistent.reduce_motion else px
 
     def ach_default_icon(unlocked):
-        return "images/Achievement_Unlock.webp" if unlocked else "images/Achievement_Lock.webp"
+        return "images/ui_achievement_unlocked.webp" if unlocked else "images/ui_achievement_locked.webp"
 
 define GFONT = "gui/Graduate-Regular.ttf"
 
@@ -77,9 +85,85 @@ style say_window is default
 style say_label is default
 style say_dialogue is default
 
-image pill_mask = Frame("images/pill_mask.png", 30, 30, 30, 30)
 
-init python:
+init -1 python:
+    import re as _re
+
+    SAY_MAX_LINES = 2
+    _SAY_TOKEN = _re.compile(r"(\{[^{}]*\}|\s+)")
+    _PAIRED_TAGS = ("i", "b", "u", "s", "color", "size", "font", "alpha", "a", "k", "outlinecolor", "plain", "cps")
+
+    def _say_box():
+        ds = dialogue_style_now()
+        box_w = config.screen_width - 56
+        width = {"film": 0.8 * config.screen_width, "minimal": 0.85 * config.screen_width,
+                 "ticket": box_w - 380}.get(ds, 0.85 * box_w)
+        font = "DejaVuSans.ttf" if ds == "terminal" else say_font()
+        return int(width), font
+
+    def _say_lines(text, width, font):
+        size, gap = persistent.dialogue_font_size, persistent.line_spacing
+        full = renpy.render(Text(text, size=size, font=font, line_spacing=gap), width, 10000, 0, 0).height
+        one = renpy.render(Text("A", size=size, font=font), width, 10000, 0, 0).height
+        return int(round((full + gap) / float(one + gap)))
+
+    _SENTENCE_END = (".", "!", "?", "\u2026")
+
+    def say_pages(what):
+        if "{{" in what:
+            return [what]
+        width, font = _say_box()
+        if _say_lines(what, width, font) <= SAY_MAX_LINES:
+            return [what]
+
+        pages = []
+        toks = []
+        open_tags = []
+        has_word = False
+        cut = None
+
+        for tok in _SAY_TOKEN.split(what):
+            if not tok:
+                continue
+
+            if tok.startswith("{"):
+                name = tok[1:-1].split("=")[0]
+                if name.startswith("/"):
+                    if open_tags and open_tags[-1][0] == name[1:]:
+                        open_tags.pop()
+                elif name in _PAIRED_TAGS:
+                    open_tags.append((name, tok))
+                toks.append(tok)
+                continue
+
+            if not tok.isspace() and has_word and _say_lines("".join(toks) + tok, width, font) > SAY_MAX_LINES:
+                if cut and _say_lines("".join(toks[:cut[0]]), width, font) < SAY_MAX_LINES:
+                    cut = None
+                at, tags = cut or (len(toks), list(open_tags))
+                pages.append("".join(toks[:at]).strip() + "".join("{/%s}" % n for n, _t in reversed(tags)))
+                rest = "".join(toks[at:]).lstrip()
+                toks = [t for _n, t in tags] + ([rest] if rest else [])
+                has_word = bool(rest.strip())
+                cut = None
+
+            toks.append(tok)
+            if not tok.isspace():
+                has_word = True
+                if tok.rstrip("\u201d\"')").endswith(_SENTENCE_END):
+                    cut = (len(toks), list(open_tags))
+
+        pages.append("".join(toks).strip())
+        return pages
+
+    class PagedCharacter(ADVCharacter):
+        def __call__(self, what, interact=True, *args, **kwargs):
+            if not interact or kwargs.get("multiple"):
+                return super(PagedCharacter, self).__call__(what, interact, *args, **kwargs)
+            pages = say_pages(what)
+            for page in pages[:-1]:
+                super(PagedCharacter, self).__call__(page, interact, *args, **kwargs)
+            return super(PagedCharacter, self).__call__(pages[-1], interact, *args, **kwargs)
+
     def C(name, tag=None, plate=None, creepy=False, **kwargs):
         if tag:
             kwargs.setdefault("image", tag)
@@ -87,7 +171,11 @@ init python:
             kwargs["show_plate"] = plate
         if creepy:
             kwargs["show_creepy"] = True
-        return Character(name, **kwargs)
+        return PagedCharacter(name, kind=adv, **kwargs)
+
+define narrator = PagedCharacter(None, kind=adv, what_style="say_thought")
+
+init python:
 
     config.overlay_screens.append("quick_menu")
     config.overlay_screens.append("clue_hotkey")
@@ -126,6 +214,15 @@ transform key_drop:
 transform key_static:
     anchor (0.5, 0.0)
     yoffset 0
+
+image menu_slideshow:
+    full_cover("images/bg_first_class.webp") with Dissolve(2.0)
+    pause 8.0
+    full_cover("images/bg_bar.webp") with Dissolve(2.0)
+    pause 8.0
+    full_cover("images/bg_sleeper.webp") with Dissolve(2.0)
+    pause 8.0
+    repeat
 
 transform menu_bg_drift:
     anchor (0.5, 0.5)
@@ -168,15 +265,6 @@ transform ember(dur=9.0, delay=0.0, sway=40):
             ease dur*0.5 xoffset sway
             ease dur*0.5 xoffset -sway
         repeat
-
-transform boot_logo_anim:
-    xalign 0.5
-    yalign 0.5
-    alpha 0.0
-    zoom 0.9
-    ease 1.0 alpha 1.0 zoom 1.0
-    pause 1.5
-    ease 0.8 alpha 0.0
 
 transform fade_slide_in(delay=0.0, xoff=-40, final_xoff=0):
     alpha 0.0
@@ -252,7 +340,7 @@ init python:
     def menu_shake_extreme(trans, st, at):
         return _menu_shake(trans, True)
 
-    _LOGO_STILL = Fixed("images/Game_Logo_Yellow.webp", fit_first=True)
+    _LOGO_STILL = Fixed("images/logo_game_yellow.webp", fit_first=True)
 
     def _menu_logo(st, at):
         k = menu_rumbling()
@@ -262,8 +350,8 @@ init python:
             red = max(0.0, 1.0 - menu_phase() / 0.6)
         if red <= 0.0:
             return _LOGO_STILL, 0.1
-        return Fixed("images/Game_Logo_Yellow.webp",
-                     Transform("images/Game_Logo_Red.webp", alpha=red),
+        return Fixed("images/logo_game_yellow.webp",
+                     Transform("images/logo_game_red.webp", alpha=red),
                      fit_first=True), 0.03
 
 transform menu_rumble_extreme:
@@ -411,16 +499,16 @@ transform _sp_focus(xalign=0.7):
     yoffset 40
     on show:
         alpha 0.0
-        zoom 1.04
+        zoom 1.0
         matrixcolor SP_LIT
         xoffset (hover_lift(-80) if xalign < 0.5 else hover_lift(80))
-        easein anim_t(0.4) alpha 1.0 zoom 1.08 xoffset 0
+        easein anim_t(0.4) alpha 1.0 zoom 1.02 xoffset 0
     on replace:
         parallel:
-            linear anim_t(0.3) zoom 1.08 alpha 1.0 xoffset 0 matrixcolor SP_LIT
+            ease anim_t(0.4) zoom 1.02 alpha 1.0 xoffset 0 matrixcolor SP_LIT
         parallel:
-            easeout anim_t(0.11) yoffset 40 - hover_lift(14)
-            easein anim_t(0.16) yoffset 40
+            easeout anim_t(0.12) yoffset 40 - hover_lift(4)
+            easein anim_t(0.18) yoffset 40
     on hide:
         easeout anim_t(0.3) alpha 0.0
 
@@ -431,12 +519,12 @@ transform _sp_bg(xalign=0.3):
     yoffset 40
     on show:
         alpha 0.0
-        zoom 0.92
+        zoom 0.96
         matrixcolor SP_DIM
         xoffset (hover_lift(-80) if xalign < 0.5 else hover_lift(80))
-        easein anim_t(0.4) alpha SP_BG_ALPHA zoom 0.94 xoffset 0
+        easein anim_t(0.4) alpha SP_BG_ALPHA zoom 0.98 xoffset 0
     on replace:
-        linear anim_t(0.3) zoom 0.94 alpha SP_BG_ALPHA xoffset 0 matrixcolor SP_DIM
+        ease anim_t(0.4) zoom 0.98 alpha SP_BG_ALPHA xoffset 0 matrixcolor SP_DIM
     on hide:
         easeout anim_t(0.3) alpha 0.0
 
@@ -444,15 +532,13 @@ default sprite_info = {}
 default rumble_on = False
 
 init python:
-    _STRING_TYPES = (type(u""), type(""))
-
     class TALK(object):
         typing = None
         who = None
         changed = True
 
     def speaker_tag(who):
-        if not isinstance(who, _STRING_TYPES):
+        if not isinstance(who, str):
             return None
         return getattr(getattr(store, who, None), "image_tag", None)
 
@@ -535,8 +621,8 @@ init python:
 transform monster_shudder:
     yoffset 0
     block:
-        linear 0.1 yoffset 2
-        linear 0.1 yoffset -2
+        linear 0.25 yoffset 1
+        linear 0.25 yoffset -1
         repeat
 
 transform monster_glow:
@@ -548,8 +634,8 @@ transform monster_glow:
 transform distortion_warp:
     zoom 1.0
     block:
-        linear 0.3 zoom 1.05
-        linear 0.3 zoom 0.95
+        ease 1.6 zoom 1.01
+        ease 1.6 zoom 0.99
         repeat
 
 transform carriage_6_ambient:
@@ -615,8 +701,8 @@ init python:
         return Fixed(Solid("#150d0d"), Transform(path, xysize=(DESIGN_W, DESIGN_H)), xysize=(DESIGN_W, DESIGN_H))
 
 image bg carriage_1 = themed(ConditionSwitch(
-    "in_loop", wide_bg(carriage_art("images/PT2_Carriage_1_With_CharacterS.webp")),
-    "True", wide_bg(carriage_art("images/Carriage_1_With_CharacterS.webp"))))
+    "in_loop", wide_bg(carriage_art("images/bg_carriage_1_passengers_part2.webp")),
+    "True", wide_bg(carriage_art("images/bg_carriage_1_passengers.webp"))))
 
 image bg carriage_5 = themed(wide_bg("images/bg_carriage_5.webp"))
 
@@ -718,16 +804,12 @@ init python:
     KEY_ZOOM = 0.257 * KEY_SCALE
     KEY_HANG = int(136 * KEY_SCALE)
 
-    _LOOP_SC = KEY_ZOOM / 0.385
-    KEY_LOOP_ZOOM = 0.25 * _LOOP_SC
-    _bar_mid = (KEY_BAR[0] + KEY_BAR[1]) / 2.0 * KEY_ZOOM
-    KEY_LOOP_Y = int(KEY_HANG + _bar_mid + 4 * _LOOP_SC - 34 * _LOOP_SC)
-    KEY_STRING_H = int(KEY_LOOP_Y + 10.5 * _LOOP_SC)
+    KEY_STRING_H = int(KEY_HANG + (KEY_BAR[0] + KEY_BAR[1]) / 2.0 * KEY_ZOOM)
     KEY_IMG_X = -int(KEY_RING_CX * KEY_ZOOM)
     KEY_W = int(KEY_CROP[2] * KEY_ZOOM)
     KEY_H = int(KEY_CROP[3] * KEY_ZOOM)
 
-    KEY_IMAGE = Transform(Transform("images/Key.webp", crop=KEY_CROP), zoom=KEY_ZOOM)
+    KEY_IMAGE = Transform(Transform("images/key.webp", crop=KEY_CROP), zoom=KEY_ZOOM)
 
     def _save_tag(d):
         d["save_version"] = SAVE_VERSION
@@ -776,34 +858,51 @@ init python:
                     _er.choice([30, 45, 60, 80])) for _ in range(26)]
 
 
-default persistent.screen_shake_enabled = True
-default persistent.rumble_extreme = False
-default persistent.dialogue_font_size = 30
-default persistent.dialogue_opacity = 0.93
-default persistent.menu_fx = True
-default persistent.menu_echo = True
-default persistent.reduce_motion = False
-default persistent.text_outline = False
-default persistent.readable_font = False
-default persistent.mg_difficulty = 1
-default persistent.mg_timers = True
-default persistent.mg_skip_allowed = True
-default persistent.autosave_on = True
 define SAVE_VERSION = 3
-default persistent.film_transition = True
-default persistent.old_map = True
-default persistent.menu_style = "new"
-default persistent.dialogue_style = "classic"
-default persistent.ach_toasts = True
-default persistent.reduce_flashes = False
-default persistent.brightness = 0
-default persistent.hotspot_labels = "always"
-default persistent.text_color = "light"
-default persistent.line_spacing = 10
-default persistent.quick_menu_shown = True
 default persistent.mg_won = set()
 
 define DIALOGUE_SIZES = [(22, "S"), (26, "M"), (30, "L"), (34, "XL")]
+
+define DIALOGUE_STYLES = [("classic", _("CLASSIC")), ("minimal", _("MINIMAL")), ("paper", _("PAPER")),
+                          ("film", _("FILM")), ("terminal", _("TERMINAL")), ("ticket", _("TICKET"))]
+
+init -10 python:
+    SETTING_DEFAULTS = {
+        "dialogue_style": "classic",
+        "dialogue_font_size": 30,
+        "dialogue_opacity": 0.93,
+        "text_color": "light",
+        "line_spacing": 10,
+        "quick_menu_shown": True,
+        "readable_font": False,
+        "menu_style": "new",
+        "credits_style": "spotlight",
+        "ui_theme": "default",
+        "menu_fx": True,
+        "ach_toasts": True,
+        "menu_echo": True,
+        "ingame_music": True,
+        "menu_music": "theme",
+        "song_popups": True,
+        "radio_station": "scene",
+        "radio_bar": True,
+        "mg_difficulty": 1,
+        "mg_timers": True,
+        "mg_skip_allowed": True,
+        "autosave_on": True,
+        "old_map": True,
+        "show_objective": True,
+        "brightness": 0,
+        "hotspot_labels": "always",
+        "screen_shake_enabled": True,
+        "rumble_extreme": False,
+        "hardcore": False,
+        "hardcore_minutes": 4,
+        "reduce_motion": False,
+    }
+    for _field, _value in SETTING_DEFAULTS.items():
+        if getattr(persistent, _field) is None:
+            setattr(persistent, _field, _value)
 
 init python:
 
@@ -823,45 +922,27 @@ init python:
         renpy.full_restart()
 
     def reset_preferences():
-        acts = [
+        for act in [
             Preference("text speed", 40),
             Preference("auto-forward time", 15),
             Preference("music volume", 1.0),
             Preference("skip", "seen"),
             Preference("after choices", "stop"),
             Preference("all mute", "disable"),
-        ]
-        for act in acts:
+            Preference("self voicing", "disable"),
+        ]:
             renpy.run(act)
-        persistent.screen_shake_enabled = True
-        persistent.rumble_extreme = False
-        persistent.reduce_flashes = False
-        persistent.brightness = 0
-        persistent.hotspot_labels = "always"
-        persistent.text_color = "light"
-        persistent.line_spacing = 10
-        persistent.quick_menu_shown = True
-        persistent.ingame_music = True
-        persistent.song_popups = True
-        persistent.radio_bar = True
-        persistent.credits_style = "spotlight"
-        persistent.dialogue_font_size = 30
-        persistent.dialogue_opacity = 0.93
-        persistent.menu_fx = True
-        persistent.menu_echo = True
-        persistent.reduce_motion = False
-        persistent.text_outline = False
-        persistent.readable_font = False
-        persistent.mg_difficulty = 1
-        persistent.mg_timers = True
-        persistent.mg_skip_allowed = True
-        persistent.autosave_on = True
-        persistent.film_transition = True
-        persistent.old_map = True
-        persistent.ach_toasts = True
-        persistent.show_objective = True
-        renpy.notify("Settings reset to defaults")
+        for field, value in SETTING_DEFAULTS.items():
+            setattr(persistent, field, value)
+        _menu_music_config()
+        apply_rumble(True)
+        renpy.notify(_("Settings reset to defaults"))
         renpy.restart_interaction()
+
+    def set_fill_screen(on):
+        persistent.fill_screen = on
+        renpy.save_persistent()
+        renpy.quit(relaunch=True)
 
     def vol_pct(mixer):
         return "%d%%" % round(_preferences.get_volume(mixer) * 100)
@@ -920,7 +1001,7 @@ define ACHIEVEMENTS = [
     {"id": "block_party", "title": _("Block Party"), "description": _("Beat Misha's block game."), "hidden": False},
     {"id": "full_steam", "title": _("Full Steam Ahead"), "description": _("Keep the engine pressure stable."), "hidden": False},
     {"id": "sorted", "title": _("Return to Sender"), "description": _("Help Pattison sort the mail."), "hidden": False},
-    {"id": "game_night", "title": _("Game Night"), "description": _("Win every minigame on the train."), "hidden": False, "stat_max": 14},
+    {"id": "game_night", "title": _("Game Night"), "description": _("Win every minigame on the train."), "hidden": False, "stat_max": 11},
 ]
 
 init python:
@@ -1291,24 +1372,33 @@ screen achievements():
 image game_logo_rumble = DynamicDisplayable(_menu_logo)
 
 image game_logo_cycle:
-    "images/Game_Logo_Red.webp" with dissolve
+    "images/logo_game_red.webp" with dissolve
     pause 3.0
-    "images/Game_Logo_Yellow.webp" with dissolve
+    "images/logo_game_yellow.webp" with dissolve
     pause 10.0
     repeat
 
 
+image boot_video = Movie(play="movies/studio_intro.webm", loop=False)
+
+transform boot_fade:
+    align (0.5, 0.5)
+    alpha 0.0
+    linear 0.8 alpha 1.0
+    pause 2.9
+    linear 0.8 alpha 0.0
+
 label splashscreen:
     $ _RADIOUI.booting = True
     scene black
-    with Pause(0.3)
+    $ renpy.pause(1.0, hard=True)
 
-    show expression "images/Blackberry_Studios_Full.webp" as boot_logo at boot_logo_anim
-    pause 3.3
-    hide boot_logo
+    show boot_video at boot_fade
+    play sound "music/studio_jingle.mp3" fadein 0.8 volume 0.7
+    pause 4.5
 
     scene black
-    with Pause(0.3)
+    $ renpy.pause(1.5, hard=True)
     return
 
 
@@ -1569,7 +1659,7 @@ screen menu_train():
         fixed:
             xysize (CINE_TRAIN_W, th)
             at train_rock
-            add Transform("images/Train_BP.webp", crop=TRAIN_CROP, xysize=(CINE_TRAIN_W, th), alpha=0.85)
+            add Transform("images/train_blueprint.webp", crop=TRAIN_CROP, xysize=(CINE_TRAIN_W, th), alpha=0.85)
             for k in range(3):
                 add rbox("#cfcac0", 9):
                     xysize (18, 18)
@@ -1586,9 +1676,7 @@ screen main_menu():
     timer 15.0 repeat True action Function(check_departure)
     timer 1.0 action Function(check_halloween)
 
-    add "images/1st_carriage_Visualnovel_Background.webp":
-        fit "cover"
-        xysize (config.screen_width, config.screen_height)
+    add "menu_slideshow":
         matrixcolor theme_matrix()
         at ((menu_bg_drift, menu_rumble_at()) if (persistent.screen_shake_enabled and not persistent.reduce_motion)
             else (menu_bg_drift if not persistent.reduce_motion else menu_bg_still))
@@ -1690,7 +1778,7 @@ screen main_menu():
                         padding (0, 0)
                         clipping True
                         at fade_slide_in(0.7, xoff=-60)
-                        add "images/Train_BP.webp":
+                        add "images/train_blueprint.webp":
                             xysize (380, 380)
                             fit "contain"
                             align (0.0, 1.0)
@@ -1788,7 +1876,7 @@ screen main_menu():
                 action Function(logo_poke)
                 at fade_slide_in(0.1)
                 if logo_glitched:
-                    add Transform("images/Game_Logo_Purple.webp", fit="contain", xysize=(CINE_LOGO_W, int(CINE_LOGO_W * 808 / 1239.0))) at logo_glitch
+                    add Transform("images/logo_game_purple.webp", fit="contain", xysize=(CINE_LOGO_W, int(CINE_LOGO_W * 808 / 1239.0))) at logo_glitch
                 else:
                     add "game_logo_rumble":
                         xysize (CINE_LOGO_W, int(CINE_LOGO_W * 808 / 1239.0))
@@ -1931,7 +2019,7 @@ screen main_menu():
         action Function(blackberry_secret_action)
         at fade_slide_in(0.9, xoff=70, final_xoff=30)
 
-        add autocrop_image("images/Blackberry_Studios.webp"):
+        add autocrop_image("images/logo_studio.webp"):
             xsize 180
             ysize 90
             fit "contain"
@@ -1959,6 +2047,9 @@ init python:
                                                              alpha=0.9 * (k / float(n)) ** 1.4)))
             _SAY_FADE.append(Fixed(*strips, xysize=(config.screen_width, h)))
         return _SAY_FADE[0]
+
+define SAY_TEXT_X = {"film": 0.5, "minimal": 60, "ticket": 310}
+define SAY_TEXT_Y = {"ticket": 40, "terminal": 100}
 
 screen say(who, what, plate="#8a4a22", creepy=False):
     $ ds = dialogue_style_now()
@@ -2087,16 +2178,16 @@ screen say(who, what, plate="#8a4a22", creepy=False):
 
         text what:
             id "what"
-            xpos (0.5 if ds == "film" else (60 if ds == "minimal" else (310 if ds == "ticket" else 40)))
+            xpos SAY_TEXT_X.get(ds, 40)
             xanchor (0.5 if ds == "film" else 0.0)
             xsize (0.8 if ds == "film" else (box_w - 380 if ds == "ticket" else 0.85))
             text_align (0.5 if ds == "film" else 0.0)
-            ypos (72 if not boxed else (40 if ds == "ticket" else (100 if ds == "terminal" else 104)))
+            ypos (SAY_TEXT_Y.get(ds, 104) if boxed else 72)
             size persistent.dialogue_font_size
             color say_ink(ds)
             font ("DejaVuSans.ttf" if ds == "terminal" else say_font())
             line_spacing persistent.line_spacing
-            outlines ([(2, "#000000", 0, 0)] if (persistent.text_outline or ds == "minimal") and not inked else [])
+            outlines ([(2, "#000000", 0, 0)] if ds == "minimal" else [])
             if creepy:
                 color ("#8a1f12" if inked else "#e8b4ac")
                 textshader (None if persistent.reduce_motion else "jitter:u__jitter=(2.5, 2.5)")
@@ -2200,14 +2291,14 @@ screen quick_menu():
     if quick_menu and persistent.quick_menu_shown:
 
         mousearea:
-            area (0, config.screen_height - 50, config.screen_width, 50)
+            area (0, config.screen_height - 90, config.screen_width, 90)
             hovered Function(_set_qm_hover, True)
             unhovered Function(_set_qm_hover, False)
 
         frame:
-            xpos 40
+            xalign 0.5
             yalign 1.0
-            yoffset -12
+            yoffset -30
             padding (8, 5)
             background rbox("#0a0a0ee0", 20)
             at (qm_shown if quick_menu_hover else qm_hidden)
@@ -2631,14 +2722,8 @@ screen preferences():
                             use pref_toggle(dlabel, SetField(persistent, "dialogue_font_size", dsz), selected=(persistent.dialogue_font_size == dsz), w=90)
 
                     use pref_row(_("DIALOGUE BOX STYLE"), _("The look of the dialogue box."), 0.0):
-                        use pref_toggle(_("CLASSIC"), SetField(persistent, "dialogue_style", "classic"), selected=(dialogue_style_now() == "classic"), w=130)
-                        use pref_toggle(_("MINIMAL"), SetField(persistent, "dialogue_style", "minimal"), selected=(persistent.dialogue_style == "minimal"), w=130)
-                        use pref_toggle(_("PAPER"), SetField(persistent, "dialogue_style", "paper"), selected=(persistent.dialogue_style == "paper"), w=130)
-                        use pref_toggle(_("FILM"), SetField(persistent, "dialogue_style", "film"), selected=(persistent.dialogue_style == "film"), w=130)
-
-                    use pref_row(_("MORE DIALOGUE BOXES"), _("A terminal window or a train ticket."), 0.0):
-                        use pref_toggle(_("TERMINAL"), SetField(persistent, "dialogue_style", "terminal"), selected=(persistent.dialogue_style == "terminal"), w=150)
-                        use pref_toggle(_("TICKET"), SetField(persistent, "dialogue_style", "ticket"), selected=(persistent.dialogue_style == "ticket"), w=150)
+                        for sid, sname in DIALOGUE_STYLES:
+                            use pref_toggle(sname, SetField(persistent, "dialogue_style", sid), selected=(dialogue_style_now() == sid), w=130)
 
                     use pref_row(_("MAIN MENU STYLE"), menu_style_info()[1], 0.0):
                         use rbtn("‹", Function(menu_style_step, -1), w=56, h=44, r=14, size=24)
@@ -2666,9 +2751,9 @@ screen preferences():
                             font GFONT
                         use rbtn("›", Function(theme_step, 1), w=56, h=44, r=14, size=24)
 
-                    use pref_row(_("FILL WIDE SCREENS"), _("Use the whole screen on wide monitors. Needs a restart."), 0.0):
-                        use pref_toggle(_("ON"), SetField(persistent, "fill_screen", True), selected=(persistent.fill_screen is not False))
-                        use pref_toggle(_("OFF"), SetField(persistent, "fill_screen", False), selected=(persistent.fill_screen is False))
+                    use pref_row(_("FILL WIDE SCREENS"), _("Use the whole screen on wide monitors. The game restarts to apply it."), 0.0):
+                        use pref_toggle(_("ON"), (None if persistent.fill_screen is not False else Confirm(_("Restart the game now? Unsaved progress will be lost."), Function(set_fill_screen, True))), selected=(persistent.fill_screen is not False))
+                        use pref_toggle(_("OFF"), (None if persistent.fill_screen is False else Confirm(_("Restart the game now? Unsaved progress will be lost."), Function(set_fill_screen, False))), selected=(persistent.fill_screen is False))
                     use pref_onoff(_("MENU EFFECTS"), _("Lights and embers on the main menu."), "menu_fx", 0.18)
                     use pref_onoff(_("ACHIEVEMENT POPUPS"), _("Show a pop-up for new achievements."), "ach_toasts", 0.24)
 
@@ -2698,7 +2783,7 @@ screen preferences():
                         use pref_toggle(_("WIDE"), SetField(persistent, "line_spacing", 20), selected=(persistent.line_spacing == 20), w=130)
                         use pref_toggle(_("WIDEST"), SetField(persistent, "line_spacing", 30), selected=(persistent.line_spacing == 30), w=130)
 
-                    use pref_onoff(_("QUICK MENU BAR"), _("The buttons under the dialogue box."), "quick_menu_shown", 0.12)
+                    use pref_onoff(_("QUICK MENU BAR"), _("The buttons at the bottom of the dialogue box. Point at the bottom of the screen to show them."), "quick_menu_shown", 0.12)
 
                     use pref_row(_("DIALOGUE BOX OPACITY"), _("Dialogue box see-through amount."), 0.12):
                         use pref_slider(FieldValue(persistent, "dialogue_opacity", range=0.7, offset=0.3), opacity_label())
@@ -2728,7 +2813,7 @@ screen preferences():
                         use pref_toggle(_("MUTED"), Preference("all mute", "enable"))
                         use pref_toggle(_("SOUND ON"), Preference("all mute", "disable"))
 
-                    use pref_onoff(_("MENU MUSIC ECHO"), _("Muffled music on the main menu."), "menu_echo", 0.24)
+                    use pref_onoff(_("MENU MUSIC ECHO"), _("An echo on the main menu music."), "menu_echo", 0.24)
 
                     use pref_row(_("IN-GAME MUSIC"), _("Music during the story."), 0.27):
                         use pref_toggle(_("ON"), Function(set_ingame_music, True), selected=bool(persistent.ingame_music))
@@ -2772,9 +2857,12 @@ screen preferences():
                         use pref_toggle(_("HARD"), SetField(persistent, "mg_difficulty", 2), selected=(persistent.mg_difficulty == 2), w=130)
 
                     use pref_onoff(_("MINIGAME TIMERS"), _("Turn off for no time limits."), "mg_timers", 0.06)
+                    use pref_onoff(_("HARDCORE MODE"), _("A time limit for the whole game. Starts with your next new game."), "hardcore", 0.09)
+                    use pref_row(_("HARDCORE TIME LIMIT"), _("How long you get in hardcore mode."), 0.10):
+                        for mins in HARDCORE_CHOICES:
+                            use pref_toggle(_("%d MIN") % mins, SetField(persistent, "hardcore_minutes", mins), selected=(persistent.hardcore_minutes == mins), w=130)
                     use pref_onoff(_("ALLOW SKIPPING MINIGAMES"), _("Adds a SKIP button to minigames."), "mg_skip_allowed", 0.12)
                     use pref_onoff(_("AUTO-SAVE ON NEW CARRIAGE"), _("Saves when you enter a carriage."), "autosave_on", 0.18)
-                    use pref_onoff(_("BURN-REVEAL TRANSITION"), _("The opening burns away into the map."), "film_transition", 0.24)
                     use pref_onoff(_("AGED MAP LOOK"), _("An old paper look on the maps."), "old_map", 0.30)
                     use pref_onoff(_("MAP OBJECTIVE LINE"), _("Show what to do next on the maps."), "show_objective", 0.36)
 
@@ -2787,10 +2875,6 @@ screen preferences():
                 mousewheel True
                 vbox:
                     spacing 14
-
-                    use pref_row(_("FLASHING LIGHTS"), _("SOFTER replaces flashes with slow fades."), 0.0):
-                        use pref_toggle(_("NORMAL"), SetField(persistent, "reduce_flashes", False), selected=(not persistent.reduce_flashes), w=130)
-                        use pref_toggle(_("SOFTER"), SetField(persistent, "reduce_flashes", True), selected=bool(persistent.reduce_flashes), w=130)
 
                     use pref_row(_("SCREEN BRIGHTNESS"), _("Make the game lighter or darker."), 0.06):
                         use pref_toggle("-", SetField(persistent, "brightness", max(-2, (persistent.brightness or 0) - 1)), selected=False, w=60)
@@ -2824,7 +2908,6 @@ screen preferences():
                 vbox:
                     spacing 14
 
-                    use pref_onoff(_("TEXT OUTLINE"), _("Outline the dialogue text."), "text_outline", 0.06)
                     use pref_onoff(_("READABLE FONT"), _("Use a plainer font."), "readable_font", 0.12)
 
                     use pref_row(_("SELF-VOICING"), _("Read the text aloud."), 0.18):
@@ -3288,45 +3371,27 @@ screen about():
         use rbtn("›", Function(credits_style_step, 1), w=50, h=44, r=14, size=22)
 
 
-screen ending_card(label_text, title, subtitle, accent="#e0521f"):
+screen ending_card(label_text, title, subtitle):
     modal True
     zorder 250
 
-    add Solid("#000000")
+    add Solid("#050505")
 
     vbox:
-        align (0.5, 0.5)
-        spacing 24
-        at fade_in(0.4)
+        xpos 220
+        yalign 0.5
+        spacing 18
 
-        text label_text:
-            xalign 0.5
-            size 28
-            color accent
-            font GFONT
-        text title:
-            xalign 0.5
-            size 84
-            color "#ffffff"
-            font GFONT
-        add rbox(accent, 2):
-            xalign 0.5
-            xsize 240
-            ysize 6
-            at underline_in(0.9)
+        text "[label_text] - [title]":
+            size 44
+            color "#d8d2c4"
+            font CREDIT_FONT
+            slow_cps (None if persistent.reduce_motion else 18)
         text subtitle:
-            xalign 0.5
             size 26
-            color "#8888a0"
-            font GFONT
-
-    text _("Click to return to the main menu"):
-        xalign 0.5
-        yalign 0.94
-        size 18
-        color "#55556a"
-        font GFONT
-        at fade_in(2.0)
+            color "#8a8478"
+            font CREDIT_FONT
+            at fade_in(1.6)
 
     button:
         xfill True
@@ -3672,10 +3737,12 @@ init python:
             apply_rumble(True)
         elif name == "start":
             persistent.runs = (persistent.runs or 0) + 1
+            store.hc = HardcoreClock(persistent.hardcore)
         elif name in ENDING_LABELS:
+            store.hc.on = False
             unlock_ending(ENDING_LABELS[name])
 
-    config.label_callback = _label_cb
+    config.label_callbacks.append(_label_cb)
 
     def mg_mult():
         return {0: 0.75, 2: 1.35}.get(persistent.mg_difficulty, 1.0)
@@ -3686,6 +3753,8 @@ init python:
     def mg_record(key, ach=None):
         if ach:
             achievement.grant(ach)
+        give_coins(MG_COIN_REWARD)
+        renpy.show_screen("coin_toast", MG_COIN_REWARD)
         if key not in persistent.mg_won:
             give_tickets(TICKETS_FOR["minigame"])
         persistent.mg_won = set(persistent.mg_won) | set([key])
@@ -3728,7 +3797,6 @@ default persistent.met = set()
 default persistent.playtime = 0.0
 default persistent.runs = 0
 default persistent.key_pokes = 0
-default persistent.show_objective = True
 
 define NEW_ACHIEVEMENTS = [
     {"id": "konami", "title": _("Old Habits"), "description": _("Enter a very famous code on the main menu."), "hidden": True},
@@ -4197,3 +4265,52 @@ screen quick_keys():
     if not main_menu and not renpy.get_screen("menu"):
         key "K_F5" action QuickSave()
         key "K_F8" action Function(quick_load)
+
+
+define HARDCORE_CHOICES = [4, 2]
+
+init -1 python:
+    import time as _hc_time
+
+    class HardcoreClock(NoRollback):
+        def __init__(self, on=False):
+            self.on = on
+            self.left = (persistent.hardcore_minutes or 4) * 60.0
+            self.last = None
+
+    def hardcore_tick():
+        now = _hc_time.time()
+        last, hc.last = hc.last, now
+        if last is None or not 0 < now - last < 1.0:
+            return
+        hc.left -= now - last
+        if hc.left <= 0:
+            hc.on = False
+            renpy.jump("hardcore_time_up")
+
+    def _hardcore_clock(st, at):
+        sec = max(0, int(hc.left + 0.999))
+        col = "#ff5a3c" if hc.left < 30 else "#e6a817"
+        return Text("%d:%02d" % (sec // 60, sec % 60), size=34, color=col, font=GFONT), 0.25
+
+    HARDCORE_CLOCK = DynamicDisplayable(_hardcore_clock)
+
+default hc = HardcoreClock()
+
+init python:
+    config.overlay_screens.append("hardcore_hud")
+
+screen hardcore_hud():
+    zorder 150
+    if hc.on and not main_menu:
+        timer 0.25 repeat True action Function(hardcore_tick)
+        frame:
+            xalign 0.5
+            ypos 20
+            padding (22, 8)
+            background rbox("#14141aee", 18)
+            add HARDCORE_CLOCK
+
+label hardcore_time_up:
+    $ renpy.notify(_("TIME'S UP"))
+    jump ending_1_death
