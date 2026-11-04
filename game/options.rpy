@@ -4,7 +4,7 @@ define config.name = _("Departure at 4:00")
 define gui.show_name = True
 
 
-define config.version = "2.1 Beta"
+define config.version = "3.2 Beta"
 
 
 define gui.about = _p("""
@@ -15,7 +15,7 @@ define build.name = "DepartureAt4"
 
 define build.executable_name = "Departure at 4.00"
 
-define build.version = "2.1-beta"
+define build.version = "3.2-beta"
 
 
 define config.has_sound = True
