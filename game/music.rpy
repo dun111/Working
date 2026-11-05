@@ -135,7 +135,13 @@ init python:
             files = files[k + 1:] + files[:k + 1]
             renpy.music.play(files, channel="music", loop=True, fadein=0.5, fadeout=0.5)
         elif q:
-            renpy.music.stop(channel="music", fadeout=0.5)
+            # Each carriage loops one song, so skipping used to fall silent.
+            # Go on to the next song in the Jukebox order instead.
+            order = song_files(SONG_ORDER)
+            if q in order:
+                k = order.index(q)
+                order = order[k + 1:] + order[:k + 1]
+            renpy.music.play(order, channel="music", loop=True, fadein=0.5, fadeout=0.5)
 
     class _RADIO(object):
         history = []

@@ -935,7 +935,7 @@ init python:
 
     def reset_preferences():
         for act in [
-            Preference("text speed", 40),
+            Preference("text speed", 0),
             Preference("auto-forward time", 15),
             Preference("music volume", 1.0),
             Preference("skip", "seen"),
