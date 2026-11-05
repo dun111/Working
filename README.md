@@ -27,7 +27,7 @@ The builds are on the [Releases](../../releases) page.
 - Each carriage is a map. Click the people and objects on it to talk or look around.
 - Some conversations give you a choice, and some choices get you clues.
 - There are minigames along the way: mahjong, picking locks, sorting mail, keeping the engine's steam steady and more. You can replay them later from EXTRAS > ARCADE.
-- Looking around turns up coins. Each door to the next carriage costs a few, so check everything. You can also give coins to passengers on the People screen to fill their hearts.
+- Looking around turns up coins. Each door to the next carriage costs a few, so check everything. You can also spend coins on presents for passengers on the People screen to fill their hearts. Everyone has a favourite present that's worth double.
 - Once the loop starts, go back through the carriages. Things have changed, and people will tell you more the second time.
 - At the end you name the killer. Pick wrong and that's the end of you.
 

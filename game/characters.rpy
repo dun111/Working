@@ -518,8 +518,55 @@ transform manifest_thumb(known=True):
 
 define COIN_FIND = 4
 define FARE = 8
-define GIFT_COST = 5
 define BOND_MAX = 5
+
+# Presents you can send from the People screen: (id, name, coin price).
+define PRESENTS = [
+    ("tea",       _("Cup of Tea"),    4),
+    ("bandages",  _("Bandages"),      4),
+    ("flowers",   _("Flowers"),       5),
+    ("stamps",    _("Stamps"),        5),
+    ("sweets",    _("Sweets"),        6),
+    ("notebook",  _("Notebook"),      7),
+    ("whiskey",   _("Whiskey"),       8),
+    ("toy_train", _("Toy Train"),     8),
+    ("charm",     _("Lucky Charm"),   9),
+    ("watch",     _("Pocket Watch"), 12),
+    ("maple",     _("Maple Sugar"),  12),
+]
+
+# Each passenger's favourite present is worth two hearts instead of one.
+define FAVOURITE_PRESENT = {
+    "Dorothy": "tea",
+    "Fedora": "notebook",
+    "Eduard": "whiskey",
+    "Shunyu": "charm",
+    "Kimmy": "flowers",
+    "Himmel": "watch",
+    "Sebastian": "tea",
+    "Misha": "toy_train",
+    "Agatha": "bandages",
+    "Ichora": "sweets",
+    "Pattison": "stamps",
+    "Alexander": "maple",
+}
+
+define FAVOURITE_LINES = {
+    "Dorothy": "Oh! Proper tea... thank you, sir.",
+    "Fedora": "A fresh notebook? Now I can write EVERYTHING down!",
+    "Eduard": "Now that's the good stuff. I'll keep it behind the counter.",
+    "Shunyu": "A lucky charm?! I can't stop winning now!",
+    "Kimmy": "For me, sugar? Well aren't you sweet.",
+    "Himmel": "A watch... so I'll know exactly when the next stop is.",
+    "Sebastian": "Most kind, sir. I shall brew it properly.",
+    "Misha": "A train! A little train, just like this one!",
+    "Agatha": "Finally, someone who gets it. Thanks.",
+    "Ichora": "Sweets! Hey, you're alright, buddy!",
+    "Pattison": "Stamps! Every mailworker's dream.",
+    "Alexander": "THE MAPLE SUGAR!!! You absolute legend!!!",
+}
+
+default persistent.favourites_found = set()
 define FARE_DOORS = ["c1_door_to_carriage_2", "carriage_3_start", "carriage_4_start", "carriage_5_start",
                      "c5_carriage6_door", "part2_chapter_end", "carriage_5_part2_start"]
 
@@ -578,14 +625,29 @@ init python:
     def bond(name):
         return (persistent.bond or {}).get(name, 0)
 
-    def gift(name):
-        if bond(name) >= BOND_MAX or (persistent.coins or 0) < GIFT_COST:
+    def present_price(pid):
+        return dict((p, c) for p, _n, c in PRESENTS).get(pid, 0)
+
+    def present_name(pid):
+        return dict((p, n) for p, n, _c in PRESENTS).get(pid, "")
+
+    def favourite_known(name):
+        return name in (persistent.favourites_found or set())
+
+    def gift(name, pid):
+        price = present_price(pid)
+        if bond(name) >= BOND_MAX or (persistent.coins or 0) < price:
             return
-        persistent.coins -= GIFT_COST
+        persistent.coins -= price
+        fav = FAVOURITE_PRESENT.get(name) == pid
         b = dict(persistent.bond or {})
-        b[name] = bond(name) + 1
+        b[name] = min(BOND_MAX, bond(name) + (2 if fav else 1))
         persistent.bond = b
-        renpy.notify("%s: \"%s\"" % (name, renpy.random.choice(GIFT_LINES.get(name, ["..."]))))
+        if fav:
+            persistent.favourites_found = set(persistent.favourites_found or set()) | set([name])
+            renpy.notify("%s: \"%s\"  (FAVOURITE!)" % (name, FAVOURITE_LINES.get(name, "My favourite!")))
+        else:
+            renpy.notify("%s: \"%s\"" % (name, renpy.random.choice(GIFT_LINES.get(name, ["..."]))))
         if b[name] == BOND_MAX:
             give_tickets(TICKETS_FOR["secret"])
             achievement.grant("bond_one")
@@ -752,12 +814,28 @@ screen manifest():
                         size 30
                         color "#e0521f"
                         font "DejaVuSans.ttf"
-                    if hearts < BOND_MAX:
-                        use rbtn((_("GIFT %d COINS") % GIFT_COST), (Function(gift, cur["name"]) if (persistent.coins or 0) >= GIFT_COST else None), w=220, h=46, r=14, size=18, bg="#3e2814", hov="#5a3a1c", col="#ffd76a", hcol="#ffffff")
-                text (_("You have %d coins") % (persistent.coins or 0)):
-                    size 16
-                    color "#8888a0"
+                $ fav = FAVOURITE_PRESENT.get(cur["name"])
+                text (_("Loves: %s") % (present_name(fav) if favourite_known(cur["name"]) else "???")):
+                    size 18
+                    color "#e6a817"
                     font GFONT
+                if hearts < BOND_MAX:
+                    text (_("SEND A PRESENT  ·  you have %d coins") % (persistent.coins or 0)):
+                        size 16
+                        color "#8888a0"
+                        font GFONT
+                    vpgrid:
+                        cols 3
+                        spacing 8
+                        for pid, pname, price in PRESENTS:
+                            $ can = (persistent.coins or 0) >= price
+                            $ known_fav = favourite_known(cur["name"]) and pid == fav
+                            use rbtn("%s  %d" % (pname, price), (Function(gift, cur["name"], pid) if can else None), w=178, h=40, r=12, size=14, bg=("#5a3a14" if known_fav else "#3e2814"), hov="#6a4a1c", col="#ffd76a", hcol="#ffffff")
+                else:
+                    text _("Hearts full. Thanks for the presents!"):
+                        size 16
+                        color "#8888a0"
+                        font GFONT
             null height 16
             if cur["known"]:
                 for n in cur["notes"]:
