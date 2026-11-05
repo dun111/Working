@@ -1,3 +1,7 @@
+default persistent.window_aspect = None
+default persistent.window_relaunched_for = None
+default persistent.window_relaunched_at = 0
+
 init -100 python:
     DESIGN_W, DESIGN_H = 1920, 1080
 
@@ -13,14 +17,29 @@ init -100 python:
             pass
         return 16.0 / 9.0
 
+    def _window_aspect():
+        # On a Mac the game window is shorter than the screen (menu bar, title bar,
+        # Dock), so the screen's shape leaves black bars. The real window shape is
+        # measured at startup (check_window_shape) and used from then on; the
+        # screen's shape is only used in fullscreen or before it has been measured.
+        try:
+            if not getattr(renpy.game.preferences, "fullscreen", False) and persistent.window_aspect:
+                return float(persistent.window_aspect)
+        except Exception:
+            pass
+        return _monitor_aspect()
+
+    def _size_for(aspect):
+        aspect = min(max(aspect, 4.0 / 3.0), 32.0 / 9.0)
+        if aspect >= 16.0 / 9.0:
+            return int(round(DESIGN_H * aspect)) // 2 * 2, DESIGN_H
+        return DESIGN_W, int(round(DESIGN_W / aspect)) // 2 * 2
+
     def _game_size():
         # The game always takes the shape of the screen it's on, so there are no black bars.
         if renpy.variant("mobile") or renpy.variant("web"):
             return DESIGN_W, DESIGN_H
-        aspect = min(max(_monitor_aspect(), 4.0 / 3.0), 32.0 / 9.0)
-        if aspect >= 16.0 / 9.0:
-            return int(round(DESIGN_H * aspect)) // 2 * 2, DESIGN_H
-        return DESIGN_W, int(round(DESIGN_W / aspect)) // 2 * 2
+        return _size_for(_window_aspect())
 
     GAME_W, GAME_H = _game_size()
     MAP_X0 = (GAME_W - DESIGN_W) // 2
@@ -46,6 +65,29 @@ init -2 python:
                          matrixcolor=BrightnessMatrix(-0.22))
         front = Transform(path, xysize=map_wh(DESIGN_W, DESIGN_H), pos=map_xy(0, 0))
         return Fixed(back, front, xysize=(GAME_W, GAME_H))
+
+    def check_window_shape():
+        # Called once at startup. If the window isn't the shape the game started
+        # at, remember its shape and restart once so the game fills it exactly.
+        if renpy.variant("mobile") or renpy.variant("web") or _preferences.fullscreen:
+            return
+        pw, ph = renpy.get_physical_size()
+        if pw <= 0 or ph <= 0:
+            return
+        aspect = round(pw / float(ph), 4)
+        persistent.window_aspect = aspect
+        want = _size_for(aspect)
+        if want == (config.screen_width, config.screen_height):
+            return
+        # Only restart once for a given window shape, and never twice within two
+        # minutes, so it can never loop.
+        import time
+        if persistent.window_relaunched_for == aspect or time.time() - (persistent.window_relaunched_at or 0) < 120:
+            return
+        persistent.window_relaunched_for = aspect
+        persistent.window_relaunched_at = time.time()
+        renpy.save_persistent()
+        renpy.quit(relaunch=True)
 
     def map_bg(path, top, bottom, ceiling=None, floor=None):
         # Carriage art sits exactly where the hotspots expect it. Its picture has flat

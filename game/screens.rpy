@@ -1396,6 +1396,7 @@ transform boot_fade:
     linear 0.8 alpha 0.0
 
 label splashscreen:
+    $ check_window_shape()
     $ _RADIOUI.booting = True
     scene black
     $ renpy.pause(1.0, hard=True)
