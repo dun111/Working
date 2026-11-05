@@ -89,7 +89,7 @@ init -2 python:
         renpy.save_persistent()
         renpy.quit(relaunch=True)
 
-    def map_bg(path, top, bottom, ceiling=None, floor=None):
+    def map_bg(path, top, bottom, ceiling=None, floor=None, lamp=None, lamps=6, eerie=False):
         # Carriage art sits exactly where the hotspots expect it. Its picture has flat
         # dark bands above and below the carriage (top and bottom are where the carriage
         # starts and ends, as fractions of the picture's height), so the carriage's own
@@ -112,11 +112,97 @@ init -2 python:
         if oy + b < GAME_H:
             below = Solid(floor) if floor else Transform(art, crop=(0, b - 2, w, 2))
             parts.append(Transform(below, xysize=(w, GAME_H - (oy + b)), pos=(ox, oy + b)))
+        if lamp:
+            parts += map_ambience(ox, oy + t, w, oy + b, lamp, lamps, eerie)
         return Fixed(*parts, xysize=(GAME_W, GAME_H))
+
+    # ---------- Ambience on the carriage maps: lamp light, edge shadows, dust ----------
+    # Made only from shapes and effects (no pictures), so it sits under any ceiling or
+    # floor art added later.
+
+    def _glow(color, w, h, strength):
+        # A soft pool of light: stacked rounded shapes, brightest in the middle.
+        # Many faint layers, so the edges blend smoothly instead of showing rings.
+        kids = []
+        n = 14
+        for i in range(n):
+            f = 1.0 - i / float(n)
+            ww, hh = max(2, int(w * f)), max(2, int(h * f))
+            kids.append(Transform(rbox(color, hh // 2), xysize=(ww, hh), pos=((w - ww) // 2, (h - hh) // 2), alpha=0.028 * strength))
+        return Transform(Fixed(*kids, xysize=(w, h)), blend="add")
+
+    def _shade(width, height, at_top, strength=0.55, steps=40):
+        # A soft darkening toward the top or bottom edge of the screen.
+        kids = []
+        step = max(1, height // steps)
+        for i in range(steps):
+            a = strength * (1.0 - i / float(steps)) ** 1.6
+            y = i * step if at_top else height - (i + 1) * step
+            kids.append(Transform(Solid("#000000"), xysize=(width, step + 1), pos=(0, y), alpha=a))
+        return Fixed(*kids, xysize=(width, height))
+
+    def map_ambience(x0, ceil_y, width, floor_y, color, lamps, eerie):
+        import random as _r
+        rng = _r.Random(int(ceil_y) * 7 + lamps)
+        parts = [
+            _shade(GAME_W, int(ceil_y + 60), True),
+            Transform(_shade(GAME_W, int(GAME_H - floor_y + 60), False), ypos=int(floor_y - 60)),
+        ]
+        for i in range(lamps):
+            cx = x0 + int(width * (i + 0.5) / lamps)
+            pool = Fixed(
+                Transform(_glow(color, 520, 240, 1.0), pos=(-260, -120)),
+                Transform(_glow(color, 360, 600, 0.35), pos=(-180, 0)),
+                xysize=(1, 1))
+            lit = At(pool, lamp_flicker(rng.uniform(0.0, 3.0), eerie))
+            parts.append(Transform(ConditionSwitch("persistent.reduce_motion", pool, "True", lit), pos=(cx, int(ceil_y))))
+        for i in range(14):
+            speck = Solid("#fff2d6", xysize=(3, 3))
+            moving = At(speck, dust_fall(rng.uniform(9.0, 15.0), rng.uniform(0.0, 9.0), rng.choice([20, 30, 45])))
+            still = Transform(speck, alpha=0.25, ypos=rng.uniform(0.1, 0.9))
+            parts.append(Transform(ConditionSwitch("persistent.reduce_motion", still, "True", moving),
+                                   xpos=x0 + int(width * rng.uniform(0.03, 0.97))))
+        return parts
 
     def full_cover(path, **kwargs):
         return Transform(path, fit="cover", xysize=(GAME_W, GAME_H), **kwargs)
 
+
+# A lamp's light: steady, with the odd flicker. Eerie lamps flicker more often and deeper.
+transform lamp_flicker(d=0.0, eerie=False):
+    alpha 1.0
+    pause d
+    block:
+        pause (1.1 if eerie else 2.6)
+        linear 0.05 alpha 0.55
+        linear 0.06 alpha 1.0
+        pause (0.7 if eerie else 3.4)
+        linear 0.04 alpha (0.25 if eerie else 0.75)
+        linear 0.08 alpha 1.0
+        pause (0.4 if eerie else 1.8)
+        ease 1.4 alpha 0.85
+        ease 1.4 alpha 1.0
+        repeat
+
+# A dust speck drifting slowly down through the light.
+transform dust_fall(dur, delay, sway):
+    alpha 0.0
+    ypos 0.0
+    pause delay
+    block:
+        ypos 0.05
+        xoffset 0
+        alpha 0.0
+        parallel:
+            linear dur ypos 0.95
+        parallel:
+            ease (dur * 0.3) alpha 0.45
+            pause (dur * 0.4)
+            ease (dur * 0.3) alpha 0.0
+        parallel:
+            ease (dur * 0.5) xoffset sway
+            ease (dur * 0.5) xoffset (-sway)
+        repeat
 
 define config.default_textshader = "typewriter"
 

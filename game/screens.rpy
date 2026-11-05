@@ -702,10 +702,10 @@ image carriage_6_fog = At(Solid("#4a0a0a"), carriage_6_ambient)
 image black = Solid("#000000")
 image Train station = "talk_bg"
 image bg carriage_1 = themed(ConditionSwitch(
-    "in_loop", map_bg("images/bg_carriage_1_passengers_part2.webp", 0.186, 0.805, ceiling="#8e634f"),
-    "True", map_bg("images/bg_carriage_1_passengers.webp", 0.186, 0.805)))
+    "in_loop", map_bg("images/bg_carriage_1_passengers_part2.webp", 0.186, 0.805, ceiling="#8e634f", lamp="#ff7a66", eerie=True),
+    "True", map_bg("images/bg_carriage_1_passengers.webp", 0.186, 0.805, lamp="#ffcf8a")))
 
-image bg carriage_5 = themed(map_bg("images/bg_carriage_5.webp", 0.186, 0.805, floor="#3d3434"))
+image bg carriage_5 = themed(map_bg("images/bg_carriage_5.webp", 0.186, 0.805, floor="#3d3434", lamp="#ffe2b0", lamps=5))
 
 image bg carriage_2 = themed(Solid("#2a2430"))
 image bg carriage_3 = themed(Solid("#242a30"))
