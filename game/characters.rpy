@@ -494,6 +494,18 @@ init python:
     def _flag(name):
         return name is None or bool(getattr(store, name, False))
 
+    def met_ever(flag):
+        return _flag(flag) or flag in (persistent.met or set())
+
+    def _remember_met(name, abnormal=False):
+        if main_menu:
+            return
+        new = [m[3] for m in MANIFEST if m[3] and m[3] not in (persistent.met or set()) and _flag(m[3])]
+        if new:
+            persistent.met = set(persistent.met or set()) | set(new)
+
+    config.label_callbacks.append(_remember_met)
+
     def manifest_rows():
         rows = []
         for img, name, role, met, notes in MANIFEST:
@@ -819,23 +831,10 @@ screen manifest():
                     size 18
                     color "#e6a817"
                     font GFONT
-                if hearts < BOND_MAX:
-                    text (_("SEND A PRESENT  ·  you have %d coins") % (persistent.coins or 0)):
-                        size 16
-                        color "#8888a0"
-                        font GFONT
-                    vpgrid:
-                        cols 3
-                        spacing 8
-                        for pid, pname, price in PRESENTS:
-                            $ can = (persistent.coins or 0) >= price
-                            $ known_fav = favourite_known(cur["name"]) and pid == fav
-                            use rbtn("%s  %d" % (pname, price), (Function(gift, cur["name"], pid) if can else None), w=178, h=40, r=12, size=14, bg=("#5a3a14" if known_fav else "#3e2814"), hov="#6a4a1c", col="#ffd76a", hcol="#ffffff")
-                else:
-                    text _("Hearts full. Thanks for the presents!"):
-                        size 16
-                        color "#8888a0"
-                        font GFONT
+                text (_("Hearts full. Thanks for the presents!") if hearts >= BOND_MAX else _("Presents are sent from the main menu.")):
+                    size 16
+                    color "#8888a0"
+                    font GFONT
             null height 16
             if cur["known"]:
                 for n in cur["notes"]:
@@ -856,3 +855,151 @@ screen manifest():
                     font GFONT
 
     use game_menu_back(back_action)
+
+
+# ---------- GIFT SHOP: opened by clicking the big 4:00 on the main menu four times ----------
+
+init python:
+    def gift_shop_people():
+        return [{"img": m[0], "name": m[1], "known": met_ever(m[3])} for m in MANIFEST[1:]]
+
+    def gift_shop_first():
+        for i, p in enumerate(gift_shop_people()):
+            if p["known"]:
+                return i
+        return 0
+
+screen gift_shop():
+    modal True
+    zorder 300
+    key "game_menu" action Hide("gift_shop")
+
+    default sel = gift_shop_first()
+    $ people = gift_shop_people()
+    $ cur = people[sel]
+
+    add Solid("#000000c8")
+
+    frame:
+        align (0.5, 0.5)
+        xysize (1560, 900)
+        padding (48, 36)
+        background rbox("#0c0b09f4", 24)
+        at fade_slide_in(0.0, xoff=0)
+
+        vbox:
+            spacing 6
+            hbox:
+                xfill True
+                text _("GIFT SHOP"):
+                    size 40
+                    color "#ffd76a"
+                    font CREDIT_FONT
+                hbox:
+                    xalign 1.0
+                    yalign 0.5
+                    spacing 10
+                    add circ_coin(26):
+                        yalign 0.5
+                    text (_("%d COINS") % (persistent.coins or 0)):
+                        yalign 0.5
+                        size 22
+                        color "#ffd76a"
+                        font GFONT
+            add Solid("#c9a24a55"):
+                ysize 2
+            null height 12
+
+            hbox:
+                spacing 36
+
+                # passengers
+                vbox:
+                    spacing 6
+                    xsize 380
+                    for i, p in enumerate(people):
+                        $ h = bond(p["name"]) if p["known"] else 0
+                        button:
+                            xsize 380
+                            ysize 50
+                            padding (18, 0)
+                            background rbox(("#2a2312" if i == sel else "#14141a"), 14)
+                            hover_background rbox("#3a3018", 14)
+                            action (SetScreenVariable("sel", i) if p["known"] else None)
+                            hbox:
+                                xfill True
+                                yalign 0.5
+                                text (p["name"] if p["known"] else "???"):
+                                    yalign 0.5
+                                    size 20
+                                    color (("#ffd700" if i == sel else "#e8e4dc") if p["known"] else "#4a4a58")
+                                    font GFONT
+                                if p["known"]:
+                                    text ("♥" * h + "♡" * (BOND_MAX - h)):
+                                        xalign 1.0
+                                        yalign 0.5
+                                        size 18
+                                        color "#e0521f"
+                                        font "DejaVuSans.ttf"
+
+                # chosen passenger
+                if cur["known"]:
+                    $ hearts = bond(cur["name"])
+                    $ fav = FAVOURITE_PRESENT.get(cur["name"])
+                    fixed:
+                        xsize 1060
+                        ysize 720
+                        add Transform(cur["img"], fit="contain", xysize=(400, 700)):
+                            xalign 1.0
+                            yalign 1.0
+                        vbox:
+                            spacing 12
+                            xmaximum 620
+                            text cur["name"]:
+                                size 46
+                                color "#ffffff"
+                                font GFONT
+                            text ("♥" * hearts + "♡" * (BOND_MAX - hearts)):
+                                size 34
+                                color "#e0521f"
+                                font "DejaVuSans.ttf"
+                            text (_("Loves: %s") % (present_name(fav) if favourite_known(cur["name"]) else "???")):
+                                size 20
+                                color "#e6a817"
+                                font GFONT
+                            null height 8
+                            if hearts < BOND_MAX:
+                                text _("Pick a present. Their favourite fills two hearts."):
+                                    size 16
+                                    color "#8888a0"
+                                    font GFONT
+                                vpgrid:
+                                    cols 3
+                                    spacing 10
+                                    for pid, pname, price in PRESENTS:
+                                        $ can = (persistent.coins or 0) >= price
+                                        $ known_fav = favourite_known(cur["name"]) and pid == fav
+                                        use rbtn("%s  ·  %d" % (pname, price), (Function(gift, cur["name"], pid) if can else None), w=196, h=50, r=14, size=15, bg=("#5a3a14" if known_fav else "#3e2814"), hov="#6a4a1c", col="#ffd76a", hcol="#ffffff")
+                            else:
+                                text _("Hearts full. Thanks for the presents!"):
+                                    size 18
+                                    color "#8888a0"
+                                    font GFONT
+                else:
+                    text _("Meet someone on the train first."):
+                        yalign 0.3
+                        size 22
+                        color "#8888a0"
+                        font GFONT
+
+        textbutton _("CLOSE"):
+            xalign 1.0
+            yalign 1.0
+            padding (26, 10)
+            background rbox("#1a1814", 12)
+            hover_background rbox("#2a2620", 12)
+            text_size 18
+            text_color "#c9c0b0"
+            text_hover_color "#ffffff"
+            text_font GFONT
+            action Hide("gift_shop")
