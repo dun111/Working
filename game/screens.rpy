@@ -2462,6 +2462,10 @@ define CLUE_LIST = [
     ("clue_alexander_alibi", "ALEXANDER'S ALIBI", "\"I would've heard the door. It creaks something awful.\""),
 ]
 
+define CLUE_IMAGES = {
+    "clue_hidden_tile": "images/clue_hidden_tile.webp",
+}
+
 init python:
     def clue_rows():
         rows = []
@@ -2471,6 +2475,7 @@ init python:
                 "title": title if got else "???",
                 "text": text if got else "Not found yet.",
                 "got": got,
+                "img": CLUE_IMAGES.get(cid) if got else None,
             })
         return rows
 
@@ -2532,6 +2537,9 @@ screen clues():
 
                 hbox:
                     spacing 24
+                    if r["img"]:
+                        add Transform(r["img"], fit="contain", xysize=(80, 80)):
+                            yalign 0.5
                     vbox:
                         spacing 6
                         yalign 0.5
@@ -2543,7 +2551,7 @@ screen clues():
                             size 18
                             color ("#e8e4dc" if r["got"] else "#55556a")
                             font GFONT
-                            xsize (config.screen_width - 300)
+                            xsize (config.screen_width - (404 if r["img"] else 300))
 
     use game_menu_back(back_action)
 

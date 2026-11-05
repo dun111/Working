@@ -1408,6 +1408,9 @@ screen mg_evidence():
                                 size 15
                                 color "#e8e4dc"
                                 font GFONT
+                            if cid in CLUE_IMAGES:
+                                add Transform(CLUE_IMAGES[cid], fit="contain", xysize=(110, 110)):
+                                    xalign 0.5
 
         if ev_result == "win":
             use mg_end(evidence_title(ev_answer), "win")

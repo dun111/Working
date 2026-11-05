@@ -169,6 +169,15 @@ image door_light:
 
 
 
+image clue_tile = Transform("images/clue_hidden_tile.webp", fit="contain", xysize=(440, 440))
+
+transform tile_reveal:
+    xalign 0.5
+    yalign 0.4
+    alpha 0.0
+    zoom 0.9
+    ease 0.5 alpha 1.0 zoom 1.0
+
 transform clue_card_in:
     yoffset -40
     alpha 0.0
