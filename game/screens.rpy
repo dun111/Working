@@ -574,7 +574,11 @@ init python:
             _sp_pending.clear()
         except Exception:
             pass
-        return _orig_show(name, at_list, *args, **kwargs)
+        rv = _orig_show(name, at_list, *args, **kwargs)
+        if kwargs.get("layer") in (None, "master"):
+            # A new background may have come in: rumble only on the carriage maps.
+            apply_rumble()
+        return rv
 
     config.show = _show_track
 
@@ -3726,11 +3730,19 @@ init python:
         if persistent.autosave_on:
             renpy.force_autosave(take_screenshot=True)
 
+    def on_carriage_bg():
+        # The carriage maps use "bg carriage_N"; conversations, the station and
+        # story scenes use other backgrounds and stay still.
+        if "bg" not in renpy.get_showing_tags("master"):
+            return False
+        attrs = renpy.get_attributes("bg") or ()
+        return bool(attrs) and attrs[0].startswith("carriage")
+
     def apply_rumble(force=False):
         if main_menu:
             return
         want = None
-        if persistent.screen_shake_enabled and not persistent.reduce_motion:
+        if persistent.screen_shake_enabled and not persistent.reduce_motion and on_carriage_bg():
             want = "extreme" if persistent.rumble_extreme else "normal"
         if force or store.rumble_on != want:
             t = {"normal": [train_rumble], "extreme": [train_rumble_extreme]}.get(want, [])
