@@ -569,7 +569,35 @@ define FAVOURITE_LINES = {
     "Alexander": "THE MAPLE SUGAR!!! You absolute legend!!!",
 }
 
+# After a present that isn't their favourite, they let slip a hint about it.
+define FAVOURITE_HINTS = {
+    "Dorothy": "She glances at the teapot on the trolley.",
+    "Fedora": "She flips through her notebook. Every page is already full.",
+    "Eduard": "He eyes the empty bottle behind the bar.",
+    "Shunyu": "He rubs his hands together. \"I could use a little more luck...\"",
+    "Kimmy": "She tucks a dried petal back under her hat ribbon.",
+    "Himmel": "He keeps checking his wrist, but there's no watch there.",
+    "Sebastian": "He straightens his collar. \"A proper cup would be most welcome.\"",
+    "Misha": "Misha hums and makes quiet chugging noises.",
+    "Agatha": "She winces at a fresh scrape on her hand.",
+    "Ichora": "Ichora's stomach rumbles. \"Got anything sweet on ya?\"",
+    "Pattison": "He sorts a pile of envelopes. None of them have stamps.",
+    "Alexander": "He sniffs the air. \"Is that... maple?\"",
+}
+
+# Hearts that pay out tickets when you reach them (full hearts also give the achievements).
+define BOND_REWARDS = {3: 1, 5: 3}
+
 default persistent.favourites_found = set()
+
+init python:
+    class GIFT_SAID(object):
+        # What the last passenger said in the gift shop.
+        name = None
+        line = ""
+        hint = ""
+        fav = False
+        reward = 0
 define FARE_DOORS = ["c1_door_to_carriage_2", "carriage_3_start", "carriage_4_start", "carriage_5_start",
                      "c5_carriage6_door", "part2_chapter_end", "carriage_5_part2_start"]
 
@@ -643,16 +671,26 @@ init python:
             return
         persistent.coins -= price
         fav = FAVOURITE_PRESENT.get(name) == pid
+        before = bond(name)
         b = dict(persistent.bond or {})
-        b[name] = min(BOND_MAX, bond(name) + (2 if fav else 1))
+        b[name] = min(BOND_MAX, before + (2 if fav else 1))
         persistent.bond = b
+        GIFT_SAID.name = name
+        GIFT_SAID.fav = fav
         if fav:
             persistent.favourites_found = set(persistent.favourites_found or set()) | set([name])
-            renpy.notify("%s: \"%s\"  (FAVOURITE!)" % (name, FAVOURITE_LINES.get(name, "My favourite!")))
+            GIFT_SAID.line = FAVOURITE_LINES.get(name, "My favourite!")
+            GIFT_SAID.hint = ""
         else:
-            renpy.notify("%s: \"%s\"" % (name, renpy.random.choice(GIFT_LINES.get(name, ["..."]))))
+            GIFT_SAID.line = renpy.random.choice(GIFT_LINES.get(name, ["..."]))
+            GIFT_SAID.hint = "" if favourite_known(name) else FAVOURITE_HINTS.get(name, "")
+        GIFT_SAID.reward = 0
+        for level, tickets in sorted(BOND_REWARDS.items()):
+            if before < level <= b[name]:
+                GIFT_SAID.reward += tickets
+        if GIFT_SAID.reward:
+            give_tickets(GIFT_SAID.reward)
         if b[name] == BOND_MAX:
-            give_tickets(TICKETS_FOR["secret"])
             achievement.grant("bond_one")
             if all(b.get(m[1], 0) >= BOND_MAX for m in MANIFEST[1:]):
                 achievement.grant("bond_all")
@@ -926,7 +964,7 @@ screen gift_shop():
                                     color (("#ffd700" if i == sel else "#e8e4dc") if p["known"] else "#4a4a58")
                                     font GFONT
                                 if p["known"]:
-                                    text ("♥" * h + "♡" * (BOND_MAX - h)):
+                                    text (("★  " if h >= BOND_MAX else "") + "♥" * h + "♡" * (BOND_MAX - h)):
                                         xalign 1.0
                                         yalign 0.5
                                         size 18
@@ -958,9 +996,35 @@ screen gift_shop():
                                 size 20
                                 color "#e6a817"
                                 font GFONT
-                            null height 8
+                            if GIFT_SAID.name == cur["name"]:
+                                frame:
+                                    xfill True
+                                    padding (18, 12)
+                                    background rbox(("#2a2312" if GIFT_SAID.fav else "#16161c"), 14)
+                                    vbox:
+                                        spacing 6
+                                        if GIFT_SAID.fav:
+                                            text _("FAVOURITE!"):
+                                                size 15
+                                                color "#ffd700"
+                                                font GFONT
+                                        text ("\"%s\"" % GIFT_SAID.line):
+                                            size 19
+                                            color "#e8e4dc"
+                                            font say_font()
+                                        if GIFT_SAID.hint:
+                                            text ("{i}%s{/i}" % GIFT_SAID.hint):
+                                                size 16
+                                                color "#a8a0c0"
+                                                font say_font()
+                                        if GIFT_SAID.reward:
+                                            text ((_("+%d TICKET") if GIFT_SAID.reward == 1 else _("+%d TICKETS")) % GIFT_SAID.reward):
+                                                size 15
+                                                color "#e6a817"
+                                                font GFONT
+                            null height 4
                             if hearts < BOND_MAX:
-                                text _("Pick a present. Their favourite fills two hearts."):
+                                text _("Their favourite fills two hearts. 3 hearts: +1 ticket. 5 hearts: +3 tickets."):
                                     size 16
                                     color "#8888a0"
                                     font GFONT
