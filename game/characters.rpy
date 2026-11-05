@@ -42,16 +42,39 @@ init -2 python:
                 fit_first=True)
         return Transform(shadow, function=IdleAnim(tag))
 
+    ART_FILES = {"sebastian": "sebastion"}
+    ART_PENDING = {"kimmy"}
+
+    def own_art(tag):
+        if tag in ART_PENDING:
+            return None
+        path = "images/%s_neutral.png" % ART_FILES.get(tag, tag)
+        if renpy.loadable(path):
+            return path, renpy.image_size(path)[1]
+        return None
+
+    def portrait(tag, name, fallback, color, scale=1.0):
+        art = own_art(tag)
+        if art:
+            return sprite(tag, *art, scale=scale)
+        return silhouette(tag, name, *fallback, color=color, scale=scale)
+
+    MONSTER_TINT = TintMatrix("#ff7a6a") * SaturationMatrix(0.35) * BrightnessMatrix(-0.18)
+
+    def monster(tag, base, fallback, color, scale=1.0):
+        art = own_art(base)
+        if art:
+            path, src_h = art
+            return Transform(Transform(_scaled(path, src_h, scale), matrixcolor=MONSTER_TINT),
+                             function=IdleAnim(tag))
+        return silhouette(tag, "", *fallback, color=color, scale=scale, label=False)
+
 define LOUIS_PNG       = ("images/louis_neutral.png", 1323)
 define FEDORA_PNG      = ("images/fedora_neutral.png", 1314)
 define DOROTHY_PNG     = ("images/dorothy_neutral.png", 1305)
 define DOROTHY_SAD_PNG = ("images/dorothy_sad.png", 1298)
 define SHUNYU_PNG      = ("images/shunyu_neutral.png", 1341)
 define ICHORA_PNG      = ("images/ichora_neutral.png", 1288)
-define EDUARD_PNG      = ("images/eduard_neutral.png", 1477)
-define SEBASTION_PNG   = ("images/sebastion_neutral.png", 1384)
-define MISHA_PNG       = ("images/misha_neutral.png", 1067)
-define ALEXANDER_PNG   = ("images/alexander_neutral.png", 1352)
 
 
 image louis neutral        = sprite("louis", *LOUIS_PNG)
@@ -73,24 +96,24 @@ image shunyu excited = sprite("shunyu", *SHUNYU_PNG)
 image ichora neutral = sprite("ichora", *ICHORA_PNG)
 
 
-image eduard neutral    = silhouette("eduard", "Eduard", *EDUARD_PNG, color="#3b2a20")
-image kimmy neutral     = silhouette("kimmy", "Kimmy", *DOROTHY_PNG, color="#4a2026")
-image himmel neutral    = silhouette("himmel", "Himmel", *DOROTHY_PNG, color="#203040")
-image sebastian neutral = silhouette("sebastian", "Sebastian", *SEBASTION_PNG, color="#202428")
-image misha neutral     = silhouette("misha", "Misha", *MISHA_PNG, color="#2a3a2a", scale=0.72)
-image misha stares      = silhouette("misha", "Misha", *MISHA_PNG, color="#2a3a2a", scale=0.72)
-image agatha neutral    = silhouette("agatha", "Agatha", *FEDORA_PNG, color="#2a3438")
-image pattison neutral  = silhouette("pattison", "Pattison", *LOUIS_PNG, color="#30283a")
-image alexander neutral = silhouette("alexander", "Alexander", *ALEXANDER_PNG, color="#3a3a1e")
+image eduard neutral    = portrait("eduard", "Eduard", LOUIS_PNG, "#3b2a20")
+image kimmy neutral     = portrait("kimmy", "Kimmy", DOROTHY_PNG, "#4a2026")
+image himmel neutral    = portrait("himmel", "Himmel", DOROTHY_PNG, "#203040")
+image sebastian neutral = portrait("sebastian", "Sebastian", LOUIS_PNG, "#202428")
+image misha neutral     = portrait("misha", "Misha", LOUIS_PNG, "#2a3a2a", scale=0.72)
+image misha stares      = portrait("misha", "Misha", LOUIS_PNG, "#2a3a2a", scale=0.72)
+image agatha neutral    = portrait("agatha", "Agatha", FEDORA_PNG, "#2a3438")
+image pattison neutral  = portrait("pattison", "Pattison", LOUIS_PNG, "#30283a")
+image alexander neutral = portrait("alexander", "Alexander", LOUIS_PNG, "#3a3a1e")
 
 image shunyu_monster neutral = At(
-    silhouette("shunyu_monster", "", *SHUNYU_PNG, color="#2a0c18", scale=1.08, label=False),
+    monster("shunyu_monster", "shunyu", SHUNYU_PNG, "#2a0c18", scale=1.08),
     monster_shudder, monster_glow)
 image himmel_monster neutral = At(
-    silhouette("himmel_monster", "", *LOUIS_PNG, color="#0c1e24", scale=1.04, label=False),
+    monster("himmel_monster", "himmel", LOUIS_PNG, "#0c1e24", scale=1.04),
     monster_shudder, monster_glow)
 image conductor_monster neutral = At(
-    silhouette("conductor_monster", "", *DOROTHY_PNG, color="#1a0606", scale=1.18, label=False),
+    monster("conductor_monster", "dorothy", DOROTHY_PNG, "#1a0606", scale=1.18),
     distortion_warp, monster_glow)
 
 

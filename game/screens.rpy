@@ -206,9 +206,10 @@ transform key_drop:
     rotate 0
     pause 0.4
     ease 1.1 yoffset 0
+    easeout 0.8 rotate 11
     block:
-        ease 2.2 rotate 5
-        ease 2.2 rotate -5
+        ease 1.6 rotate -11
+        ease 1.6 rotate 11
         repeat
 
 transform key_static:
@@ -799,17 +800,24 @@ init python:
 
     KEY_CROP = (43, 903, 555, 1138)
     KEY_RING_CX = 277
-    KEY_BAR = (0, 79)
 
     KEY_ZOOM = 0.257 * KEY_SCALE
     KEY_HANG = int(136 * KEY_SCALE)
 
-    KEY_STRING_H = int(KEY_HANG + (KEY_BAR[0] + KEY_BAR[1]) / 2.0 * KEY_ZOOM)
     KEY_IMG_X = -int(KEY_RING_CX * KEY_ZOOM)
     KEY_W = int(KEY_CROP[2] * KEY_ZOOM)
     KEY_H = int(KEY_CROP[3] * KEY_ZOOM)
 
     KEY_IMAGE = Transform(Transform("images/key.webp", crop=KEY_CROP), zoom=KEY_ZOOM)
+
+    # The string is wound tightly around the ring's top bar, which runs from
+    # the top of the key down to the top of the hole (78px in the key art).
+    KEY_BAR_BOTTOM = KEY_HANG + int(78 * KEY_ZOOM)
+    KEY_KNOT_Y = KEY_HANG - 3
+    KEY_COIL_TOP = KEY_HANG - 2
+    KEY_COIL_H = KEY_BAR_BOTTOM - KEY_COIL_TOP + 1
+    KEY_STRING_W = 1.5
+    KEY_COILS = (-2.25, -0.75, 0.75, 2.25)
 
     def _save_tag(d):
         d["save_version"] = SAVE_VERSION
@@ -1715,8 +1723,15 @@ screen main_menu():
             xysize (int(340 * KEY_SCALE), int(840 * KEY_SCALE))
             at (key_drop if not persistent.reduce_motion else key_static)
 
-            add Solid("#7a7a88", xsize=3, ysize=KEY_STRING_H):
+            add Solid("#7a7a88", xsize=absolute(KEY_STRING_W), ysize=KEY_KNOT_Y):
                 xalign 0.5
+
+            for cx in KEY_COILS:
+                add rbox("#4c4c58", KEY_STRING_W / 2):
+                    xysize (absolute(KEY_STRING_W), KEY_COIL_H + 2)
+                    xalign 0.5
+                    xoffset cx
+                    ypos KEY_COIL_TOP
 
             button:
                 background None
@@ -1727,6 +1742,18 @@ screen main_menu():
                 ypos KEY_HANG
                 action Function(key_poke)
                 add KEY_IMAGE
+
+            for i, cx in enumerate(KEY_COILS):
+                add rbox("#8a8a99" if i % 2 else "#73737f", KEY_STRING_W / 2):
+                    xysize (absolute(KEY_STRING_W), KEY_COIL_H)
+                    xalign 0.5
+                    xoffset cx
+                    ypos KEY_COIL_TOP
+
+            add rbox("#7a7a88", 2):
+                xysize (5, 4)
+                xalign 0.5
+                ypos KEY_KNOT_Y - 2
 
     $ rows = [(_("CONTINUE"), Function(continue_game), True), (_("NEW GAME"), Start(), False)]
     $ rows += [(_("LOAD GAME"), ShowMenu("load"), False),
