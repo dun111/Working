@@ -199,6 +199,9 @@ screen carriage_5_part2_map():
 
 label start:
     $ menu_music_filter_off()
+    if not persistent.tutorial_seen:
+        scene black
+        call screen tutorial_first
 
     $ in_loop = False
     scene Train station

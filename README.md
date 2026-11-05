@@ -1,6 +1,6 @@
 # Departure at 4:00
 
-![Version](https://img.shields.io/badge/Version-3.2%20Beta-yellow)
+![Version](https://img.shields.io/badge/Version-3.3%20Beta-yellow)
 ![Made with Ren'Py](https://img.shields.io/badge/Made%20with-Ren'Py-orange)
 ![Python](https://img.shields.io/badge/Python-3.x-blue)
 ![Genre](https://img.shields.io/badge/Genre-Mystery%20%7C%20Visual%20Novel-purple)
@@ -23,6 +23,8 @@ The builds are on the [Releases](../../releases) page.
 - **Windows / Linux:** download the `pc` zip, unzip it and run `Departure at 4.00.exe` (or `Departure at 4.00.sh` on Linux).
 
 ## How it plays
+
+The game opens with a short tutorial, and the full guide is under **HOW TO PLAY** on the main menu (or F1) any time.
 
 - Each carriage is a map. Click the people and objects on it to talk or look around.
 - Some conversations give you a choice, and some choices get you clues.

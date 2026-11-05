@@ -504,13 +504,6 @@ screen pixel_parade():
 
 define ENDING_VIDEO = "movies/ending_video.webm"
 
-define CREDITS_CORNER_TEXT = {
-    "eric": "PLACEHOLDER",
-    "hannah": "PLACEHOLDER",
-    "aydin": "PLACEHOLDER",
-    "ryan": "PLACEHOLDER",
-}
-
 default persistent.ending_video_seen = False
 default persistent.credits_clicked = set()
 default persistent.cast_called = set()
@@ -606,9 +599,6 @@ init python:
         if key == "eric":
             persistent.eric_clicks = (persistent.eric_clicks or 0) + 1
             secret_found("eric_scare")
-        note = CREDITS_CORNER_TEXT.get(key)
-        if note and note != "PLACEHOLDER":
-            renpy.notify(note)
         if len(persistent.credits_clicked) >= len(CREW):
             secret_found("credits_all", "credits_all")
 

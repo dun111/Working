@@ -1418,6 +1418,7 @@ define MENU_HELP = {
     "SETTINGS": _("Change the settings."),
     "ACHIEVEMENTS": _("Your achievements."),
     "EXTRAS": _("Endings, chapters, minigames and more."),
+    "HOW TO PLAY": _("A guide to everything in the game."),
     "CREDITS": _("Who made the game."),
     "QUIT": _("Close the game."),
 }
@@ -1495,9 +1496,10 @@ screen menu_tagline(xa=0.5, size=16):
 
 define CINE_X = 110
 define CINE_COL_W = 600
-define CINE_LOGO_W = 420
-define CINE_RAIL_H = 120
-define CINE_TRAIN_W = 220
+# Slightly smaller logo and train on shorter screens, so the whole board fits.
+define CINE_LOGO_W = (420 if config.screen_height >= 1150 else 360)
+define CINE_RAIL_H = (120 if config.screen_height >= 1150 else 96)
+define CINE_TRAIN_W = (220 if config.screen_height >= 1150 else 176)
 
 init python:
     _LEFT_SHADE = []
@@ -1760,6 +1762,7 @@ screen main_menu():
                (_("SETTINGS"), ShowMenu("preferences"), False),
                (_("ACHIEVEMENTS"), ShowMenu("achievements"), False),
                (_("EXTRAS"), ShowMenu("extras_menu"), False),
+               (_("HOW TO PLAY"), ShowMenu("help"), False),
                (_("CREDITS"), ShowMenu("about"), False)]
     if renpy.variant("pc"):
         $ rows.append((_("QUIT"), Quit(confirm=True), False))
@@ -1868,6 +1871,7 @@ screen main_menu():
                             use menu_entry(_("SETTINGS"), ShowMenu("preferences"), 0.48)
                             use menu_entry(_("ACHIEVEMENTS"), ShowMenu("achievements"), 0.56)
                             use menu_entry(_("EXTRAS"), ShowMenu("extras_menu"), 0.60)
+                            use menu_entry(_("HOW TO PLAY"), ShowMenu("help"), 0.62)
                             use menu_entry(_("CREDITS"), ShowMenu("about"), 0.64)
                             if renpy.variant("pc"):
                                 use menu_entry(_("QUIT"), Quit(confirm=True), 0.72)
@@ -2435,6 +2439,7 @@ screen game_menu_nav():
                 (_("PASSENGERS"), ShowMenu("manifest")),
                 (_("ACHIEVEMENTS"), ShowMenu("achievements")),
                 (_("SETTINGS"), ShowMenu("preferences")),
+                (_("HOW TO PLAY"), ShowMenu("help")),
                 (_("MAIN MENU"), MainMenu()),
             ]:
                 button:
@@ -3401,61 +3406,6 @@ screen ending_card(label_text, title, subtitle):
         background None
         action Return()
     key "dismiss" action Return()
-
-
-screen help():
-    tag menu
-
-    $ back_action = ShowMenu("main_menu") if main_menu else Return()
-    key "game_menu" action back_action
-
-    use game_menu_overlay
-    use game_menu_nav
-
-    frame:
-        xsize config.screen_width
-        ysize config.screen_height
-        background None
-        padding (80, 60)
-        at fade_slide_in(0.0, xoff=-30)
-
-        vbox:
-            xsize (config.screen_width - 160)
-            spacing 20
-
-            use game_menu_header(_("HELP"))
-
-            vbox:
-                spacing 10
-                text _("Keyboard Controls"):
-                    color "#e6a817"
-                    font GFONT
-                text _("Enter / Space: Next line"):
-                    color "#ffffff"
-                    font GFONT
-                text _("Escape: Game menu"):
-                    color "#ffffff"
-                    font GFONT
-                text _("Ctrl: Hold to fast-forward"):
-                    color "#ffffff"
-                    font GFONT
-                text _("Tab: Toggle Skipping"):
-                    color "#ffffff"
-                    font GFONT
-                text _("Delete (over a save slot): Delete that save"):
-                    color "#ffffff"
-                    font GFONT
-                text _("Minigames: Space, and Up/Down for the engine"):
-                    color "#ffffff"
-                    font GFONT
-                text _("J: Open the clue journal"):
-                    color "#ffffff"
-                    font GFONT
-                text _("F5 / F8: Quick save / quick load"):
-                    color "#ffffff"
-                    font GFONT
-
-    use game_menu_back(back_action)
 
 
 screen confirm(message, yes_action, no_action):
