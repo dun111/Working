@@ -146,8 +146,12 @@ define CREDIT_STYLES = [
 
 define CREDIT_MUSIC = [
     ("Grekhov Theme", "Departure at 4:00"),
-    ("Rendezvous (Instrumental)", "Carriages 2 and 3"),
+    ("Carriage 1", "Departure at 4:00"),
     ("Let's All Do the Conga", "Colin Sheen"),
+    ("Rendezvous (Instrumental)", "Carriages 2 and 3"),
+    ("Part 2 Carriage 3", "Departure at 4:00"),
+    ("Carriage 4", "Departure at 4:00"),
+    ("Carriage 5", "Departure at 4:00"),
     ("Flower In A Hurricane", "Justice ft. Tame Impala, SZA, King Gizzard & the Lizard Wizard"),
 ]
 
