@@ -120,7 +120,7 @@ screen eric_surprise():
             alpha 0.7
             at credit_grow(decode_t + 0.8, 0.6)
 
-    timer total action [Hide("eric_surprise"), Function(eric_scare)]
+    timer total action [Hide("eric_surprise"), Function(secret_found, "eric_scare")]
 
 
 define DEBUG_POOL = [
@@ -134,7 +134,7 @@ define DEBUG_POOL = [
      2, _("This line isn't indented like the others.")),
     (["$ clues = 3", "if clues = 3:", "    jump accusation_scene", "else:", "    jump carriage_5_hub"],
      1, _("Use == to compare, not =.")),
-    (["label carriage_6:", "    show screen dark_eyes", "    $ jumpscare(\"conductor\"", "    u \"Not me. Him.\""],
+    (["label carriage_6:", "    scene black", "    $ renpy.notify(\"Carriage 6\"", "    u \"Not me. Him.\""],
      2, _("The bracket is never closed.")),
     (["define l = Character(\"Louis\")", "label hello:", "    l \"Oh, I see.\"", "    retrun"],
      3, _("retrun should be return.")),
@@ -190,36 +190,6 @@ init python:
         if store.dbg_t <= 0:
             store.dbg_t = 0
             store.dbg_result = "lose"
-        renpy.restart_interaction()
-
-    def eric_scare():
-        if renpy.get_screen("eric_jumpscare"):
-            return
-        import time
-        _ESCARE.start = time.time()
-        _ESCARE.can_skip = False
-        renpy.music.set_volume(0.0, 0.05, channel="music")
-        renpy.show_screen("eric_jumpscare")
-
-    class _ESCARE(object):
-        start = 0.0
-        can_skip = False
-
-    def eric_scare_tick():
-        import time
-        t = time.time() - _ESCARE.start
-        if t >= ES_DARK + 0.3 and not _ESCARE.can_skip:
-            _ESCARE.can_skip = True
-            renpy.restart_interaction()
-        if t >= ES_DARK + ES_HOLD:
-            eric_scare_end()
-
-    def eric_scare_end():
-        if not renpy.get_screen("eric_jumpscare"):
-            return
-        renpy.hide_screen("eric_jumpscare")
-        renpy.music.set_volume(1.0, 1.5, channel="music")
-        secret_found("eric_scare")
         renpy.restart_interaction()
 
 screen mg_debug():
@@ -502,96 +472,6 @@ screen ryan_surprise():
                                     at crumb(chomp + 0.12 + b * 0.24, ((c - 1) * 60) + (b - 1) * 15, 40 + c * 25)
 
     timer total action Hide("ryan_surprise")
-
-
-define ES_DARK = 2.6
-define ES_HOLD = 1.1
-
-transform es_eyes_far:
-    xalign 0.5
-    yalign 0.42
-    alpha 0.0
-    zoom 0.25
-    pause 0.9
-    linear 0.4 alpha 1.0
-    parallel:
-        linear (ES_DARK - 1.3) zoom 0.55
-    parallel:
-        pause 0.6
-        alpha 0.0
-        pause 0.12
-        alpha 1.0
-        pause 0.5
-        linear 0.05 alpha 0.0
-        pause 0.08
-        alpha 1.0
-
-transform es_lunge:
-    xanchor 0.5
-    yanchor 0.42
-    xpos 0.5
-    ypos 0.5
-    zoom 0.5
-    alpha 0.0
-    pause ES_DARK
-    alpha 1.0
-    easein 0.1 zoom 3.4
-    block:
-        linear 0.025 xoffset 26 yoffset -14
-        linear 0.025 xoffset -24 yoffset 16
-        linear 0.025 xoffset 18 yoffset 10
-        linear 0.025 xoffset -20 yoffset -12
-        repeat
-
-transform es_red:
-    alpha 0.0
-    pause ES_DARK
-    block:
-        alpha 0.55
-        pause 0.06
-        alpha 0.15
-        pause 0.05
-        alpha 0.45
-        pause 0.08
-        alpha 0.1
-        pause 0.06
-        repeat
-
-transform es_band(y, dx, delay):
-    ypos y
-    alpha 0.0
-    pause (ES_DARK + delay)
-    alpha 0.9
-    block:
-        linear 0.03 xoffset dx
-        linear 0.03 xoffset (-dx)
-        alpha 0.0
-        pause 0.07
-        alpha 0.9
-        repeat
-
-screen eric_jumpscare():
-    modal True
-    zorder 400
-    key "game_menu" action Function(eric_scare_end)
-    add Solid("#000000")
-    fixed:
-        xysize (1, 1)
-        at es_eyes_far
-        add _eye(-46, 0, 46, 16)
-        add _eye(46, 0, 46, 16)
-    add SCARE_FACES["passenger"] at es_lunge
-    add Solid("#6a0000") at es_red
-    for k, (y, dx) in enumerate([(0.18, 60), (0.41, -90), (0.57, 120), (0.76, -70), (0.9, 40)]):
-        add Solid("#000000"):
-            xysize (config.screen_width, 40 + k * 9)
-            at es_band(y, dx, k * 0.04)
-    timer 0.1 repeat True action Function(eric_scare_tick)
-    if _ESCARE.can_skip:
-        button:
-            xysize (config.screen_width, config.screen_height)
-            background None
-            action Function(eric_scare_end)
 
 
 define CREDIT_STYLES = [

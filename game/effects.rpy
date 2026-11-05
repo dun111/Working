@@ -51,33 +51,5 @@ init -2 python:
         return Transform(path, fit="cover", xysize=(GAME_W, GAME_H), **kwargs)
 
 
-init python:
-    def _pill(color, w, h):
-        return Transform(rbox(color, h // 2), xysize=(int(w), int(h)))
-
-    def _eye(x, y, w=34, h=12):
-        layers = [
-            ("#ff1a0a", 3.4, 4.2, 0.10),
-            ("#ff1a0a", 2.4, 2.8, 0.18),
-            ("#ff2a10", 1.6, 1.8, 0.35),
-            ("#ff3a1a", 1.0, 1.0, 1.0),
-            ("#ffe0d0", 0.45, 0.45, 1.0),
-        ]
-        kids = []
-        for col, sw, sh, al in layers:
-            kids.append(At(Transform(_pill(col, w * sw, h * sh), alpha=al),
-                           Transform(xcenter=x, ycenter=y)))
-        return Fixed(*kids, xysize=(1, 1))
-
-    def scare_face(path, crop, eyes):
-        shadow = Transform(path, crop=crop, matrixcolor=flat_color("#120206"))
-        return Fixed(shadow, *[_eye(x, y) for x, y in eyes], xysize=crop[2:], fit_first=False)
-
-    SCARE_FACES = {
-        "passenger": scare_face("images/louis_neutral.png", (150, 0, 480, 560), [(205, 232), (310, 232)]),
-        "conductor": scare_face("images/dorothy_neutral.png", (90, 0, 400, 540), [(133, 220), (238, 220)]),
-    }
-
-
 define config.default_textshader = "typewriter"
 
