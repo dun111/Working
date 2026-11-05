@@ -757,20 +757,12 @@ init python:
 
     def credits_click(key):
         persistent.credits_clicked = set(persistent.credits_clicked) | set([key])
-        c = [x for x in CREW if x["key"] == key][0]
         if key == "eric":
             persistent.eric_clicks = (persistent.eric_clicks or 0) + 1
-            renpy.show_screen("eric_surprise")
-            renpy.notify(CREDITS_CORNER_TEXT["eric"])
-        elif key == "hannah":
-            renpy.show_screen("hannah_surprise")
-            renpy.notify(CREDITS_CORNER_TEXT["hannah"])
-        elif key == "aydin":
-            renpy.show_screen("aydin_surprise")
-            renpy.notify(CREDITS_CORNER_TEXT["aydin"])
-        elif key == "ryan":
-            renpy.show_screen("ryan_surprise")
-            renpy.notify(CREDITS_CORNER_TEXT["ryan"])
+            secret_found("eric_scare")
+        note = CREDITS_CORNER_TEXT.get(key)
+        if note and note != "PLACEHOLDER":
+            renpy.notify(note)
         if len(persistent.credits_clicked) >= len(CREW):
             secret_found("credits_all", "credits_all")
 
