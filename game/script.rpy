@@ -1017,11 +1017,9 @@ label c3_p2_interact_carpet:
         l "This again... It was like this the first time too."
         "{i}He kneels, and this time, pulls at the loose edge.{/i}"
         call play_required("mg_pry", pry_reset) from _call_play_required_8
-        show clue_tile at tile_reveal
         "{i}Underneath, tucked flat against the floorboard, is a single mahjong tile - the exact match to the one missing from Shunyu's winning hand.{/i}"
         l "...No. No way."
         l "This was under Misha's carpet the whole time."
-        hide clue_tile with dissolve
         $ found_clue("clue_hidden_tile")
         $ achievement.grant("hidden_evidence")
     else:
