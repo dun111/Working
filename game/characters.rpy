@@ -32,17 +32,8 @@ init -2 python:
                        0, 0, 0, b,
                        0, 0, 0, 1])
 
-    def silhouette(tag, name, path, src_h, color, scale=1.0, label=True):
-        shadow = Transform(_scaled(path, src_h, scale), matrixcolor=flat_color(color))
-        if label:
-            shadow = Fixed(
-                shadow,
-                Text(name.upper(), font=GFONT, size=26, color="#ffffff66",
-                     xalign=0.5, yalign=0.82),
-                fit_first=True)
-        return Transform(shadow, function=IdleAnim(tag))
-
     ART_FILES = {"sebastian": "sebastion"}
+    # kimmy_neutral.png still has a solid grey background, so it isn't used until it's cut out.
     ART_PENDING = {"kimmy"}
 
     def own_art(tag):
@@ -53,21 +44,22 @@ init -2 python:
             return path, renpy.image_size(path)[1]
         return None
 
-    def portrait(tag, name, fallback, color, scale=1.0):
+    # Characters without their own sprite show nothing rather than a stand-in.
+    def portrait(tag, scale=1.0):
         art = own_art(tag)
         if art:
             return sprite(tag, *art, scale=scale)
-        return silhouette(tag, name, *fallback, color=color, scale=scale)
+        return Null()
 
     MONSTER_TINT = TintMatrix("#ff7a6a") * SaturationMatrix(0.35) * BrightnessMatrix(-0.18)
 
-    def monster(tag, base, fallback, color, scale=1.0):
+    def monster(tag, base, scale=1.0):
         art = own_art(base)
         if art:
             path, src_h = art
             return Transform(Transform(_scaled(path, src_h, scale), matrixcolor=MONSTER_TINT),
                              function=IdleAnim(tag))
-        return silhouette(tag, "", *fallback, color=color, scale=scale, label=False)
+        return Null()
 
 define LOUIS_PNG       = ("images/louis_neutral.png", 1323)
 define FEDORA_PNG      = ("images/fedora_neutral.png", 1314)
@@ -96,24 +88,24 @@ image shunyu excited = sprite("shunyu", *SHUNYU_PNG)
 image ichora neutral = sprite("ichora", *ICHORA_PNG)
 
 
-image eduard neutral    = portrait("eduard", "Eduard", LOUIS_PNG, "#3b2a20")
-image kimmy neutral     = portrait("kimmy", "Kimmy", DOROTHY_PNG, "#4a2026")
-image himmel neutral    = portrait("himmel", "Himmel", DOROTHY_PNG, "#203040")
-image sebastian neutral = portrait("sebastian", "Sebastian", LOUIS_PNG, "#202428")
-image misha neutral     = portrait("misha", "Misha", LOUIS_PNG, "#2a3a2a", scale=0.72)
-image misha stares      = portrait("misha", "Misha", LOUIS_PNG, "#2a3a2a", scale=0.72)
-image agatha neutral    = portrait("agatha", "Agatha", FEDORA_PNG, "#2a3438")
-image pattison neutral  = portrait("pattison", "Pattison", LOUIS_PNG, "#30283a")
-image alexander neutral = portrait("alexander", "Alexander", LOUIS_PNG, "#3a3a1e")
+image eduard neutral    = portrait("eduard")
+image kimmy neutral     = portrait("kimmy")
+image himmel neutral    = portrait("himmel")
+image sebastian neutral = portrait("sebastian")
+image misha neutral     = portrait("misha", scale=0.72)
+image misha stares      = portrait("misha", scale=0.72)
+image agatha neutral    = portrait("agatha")
+image pattison neutral  = portrait("pattison")
+image alexander neutral = portrait("alexander")
 
 image shunyu_monster neutral = At(
-    monster("shunyu_monster", "shunyu", SHUNYU_PNG, "#2a0c18", scale=1.08),
+    monster("shunyu_monster", "shunyu", scale=1.08),
     monster_shudder, monster_glow)
 image himmel_monster neutral = At(
-    monster("himmel_monster", "himmel", LOUIS_PNG, "#0c1e24", scale=1.04),
+    monster("himmel_monster", "himmel", scale=1.04),
     monster_shudder, monster_glow)
 image conductor_monster neutral = At(
-    monster("conductor_monster", "dorothy", DOROTHY_PNG, "#1a0606", scale=1.18),
+    monster("conductor_monster", "dorothy", scale=1.18),
     distortion_warp, monster_glow)
 
 
