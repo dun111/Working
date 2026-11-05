@@ -3546,18 +3546,23 @@ transform stamp_slam:
     pause 1.7
     ease 0.5 alpha 0.0
 
+# Camera shake for the moving train: the view rocks and tilts all the time,
+# with a hard jolt over each rail joint every couple of seconds.
 transform train_rumble:
     xalign 0.5
     yalign 0.5
-    zoom 1.012
+    zoom 1.035
+    rotate 0
     block:
-        linear 0.06 xoffset -2 yoffset 1
-        linear 0.06 xoffset 2 yoffset -1
-        linear 0.06 xoffset -1 yoffset -1
-        linear 0.06 xoffset 2 yoffset 1
-        linear 0.06 xoffset -2 yoffset 0
-        linear 0.06 xoffset 0 yoffset 0
-        pause 6.0
+        block:
+            easein 0.10 xoffset 3 yoffset 4 rotate 0.15
+            easeout 0.10 xoffset 0 yoffset 0 rotate 0
+            easein 0.10 xoffset -3 yoffset 3 rotate -0.15
+            easeout 0.10 xoffset 0 yoffset 0 rotate 0
+            repeat 4
+        easeout 0.05 xoffset -6 yoffset 10 rotate -0.35
+        easein 0.09 xoffset 5 yoffset -5 rotate 0.25
+        easein 0.12 xoffset 0 yoffset 0 rotate 0
         repeat
 
 transform map_title_in:
