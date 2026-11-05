@@ -900,7 +900,6 @@ init -10 python:
         "autosave_on": True,
         "old_map": True,
         "show_objective": True,
-        "brightness": 0,
         "hotspot_labels": "always",
         "screen_shake_enabled": True,
         "rumble_extreme": False,
@@ -2632,21 +2631,6 @@ define PREF_TABS = [
 
 define TEXT_COLORS = {"light": "#e8e4dc", "white": "#ffffff", "yellow": "#ffe39a"}
 
-init python:
-    config.always_shown_screens.append("brightness_fx")
-
-    def brightness_label():
-        return {-2: _("DARKEST"), -1: _("DARKER"), 0: _("NORMAL"), 1: _("BRIGHTER"), 2: _("BRIGHTEST")}.get(persistent.brightness, _("NORMAL"))
-
-screen brightness_fx():
-    zorder 2000
-    $ b = persistent.brightness or 0
-    if b < 0:
-        add Solid("#000000", xysize=(config.screen_width, config.screen_height)):
-            alpha (-b * 0.16)
-    elif b > 0:
-        add Transform(Solid("#ffffff", xysize=(config.screen_width, config.screen_height)), alpha=b * 0.07, blend="add")
-
 
 screen preferences():
     tag menu
@@ -2915,17 +2899,6 @@ screen preferences():
                 vbox:
                     spacing 14
 
-                    use pref_row(_("SCREEN BRIGHTNESS"), _("Make the game lighter or darker."), 0.06):
-                        use pref_toggle("-", SetField(persistent, "brightness", max(-2, (persistent.brightness or 0) - 1)), selected=False, w=60)
-                        text brightness_label():
-                            yalign 0.5
-                            xminimum 160
-                            text_align 0.5
-                            size 18
-                            color "#e6a817"
-                            font GFONT
-                        use pref_toggle("+", SetField(persistent, "brightness", min(2, (persistent.brightness or 0) + 1)), selected=False, w=60)
-
                     use pref_row(_("HOTSPOT LABELS"), _("Labels on things you can click."), 0.12):
                         use pref_toggle(_("ALWAYS"), SetField(persistent, "hotspot_labels", "always"), selected=(persistent.hotspot_labels != "hover"), w=150)
                         use pref_toggle(_("ON HOVER"), SetField(persistent, "hotspot_labels", "hover"), selected=(persistent.hotspot_labels == "hover"), w=150)
@@ -2948,10 +2921,6 @@ screen preferences():
                     spacing 14
 
                     use pref_onoff(_("READABLE FONT"), _("Use a plainer font."), "readable_font", 0.12)
-
-                    use pref_row(_("SELF-VOICING"), _("Read the text aloud."), 0.18):
-                        use pref_toggle(_("ON"), Preference("self voicing", "enable"))
-                        use pref_toggle(_("OFF"), Preference("self voicing", "disable"))
 
                     text _("More options are in COMFORT and TEXT & SKIP."):
                         xsize PREF_PANEL_W

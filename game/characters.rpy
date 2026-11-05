@@ -1003,3 +1003,25 @@ screen gift_shop():
             text_hover_color "#ffffff"
             text_font GFONT
             action Hide("gift_shop")
+
+
+# ---------- LOOK OUTSIDE: a zoomed view of one of Carriage 1's windows ----------
+
+# One window of the Carriage 1 art, frame included (pixel art, so it's scaled with sharp pixels).
+define WINDOW_VIEW_CROP = (830, 225, 260, 190)
+
+image window_view_day = Transform("images/bg_carriage_1.webp", crop=WINDOW_VIEW_CROP, zoom=4.0, nearest=True)
+image window_view_night = Transform("images/bg_carriage_1.webp", crop=WINDOW_VIEW_CROP, zoom=4.0, nearest=True,
+                                    matrixcolor=TintMatrix("#3a4a8a") * SaturationMatrix(0.25) * BrightnessMatrix(-0.45))
+
+transform window_zoom_in:
+    alpha 0.0
+    zoom (1.0 if persistent.reduce_motion else 0.55)
+    easein 0.45 alpha 1.0 zoom 1.0
+
+screen window_view(dark=False):
+    add Solid("#000000c8") at window_zoom_in
+    add ("window_view_night" if dark else "window_view_day"):
+        xalign 0.5
+        ycenter 0.4
+        at window_zoom_in

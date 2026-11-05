@@ -283,7 +283,9 @@ label c1_fedora_dialogue:
     return
 
 label c1_interact_window:
+    show screen window_view
     "What a beautiful sight outside! You can see everything from this train!"
+    hide screen window_view with dissolve
     return
 
 
@@ -393,7 +395,9 @@ label c2_interact_window:
     $ window_looks += 1
     if window_looks == 5:
         $ secret_found("window", "window")
+    show screen window_view
     "What a beautiful sight outside! You can see everything from this train!"
+    hide screen window_view with dissolve
     return
 
 
@@ -734,7 +738,9 @@ label carriage_2_part2_hub:
     jump carriage_2_part2_hub
 
 label c2_p2_interact_window:
+    show screen window_view(dark=True)
     "Huh… It's dark.."
+    hide screen window_view with dissolve
     return
 
 label c2_p2_talk_eduard:
