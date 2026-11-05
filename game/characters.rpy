@@ -996,93 +996,26 @@ screen gift_shop():
             action Hide("gift_shop")
 
 
-# ---------- LOOK OUTSIDE: a full-screen, moving view out of the train window ----------
+# ---------- LOOK OUTSIDE: a zoomed view of one of Carriage 1's windows ----------
 
-# The main pane of one Carriage 1 window: clouds over green fields (pixel art).
-define WINDOW_PANE = (845, 283, 228, 117)
-define WINDOW_SKY = ["#405aae", "#4062b5", "#4071bc"]
-define WINDOW_WOOD = "#9c7157"
-define WINDOW_WOOD_DARK = "#8e634f"
-define WINDOW_GROUND = "#b1d440"
-define WINDOW_LOOP_SECS = 7.0
+# One window of the Carriage 1 art, frame included (pixel art, so it's scaled with sharp pixels).
+define WINDOW_VIEW_CROP = (830, 225, 260, 190)
 
-init python:
-    def window_strip():
-        # The pane, then a mirrored copy, repeated: the joins always match, so it scrolls forever.
-        # Whole-number zoom keeps the pixel edges sharp, with no seams where the copies meet.
-        z = max(1, int(config.screen_height * 0.5 / WINDOW_PANE[3]))
-        h = WINDOW_PANE[3] * z
-        pane = Transform("images/bg_carriage_1.webp", crop=WINDOW_PANE, zoom=z, nearest=True)
-        flip = Transform(pane, xzoom=-1.0)
-        w = int(WINDOW_PANE[2] * z)
-        return HBox(pane, flip, pane, flip, pane, flip), w * 2, h
+image window_view_day = Transform("images/bg_carriage_1.webp", crop=WINDOW_VIEW_CROP, zoom=4.0, nearest=True)
+image window_view_night = Transform("images/bg_carriage_1.webp", crop=WINDOW_VIEW_CROP, zoom=4.0, nearest=True,
+                                    matrixcolor=TintMatrix("#3a4a8a") * SaturationMatrix(0.25) * BrightnessMatrix(-0.45))
 
-    WINDOW_NIGHT = TintMatrix("#3a4a8a") * SaturationMatrix(0.25) * BrightnessMatrix(-0.45)
-
-transform window_open:
-    anchor (0.5, 0.5)
-    pos (0.5, 0.5)
+transform window_zoom_in:
     alpha 0.0
-    zoom (1.0 if persistent.reduce_motion else 0.35)
+    zoom (1.0 if persistent.reduce_motion else 0.55)
     easein 0.45 alpha 1.0 zoom 1.0
 
-transform window_scroll(pair_w):
-    xoffset 0
-    linear (WINDOW_LOOP_SECS * (2.0 if persistent.reduce_motion else 1.0)) xoffset (-pair_w)
-    repeat
-
-# The train chugging: the view bumps in a steady rhythm.
-transform train_chug:
-    yoffset 0
-    block:
-        easein 0.12 yoffset 6
-        easeout 0.16 yoffset 0
-        easein 0.12 yoffset 3
-        easeout 0.2 yoffset 0
-        pause 0.08
-        repeat
-
-transform window_tint(dark):
-    matrixcolor (WINDOW_NIGHT if dark else IdentityMatrix())
-
 screen window_view(dark=False):
-    $ sw, sh = config.screen_width, config.screen_height
-    $ strip, pair_w, strip_h = window_strip()
-    # Keep the fields just above the dialogue box; ground fills the rest.
-    $ sky_h = int(sh * 0.74) - strip_h
-    $ border = 56
-
-    fixed:
-        xysize (sw, sh)
-        at window_open, window_tint(dark)
-
-        fixed:
-            xysize (sw, sh)
-            at (Transform() if persistent.reduce_motion else train_chug)
-            for i, col in enumerate(WINDOW_SKY):
-                add Solid(col):
-                    ypos (-20 + i * (sky_h + 20) // len(WINDOW_SKY))
-                    xysize (sw, (sky_h + 20) // len(WINDOW_SKY) + 2)
-            add Solid(WINDOW_GROUND):
-                ypos (sky_h + strip_h - 4)
-                xysize (sw, sh - sky_h - strip_h + 24)
-            add strip:
-                ypos sky_h
-                at window_scroll(pair_w)
-
-        # the window frame, fixed in place around the view
-        add Solid(WINDOW_WOOD, xysize=(sw, border))
-        add Solid(WINDOW_WOOD, xysize=(sw, border)):
-            ypos (sh - border)
-        add Solid(WINDOW_WOOD, xysize=(border, sh))
-        add Solid(WINDOW_WOOD, xysize=(border, sh)):
-            xpos (sw - border)
-        add Solid(WINDOW_WOOD_DARK, xysize=(sw, 30)):
-            ypos (sky_h - 15)
-        add Solid(WINDOW_WOOD_DARK, xysize=(sw - 2 * border, 8)):
-            pos (border, border)
-        add Solid(WINDOW_WOOD_DARK, xysize=(8, sh - 2 * border)):
-            pos (border, border)
+    add Solid("#000000c8") at window_zoom_in
+    add ("window_view_night" if dark else "window_view_day"):
+        xalign 0.5
+        ycenter 0.4
+        at window_zoom_in
 
 
 # ---------- FULL-SCREEN POP: zooms in to fill the screen, gone after 2 seconds ----------
