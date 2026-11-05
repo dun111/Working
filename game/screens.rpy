@@ -908,9 +908,12 @@ init -10 python:
         "hardcore_minutes": 4,
         "reduce_motion": False,
     }
-    for _field, _value in SETTING_DEFAULTS.items():
-        if getattr(persistent, _field) is None:
-            setattr(persistent, _field, _value)
+    def apply_setting_defaults():
+        for field, value in SETTING_DEFAULTS.items():
+            if getattr(persistent, field) is None:
+                setattr(persistent, field, value)
+
+    apply_setting_defaults()
 
 init python:
 
@@ -926,6 +929,7 @@ init python:
         except Exception:
             pass
         persistent._clear(progress=True)
+        apply_setting_defaults()
         renpy.save_persistent()
         renpy.full_restart()
 

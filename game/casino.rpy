@@ -316,6 +316,15 @@ init python:
             store.rl_msg = (_("%d - YOU LOSE %d") % (n, staked))
         store.rl_bets = {}
 
+    def roulette_close():
+        # Never lose coins by leaving: finish a spin that's running, refund bets that were never spun.
+        if store.rl_spinning:
+            rl_land()
+        elif store.rl_bets:
+            rl_clear()
+        renpy.hide_screen("roulette")
+        renpy.restart_interaction()
+
     def rl_label(key, lab):
         amt = store.rl_bets.get(key, 0)
         return ("%s  (%d)" % (lab, amt)) if amt else lab
@@ -323,7 +332,7 @@ init python:
 screen roulette():
     modal True
     zorder 310
-    key "game_menu" action Hide("roulette")
+    key "game_menu" action Function(roulette_close)
     if rl_spinning:
         timer 0.08 repeat True action Function(rl_tick)
 
@@ -404,7 +413,7 @@ screen roulette():
                 spacing 20
                 use mg_btn(_("SPIN"), (Function(rl_spin) if (rl_bets and not rl_spinning) else None), w=240, h=64, size=26)
                 use rbtn(_("CLEAR BETS"), (Function(rl_clear) if (rl_bets and not rl_spinning) else None), w=220, h=64, r=20, size=20)
-                use rbtn(_("BACK"), (Hide("roulette") if not rl_spinning else None), w=160, h=64, r=20, size=20)
+                use rbtn(_("BACK"), (Function(roulette_close) if not rl_spinning else None), w=160, h=64, r=20, size=20)
 
 
 define HR_COLORS = ["#e0521f", "#3a6fd8", "#2e8b57", "#c9a21a", "#9b4fd0", "#d8d8e0"]
@@ -481,6 +490,13 @@ init python:
         else:
             store.hr_msg = (_("NO.%d WINS. YOURS CAME %s") % (w + 1, hr_place(store.hr_pick)))
 
+    def horses_close():
+        # Leaving mid-race runs the race to the end so the bet is still paid out.
+        while store.hr_running:
+            hr_tick()
+        renpy.hide_screen("horses")
+        renpy.restart_interaction()
+
     def hr_place(i):
         k = store.hr_order.index(i) + 1 if i in store.hr_order else len(HR_COLORS)
         return {1: _("1ST"), 2: _("2ND"), 3: _("3RD")}.get(k, _("%dTH") % k)
@@ -495,7 +511,7 @@ init python:
 screen horses():
     modal True
     zorder 310
-    key "game_menu" action Hide("horses")
+    key "game_menu" action Function(horses_close)
     if hr_running:
         timer HR_TICK repeat True action Function(hr_tick)
 
@@ -539,7 +555,7 @@ screen horses():
                     use mg_btn(_("NEXT RACE"), Function(horses_new_race), w=240, h=64, size=24)
                 else:
                     use mg_btn(_("START"), (Function(hr_start) if (hr_pick is not None and not hr_running) else None), w=240, h=64, size=26)
-                use rbtn(_("BACK"), (Hide("horses") if not hr_running else None), w=160, h=64, r=20, size=20)
+                use rbtn(_("BACK"), (Function(horses_close) if not hr_running else None), w=160, h=64, r=20, size=20)
 
 
 define CASINO_MJ_FEE = 20
@@ -671,6 +687,15 @@ init python:
             store.slot_msg = _("No luck.")
         secret_found("slots")
 
+    def slot_close():
+        # Closing mid-spin stops the reels on their results and pays out.
+        if any(store.slot_spinning):
+            store.slot_reels = list(_SLOT.final)
+            store.slot_spinning = [False, False, False]
+            _slot_payout()
+        renpy.hide_screen("slot_machine")
+        renpy.restart_interaction()
+
     def slot_refill():
         if not _SLOT.refilled and (persistent.coins or 0) < store.casino_bet:
             _SLOT.refilled = True
@@ -728,7 +753,7 @@ transform slot_tease_pulse:
 screen slot_machine():
     modal True
     zorder 310
-    key "game_menu" action Hide("slot_machine")
+    key "game_menu" action Function(slot_close)
     if any(slot_spinning):
         timer 0.07 repeat True action Function(slot_tick)
 
@@ -810,7 +835,7 @@ screen slot_machine():
                 use mg_btn((_("SPIN  (%d COINS)") % casino_bet), Function(slot_spin), w=320, h=70, size=26)
                 if (persistent.coins or 0) < casino_bet and not any(slot_spinning):
                     use rbtn(_("SPOT ME 20"), Function(slot_refill), w=240, h=70, r=22, size=22)
-                use rbtn(_("CLOSE"), Hide("slot_machine"), w=180, h=70, r=22, size=22)
+                use rbtn(_("CLOSE"), Function(slot_close), w=180, h=70, r=22, size=22)
 
             hbox:
                 xalign 0.5

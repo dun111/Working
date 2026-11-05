@@ -564,10 +564,14 @@ init python:
                     renpy.notify(_("The door costs %d coins. Look around for more.") % FARE)
                     return
                 store.fares_paid = store.fares_paid | set([lab])
+                # Coins are persistent but fares_paid isn't, so rolling back would charge the fare twice.
+                renpy.block_rollback()
         elif lab and lab not in store.coin_found:
             store.coin_found = store.coin_found | set([lab])
             give_coins(COIN_FIND)
             renpy.show_screen("coin_toast", COIN_FIND)
+            # Without this, rolling back and clicking again gives the same coins over and over.
+            renpy.block_rollback()
         return renpy.run(act)
 
     def bond(name):
