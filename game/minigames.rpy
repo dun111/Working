@@ -561,18 +561,20 @@ init python:
 
 transform jackpot_pop:
     alpha 0.0
-    zoom (1.5 if persistent.reduce_motion else 1.2)
-    easein 0.25 alpha 1.0 zoom 1.5
+    easein 0.25 alpha 1.0
     pause 2.2
     easeout 0.4 alpha 0.0
+
+# The art has 40px black bars top and bottom; crop them and cover the whole screen.
+define JACKPOT_ART = Transform("images/shunyu_jackpot.webp", crop=(0, 41, 959, 458))
 
 screen mahjong_jackpot():
     zorder 300
     button:
         xysize (config.screen_width, config.screen_height)
-        background Solid("#000000b0")
+        background None
         action Hide("mahjong_jackpot")
-        add "images/shunyu_jackpot.webp":
+        add full_cover(JACKPOT_ART):
             align (0.5, 0.5)
             at jackpot_pop
     timer 2.9 action Hide("mahjong_jackpot")
@@ -1305,29 +1307,39 @@ screen mg_pry():
 
         use mg_stats([_("Pulled: %d%%") % pr_prog, _("Tears: %d / %d") % (pr_tears, pry_tears_max())])
 
-        use mg_box(900, 460):
-            vbox:
-                xalign 0.5
-                spacing 22
-                text _("Pulled: %d%%") % pr_prog style "mg_small"
-                hbox:
+        if pr_result != "win":
+            use mg_box(900, 460):
+                vbox:
                     xalign 0.5
-                    use mg_meter(pr_prog, 100, w=700)
-                text _("Tension") style "mg_small"
-                hbox:
-                    xalign 0.5
-                    use mg_meter(pr_tension, 100, w=700, col=("#e0521f" if pr_tension > 70 else "#e6a817"))
-                null height 10
-                if pr_result is None:
+                    spacing 22
+                    text _("Pulled: %d%%") % pr_prog style "mg_small"
                     hbox:
                         xalign 0.5
-                        use mg_btn(_("PULL"), Function(pry_pull))
+                        use mg_meter(pr_prog, 100, w=700)
+                    text _("Tension") style "mg_small"
+                    hbox:
+                        xalign 0.5
+                        use mg_meter(pr_tension, 100, w=700, col=("#e0521f" if pr_tension > 70 else "#e6a817"))
+                    null height 10
+                    if pr_result is None:
+                        hbox:
+                            xalign 0.5
+                            use mg_btn(_("PULL"), Function(pry_pull))
 
         if pr_result == "win":
             use mg_end(_("DONE"), "win")
+            add "clue_tile":
+                xalign 0.5
+                ycenter 0.26
+                at tile_pop
         elif pr_result == "lose":
             use mg_end(_("This again..."), "lose")
 
+
+transform tile_pop:
+    alpha 0.0
+    zoom 0.85
+    easein 0.4 alpha 1.0 zoom 1.0
 
 default ev_cfg = ("", "", "", "clue_hidden_tile", "black")
 default ev_result = None
