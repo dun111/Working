@@ -701,15 +701,11 @@ image carriage_6_fog = At(Solid("#4a0a0a"), carriage_6_ambient)
 
 image black = Solid("#000000")
 image Train station = "talk_bg"
-init python:
-    def carriage_art(path):
-        return Fixed(Solid("#150d0d"), Transform(path, xysize=(DESIGN_W, DESIGN_H)), xysize=(DESIGN_W, DESIGN_H))
-
 image bg carriage_1 = themed(ConditionSwitch(
-    "in_loop", wide_bg(carriage_art("images/bg_carriage_1_passengers_part2.webp")),
-    "True", wide_bg(carriage_art("images/bg_carriage_1_passengers.webp"))))
+    "in_loop", map_bg("images/bg_carriage_1_passengers_part2.webp", 0.186, 0.805, ceiling="#8e634f"),
+    "True", map_bg("images/bg_carriage_1_passengers.webp", 0.186, 0.805)))
 
-image bg carriage_5 = themed(wide_bg("images/bg_carriage_5.webp"))
+image bg carriage_5 = themed(map_bg("images/bg_carriage_5.webp", 0.186, 0.805, floor="#3d3434"))
 
 image bg carriage_2 = themed(Solid("#2a2430"))
 image bg carriage_3 = themed(Solid("#242a30"))
@@ -954,10 +950,6 @@ init python:
         renpy.notify(_("Settings reset to defaults"))
         renpy.restart_interaction()
 
-    def set_fill_screen(on):
-        persistent.fill_screen = on
-        renpy.save_persistent()
-        renpy.quit(relaunch=True)
 
     def vol_pct(mixer):
         return "%d%%" % round(_preferences.get_volume(mixer) * 100)
@@ -2778,9 +2770,6 @@ screen preferences():
                             font GFONT
                         use rbtn("›", Function(theme_step, 1), w=56, h=44, r=14, size=24)
 
-                    use pref_row(_("FILL WIDE SCREENS"), _("Use the whole screen on wide monitors. The game restarts to apply it."), 0.0):
-                        use pref_toggle(_("ON"), (None if persistent.fill_screen is not False else Confirm(_("Restart the game now? Unsaved progress will be lost."), Function(set_fill_screen, True))), selected=(persistent.fill_screen is not False))
-                        use pref_toggle(_("OFF"), (None if persistent.fill_screen is False else Confirm(_("Restart the game now? Unsaved progress will be lost."), Function(set_fill_screen, False))), selected=(persistent.fill_screen is False))
                     use pref_onoff(_("MENU EFFECTS"), _("Lights and embers on the main menu."), "menu_fx", 0.18)
                     use pref_onoff(_("ACHIEVEMENT POPUPS"), _("Show a pop-up for new achievements."), "ach_toasts", 0.24)
 
