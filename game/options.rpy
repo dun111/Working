@@ -1,19 +1,21 @@
-define config.name = _("Working")
+define config.name = _("Departure at 4:00")
 
 
 define gui.show_name = True
 
 
-define config.version = "2.1 Beta"
+define config.version = "3.2 Beta"
 
 
 define gui.about = _p("""
 """)
 
 
-define build.name = "Working"
+define build.name = "DepartureAt4"
 
-define build.version = "2.1-beta"
+define build.executable_name = "Departure at 4.00"
+
+define build.version = "3.2-beta"
 
 
 define config.has_sound = True
@@ -33,7 +35,7 @@ default preferences.afm_time = 15
 define config.save_directory = "Working-1779927219"
 
 
-define config.window_icon = "gui/window_icon.png"
+define config.window_icon = "gui/window_icon_mac.png" if renpy.macintosh else "gui/window_icon.png"
 
 
 init python:

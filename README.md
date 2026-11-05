@@ -1,6 +1,6 @@
 # Departure at 4:00
 
-![Version](https://img.shields.io/badge/Version-2.1%20Beta-yellow)
+![Version](https://img.shields.io/badge/Version-3.2%20Beta-yellow)
 ![Made with Ren'Py](https://img.shields.io/badge/Made%20with-Ren'Py-orange)
 ![Python](https://img.shields.io/badge/Python-3.x-blue)
 ![Genre](https://img.shields.io/badge/Genre-Mystery%20%7C%20Visual%20Novel-purple)
@@ -19,7 +19,8 @@ The builds are on the [Releases](../../releases) page.
 - **Latest** is the normal public build.
 - **Pre-release (dev)** has the cheat menu on F9. It's for testing.
 
-Download the zip for your system (`pc` for Windows and Linux, `mac` for Mac), unzip it and run `Working.exe`, `Working.sh` or `Working.app`.
+- **Mac:** download the `.dmg`, open it and drag Departure at 4:00 into Applications.
+- **Windows / Linux:** download the `pc` zip, unzip it and run `Departure at 4.00.exe` (or `Departure at 4.00.sh` on Linux).
 
 ## How it plays
 

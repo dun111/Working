@@ -1,24 +1,27 @@
 define SONGS = {
     "main_menu":            ("music/grekhov_theme.mp3",               _("Grekhov Theme"),                 "Departure at 4:00"),
+    "carriage_1":           ("music/carriage_1_clip.mp3",         None,                               None),
+    "carriage_2":           ("music/lets_all_do_the_conga.m4a",   "Let's All Do the Conga",           "Colin Sheen"),
     "carriage_3":           ("music/rendezvous.opus",             "Rendezvous (Instrumental)",        "Carriages 2 and 3"),
-    "carriage_4":           ("music/lets_all_do_the_conga.m4a",              "Let's All Do the Conga",           "Colin Sheen"),
-    "carriage_5":           ("music/carriage_5_clip.mp3",              None,                               None),
+    "part2_carriage_3":     ("music/part2_carriage_3.mp3",        None,                               None),
+    "carriage_4":           ("music/carriage_4.mp3",              None,                               None),
+    "carriage_5":           ("music/carriage_5.mp3",              None,                               None),
     "flower_in_a_hurricane": ("music/flower_in_a_hurricane.opus", "Flower In A Hurricane", "Justice ft. Tame Impala, SZA, King Gizzard & the Lizard Wizard (GTA VI)"),
 }
 
 define config.main_menu_music_fadein = 2.0
 
-define SONG_ORDER = ["main_menu", "carriage_3", "carriage_4", "flower_in_a_hurricane"]
+define SONG_ORDER = ["main_menu", "carriage_2", "carriage_3", "flower_in_a_hurricane"]
 
 define MUSIC_FOR = {
-    "c1": ["main_menu"],
-    "c2": ["carriage_3"],
+    "c1": ["carriage_1"],
+    "c2": ["carriage_2"],
     "c3": ["carriage_3"],
     "c4": ["carriage_4"],
     "c5": ["carriage_5"],
     "part2": ["main_menu"],
     "part2_c2": ["carriage_3"],
-    "part2_c3": ["carriage_3"],
+    "part2_c3": ["part2_carriage_3"],
     "part2_c5": ["carriage_5"],
     "silence": None,
     "escape": ["main_menu"],
