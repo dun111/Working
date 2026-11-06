@@ -1583,12 +1583,21 @@ define MENU_TAGLINES = [
     "Now with 0% real maple sugar",
     "No refunds",
     "Ryan is still #####",
-    "Hannah drew all of this",
-    "Eric wrote the code. Sorry.",
-    "Aydin made a website",
     "Blackberries are still black",
     "Beta. Very beta.",
     "Larp music intensifies (again)",
+    # tips
+    "Tip: poke everything. Coins!",
+    "Tip: J for the journal. Use it.",
+    "Tip: M shows who you've met",
+    "Tip: search it all and the door's free",
+    "Tip: talk to everyone. Then again.",
+    "Tip: golden tickets hide in every carriage",
+    "Tip: F5 saves. You'll thank me.",
+    "Tip: favourite presents count double",
+    "Tip: the casino gives free coins daily",
+    "Tip: minigames wait. Read the rules.",
+    "Tip: the big 4:00 hides something",
 ]
 
 init python:
