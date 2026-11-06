@@ -199,18 +199,79 @@ init python:
 
     BOARD_CLOCK = DynamicDisplayable(_board_clock)
 
+# The key drops in, and its string snaps tight with a little bounce.
+# The swing itself is the pendulum below (KEY_SWING).
+define KEY_LAND = 1.5
+
 transform key_drop:
     transform_anchor True
     anchor (0.5, 0.0)
     yoffset -1400
-    rotate 0
     pause 0.4
-    ease 1.1 yoffset 0
-    easeout 0.8 rotate 11
-    block:
-        ease 1.6 rotate -11
-        ease 1.6 rotate 11
-        repeat
+    easein 1.1 yoffset 22
+    easeout 0.12 yoffset -8
+    easein 0.16 yoffset 0
+
+init python:
+    import math as _kmath, random as _krandom
+
+    class KeyPendulum(object):
+        # A small damped pendulum, stepped every frame: the key swings out wide
+        # when it lands, settles into a gentle sway the moving train keeps going,
+        # gets the odd jolt over a rail joint, and swings harder when clicked.
+        PERIOD = 2.8        # seconds for a full swing there and back
+        DAMPING = 0.38      # how quickly a big swing dies down
+        SWAY = 0.14         # radians the train keeps it swinging (about 6 degrees)
+        LANDING = 0.62      # push when the string snaps tight (about 15 degrees)
+        PUSH = 0.6          # push from a click
+
+        def __init__(self):
+            self.reset()
+
+        def reset(self):
+            self.theta = 0.0
+            self.omega = 0.0
+            self.last = None
+            self.landed = False
+            self.next_jolt = 4.0
+            self.pending = 0.0
+
+        def push(self):
+            self.pending += self.PUSH
+
+        def __call__(self, trans, st, at):
+            import time
+            now = time.time()
+            # Uses the real clock, so redrawing the menu never restarts the swing.
+            # A gap of over a second means the menu was left and reopened.
+            if self.last is None or now - self.last > 1.0:
+                self.reset()
+                self.start = now
+                self.last = now
+            dt = min(0.05, max(0.0, now - self.last))
+            self.last = now
+            t = now - self.start
+            w0 = 2 * _kmath.pi / self.PERIOD
+            if t >= KEY_LAND:
+                if not self.landed:
+                    self.landed = True
+                    self.omega = self.LANDING
+                if self.pending:
+                    # Push along the way it's already swinging.
+                    self.omega += self.pending * (1 if self.omega >= 0 else -1)
+                    self.pending = 0.0
+                if t >= self.next_jolt:
+                    self.omega += _krandom.uniform(-0.12, 0.12)
+                    self.next_jolt = t + _krandom.uniform(2.5, 5.5)
+                drive = self.SWAY * self.DAMPING * w0 * _kmath.sin(w0 * t)
+                for _i in range(4):
+                    h = dt / 4.0
+                    self.omega += (-w0 * w0 * _kmath.sin(self.theta) - self.DAMPING * self.omega + drive) * h
+                    self.theta += self.omega * h
+            trans.rotate = _kmath.degrees(self.theta)
+            return 0
+
+    KEY_SWING = KeyPendulum()
 
 transform key_static:
     anchor (0.5, 0.0)
@@ -1750,7 +1811,7 @@ screen main_menu():
             xpos 0.76
             ypos 0
             xysize (int(340 * KEY_SCALE), int(840 * KEY_SCALE))
-            at (key_drop if not persistent.reduce_motion else key_static)
+            at ((key_drop, Transform(function=KEY_SWING, transform_anchor=True, anchor=(0.5, 0.0))) if not persistent.reduce_motion else key_static)
 
             add Solid("#7a7a88", xsize=absolute(KEY_STRING_W), ysize=KEY_KNOT_Y):
                 xalign 0.5
@@ -3960,6 +4021,7 @@ init python:
             renpy.restart_interaction()
 
     def key_poke():
+        KEY_SWING.push()
         persistent.key_pokes = (persistent.key_pokes or 0) + 1
         n = persistent.key_pokes
         if n == 10:
