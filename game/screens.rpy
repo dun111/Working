@@ -1403,8 +1403,11 @@ label splashscreen:
     scene black
     $ renpy.pause(1.0, hard=True)
 
+    # "As I Was Saying" (grumpynora, 6-second edit): a hit at 0.25s as the logo
+    # appears, and the phrase ends at 4s as the video fades out. No fade-in, so
+    # the opening hit isn't lost; quieter than the old jingle because it's louder.
     show boot_video at boot_fade
-    play sound "music/studio_jingle.mp3" fadein 0.8 volume 0.7
+    play sound "audio/boot_jingle.mp3" volume 0.55
     pause 4.5
 
     scene black
