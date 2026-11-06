@@ -1,3 +1,4 @@
+default persistent.cheat_nuke = False
 default persistent.window_aspect = None
 default persistent.window_relaunched_for = None
 default persistent.window_relaunched_at = 0
@@ -89,7 +90,7 @@ init -2 python:
         renpy.save_persistent()
         renpy.quit(relaunch=True)
 
-    def map_bg(path, top, bottom, ceiling=None, floor=None, lamp=None, lamps=6, eerie=False):
+    def map_bg(path, top, bottom, ceiling=None, floor=None, lamp=None, lamps=6, eerie=False, backdrop=None):
         # Carriage art sits exactly where the hotspots expect it. Its picture has flat
         # dark bands above and below the carriage (top and bottom are where the carriage
         # starts and ends, as fractions of the picture's height), so the carriage's own
@@ -105,6 +106,9 @@ init -2 python:
         if ox > 0:
             tiny = Flatten(Transform(art, xysize=(64, 36)))
             parts.append(Transform(tiny, fit="cover", xysize=(GAME_W, GAME_H), matrixcolor=BrightnessMatrix(-0.22)))
+        if backdrop:
+            # For art with see-through gaps (e.g. a cut-out corner): fill them with a flat colour.
+            parts.append(Transform(Solid(backdrop), xysize=(w, h), pos=(ox, oy)))
         parts.append(Transform(art, pos=(ox, oy)))
         if oy + t > 0:
             above = Solid(ceiling) if ceiling else Transform(art, crop=(0, t, w, 2))
@@ -116,13 +120,12 @@ init -2 python:
             parts += map_ambience(ox, oy + t, w, oy + b, lamp, lamps, eerie)
         return Fixed(*parts, xysize=(GAME_W, GAME_H))
 
-    # ---------- Ambience on the carriage maps: lamp light, edge shadows, dust ----------
+    # ---------- Ambience on the carriage maps: edge shadows and dust ----------
     # Made only from shapes and effects (no pictures), so it sits under any ceiling or
     # floor art added later.
 
     def _glow(color, w, h, strength):
         # A soft pool of light: stacked rounded shapes, brightest in the middle.
-        # Many faint layers, so the edges blend smoothly instead of showing rings.
         kids = []
         n = 14
         for i in range(n):
@@ -148,14 +151,16 @@ init -2 python:
             _shade(GAME_W, int(ceil_y + 60), True),
             Transform(_shade(GAME_W, int(GAME_H - floor_y + 60), False), ypos=int(floor_y - 60)),
         ]
+        # NUKE (type "nuke" on the main menu, or F9 > TOOLS): the old lamp light, blown out to blinding.
         for i in range(lamps):
             cx = x0 + int(width * (i + 0.5) / lamps)
             pool = Fixed(
-                Transform(_glow(color, 520, 240, 1.0), pos=(-260, -120)),
-                Transform(_glow(color, 360, 600, 0.35), pos=(-180, 0)),
+                Transform(_glow(color, 900, 420, 3.0), pos=(-450, -210)),
+                Transform(_glow(color, 640, 1000, 1.5), pos=(-320, 0)),
                 xysize=(1, 1))
-            lit = At(pool, lamp_flicker(rng.uniform(0.0, 3.0), eerie))
-            parts.append(Transform(ConditionSwitch("persistent.reduce_motion", pool, "True", lit), pos=(cx, int(ceil_y))))
+            lit = At(pool, nuke_flicker(rng.uniform(0.0, 3.0), eerie))
+            glow = ConditionSwitch("persistent.reduce_motion", pool, "True", lit)
+            parts.append(Transform(ConditionSwitch("persistent.cheat_nuke", glow, "True", Null()), pos=(cx, int(ceil_y))))
         for i in range(14):
             speck = Solid("#fff2d6", xysize=(3, 3))
             moving = At(speck, dust_fall(rng.uniform(9.0, 15.0), rng.uniform(0.0, 9.0), rng.choice([20, 30, 45])))
@@ -168,20 +173,19 @@ init -2 python:
         return Transform(path, fit="cover", xysize=(GAME_W, GAME_H), **kwargs)
 
 
-# A lamp's light: steady, with the odd flicker. Eerie lamps flicker more often and deeper.
-transform lamp_flicker(d=0.0, eerie=False):
+# NUKE lamp light: flickers like a failing reactor.
+transform nuke_flicker(d=0.0, eerie=False):
     alpha 1.0
     pause d
     block:
-        pause (1.1 if eerie else 2.6)
-        linear 0.05 alpha 0.55
+        pause (0.6 if eerie else 1.2)
+        linear 0.05 alpha 0.4
         linear 0.06 alpha 1.0
-        pause (0.7 if eerie else 3.4)
-        linear 0.04 alpha (0.25 if eerie else 0.75)
+        pause 0.5
+        linear 0.04 alpha 0.2
         linear 0.08 alpha 1.0
-        pause (0.4 if eerie else 1.8)
-        ease 1.4 alpha 0.85
-        ease 1.4 alpha 1.0
+        ease 1.0 alpha 0.8
+        ease 1.0 alpha 1.0
         repeat
 
 # A dust speck drifting slowly down through the light.

@@ -77,8 +77,8 @@ screen tutorial_book(closing, first=False):
     $ title, lines = pages[page]
     $ last = page == len(pages) - 1
 
-    key "K_RIGHT" action (SetScreenVariable("page", page + 1) if not last else NullAction())
-    key "K_LEFT" action (SetScreenVariable("page", page - 1) if page > 0 else NullAction())
+    key "K_RIGHT" action (SetLocalVariable("page", page + 1) if not last else NullAction())
+    key "K_LEFT" action (SetLocalVariable("page", page - 1) if page > 0 else NullAction())
 
     frame:
         align (0.5, 0.5)
@@ -139,9 +139,9 @@ screen tutorial_book(closing, first=False):
             yalign 1.0
             spacing 12
             if page > 0:
-                use rbtn(_("BACK"), SetScreenVariable("page", page - 1), w=140, h=52, r=16, size=20)
+                use rbtn(_("BACK"), SetLocalVariable("page", page - 1), w=140, h=52, r=16, size=20)
             if not last:
-                use rbtn(_("NEXT"), SetScreenVariable("page", page + 1), w=160, h=52, r=16, size=20, bg="#8a4a22", hov="#b8631f", col="#f2e6d8", hcol="#ffffff")
+                use rbtn(_("NEXT"), SetLocalVariable("page", page + 1), w=160, h=52, r=16, size=20, bg="#8a4a22", hov="#b8631f", col="#f2e6d8", hcol="#ffffff")
             else:
                 use rbtn((_("START PLAYING") if first else _("DONE")), closing, w=(240 if first else 160), h=52, r=16, size=20, bg="#8a4a22", hov="#b8631f", col="#f2e6d8", hcol="#ffffff")
 

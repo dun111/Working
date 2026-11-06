@@ -86,11 +86,11 @@ screen carriage_2_map():
     use golden_ticket("c2", 1760, 880)
     use hs(DOOR_LEFT, Jump("carriage_1_hub"), "Carriage 1", "back")
     if not c2_talked_eduard:
-        use hs((350, 150, 180, 400), Call("c2_eduard_dialogue"), "Eduard", "talk")
+        use hs((1430, 355, 140, 150), Call("c2_eduard_dialogue"), "Eduard", "talk")
     if not c2_talked_shunyu:
-        use hs((850, 150, 180, 400), Call("c2_shunyu_dialogue"), "Shunyu", "talk", 0.05)
-    use hs((950, 620, 160, 160), Call("c2_interact_window"), "Window", delay=0.1)
-    use hs((1150, 620, 160, 160), Call("c2_interact_broken_glass"), "Broken glass", delay=0.15)
+        use hs((440, 550, 130, 170), Call("c2_shunyu_dialogue"), "Shunyu", "talk", 0.05)
+    use hs((555, 235, 225, 165), Call("c2_interact_window"), "Window", delay=0.1)
+    use hs((1000, 460, 100, 110), Call("c2_interact_broken_glass"), "Broken glass", delay=0.15)
     if c2_talked_eduard and c2_talked_shunyu:
         use hs(DOOR_RIGHT, Jump("carriage_3_start"), "Carriage 3", "door", 0.2)
 
@@ -131,11 +131,11 @@ screen carriage_5_map():
     use golden_ticket("c5", 1700, 560)
     use hs(DOOR_LEFT, Jump("carriage_4_hub"), "Carriage 4", "back")
     if not c5_talked_pattison:
-        use hs((250, 150, 220, 400), Call("c5_pattison_dialogue"), "Pattison", "talk")
+        use hs((200, 345, 125, 205), Call("c5_pattison_dialogue"), "Pattison", "talk")
     if not c5_talked_alexander:
-        use hs((700, 150, 220, 400), Call("c5_alexander_dialogue"), "Alexander", "talk", 0.05)
-    use hs((60, 290, 380, 200), Call("c5_interact_mail_room"), "Mail", delay=0.1)
-    use hs((920, 470, 500, 250), Call("c5_interact_luggage_room"), "Luggage room", delay=0.15)
+        use hs((1080, 645, 125, 165), Call("c5_alexander_dialogue"), "Alexander", "talk", 0.05)
+    use hs((120, 640, 360, 200), Call("c5_interact_mail_room"), "Mail", delay=0.1)
+    use hs((920, 470, 500, 170), Call("c5_interact_luggage_room"), "Luggage room", delay=0.15)
     if c5_talked_pattison and c5_talked_alexander:
         use hs(DOOR_RIGHT, Jump("c5_carriage6_door"), "Carriage 6", "door", 0.2)
 
@@ -190,9 +190,9 @@ screen carriage_5_part2_map():
     use golden_ticket("c5b", 90, 200)
     use hs(DOOR_LEFT, Jump("carriage_3_part2_hub"), "Carriage 3", "back")
     if not alexander_reinterviewed:
-        use hs((700, 150, 220, 400), Call("c5_p2_alexander_dialogue"), "Alexander", "talk")
+        use hs((1080, 645, 125, 165), Call("c5_p2_alexander_dialogue"), "Alexander", "talk")
     if alexander_reinterviewed and not pattison_reinterviewed:
-        use hs((250, 150, 220, 400), Call("c5_p2_pattison_dialogue"), "Pattison", "talk")
+        use hs((200, 345, 125, 205), Call("c5_p2_pattison_dialogue"), "Pattison", "talk")
     if alexander_reinterviewed and pattison_reinterviewed:
         use hs((1400, 200, 150, 400), Jump("accusation_scene"), "Time to decide", "decide", 0.1)
 

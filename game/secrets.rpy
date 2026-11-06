@@ -284,6 +284,7 @@ screen cheat_menu():
                             use cheat_btn(_("Screenshot"), [Hide("cheat_menu"), Screenshot()])
                             use cheat_btn(_("Mouse coordinates"), ToggleField(persistent, "dev_coords"), sel=persistent.dev_coords)
                             use cheat_btn(_("Every gamepass"), Function(dev_all_passes))
+                            use cheat_btn(_("NUKE (blinding carriage lights)"), Function(toggle_nuke), sel=persistent.cheat_nuke)
                             use cheat_btn(_("Debug game"), Function(play_minigame, "mg_debug", debug_reset))
                             if config.developer:
                                 use cheat_btn(_("Reload script"), Function(renpy.reload_script))
@@ -560,9 +561,17 @@ init python:
 
     SECRET_NOTES = SECRET_NOTES[:-1] + MORE_SECRET_NOTES + SECRET_NOTES[-1:]
 
-    SECRET_LETTERS = sorted(set(SECRET_LETTERS) | set("".join(n for n, _i, _l in CAST_CALLS)) | set("kanye") | set("40"))
+    SECRET_LETTERS = sorted(set(SECRET_LETTERS) | set("".join(n for n, _i, _l in CAST_CALLS)) | set("kanye") | set("40") | set("nuke"))
+
+    def toggle_nuke():
+        persistent.cheat_nuke = not persistent.cheat_nuke
+        renpy.notify(_("NUKE MODE ON") if persistent.cheat_nuke else _("Nuke mode off"))
+        renpy.restart_interaction()
 
     def more_secret_word(typed):
+        if typed.endswith("nuke"):
+            toggle_nuke()
+            return True
         if typed.endswith("400"):
             store.board_times = []
             renpy.show_screen("map_stamp", "4:00", _("GREKHOV EXPRESS"))
