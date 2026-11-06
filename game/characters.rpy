@@ -150,7 +150,7 @@ image talk to agatha    = "talk_bg"
 image talk to ichora    = "talk_bg"
 image talk to pattison  = "talk_mail"
 image talk to alexander = "talk_mail"
-image engine room       = "bg carriage_4"
+image engine room       = "bg carriage_5"
 
 
 image lights_dying:
