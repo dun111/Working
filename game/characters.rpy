@@ -54,6 +54,11 @@ init -2 python:
     MONSTER_TINT = TintMatrix("#ff7a6a") * SaturationMatrix(0.35) * BrightnessMatrix(-0.18)
 
     def monster(tag, base, scale=1.0):
+        # A monster with its own art (images/<tag>.png) uses it as drawn;
+        # otherwise it's the passenger's sprite, tinted red.
+        own = "images/%s.png" % tag
+        if renpy.loadable(own):
+            return sprite(tag, own, renpy.image_size(own)[1], scale=scale)
         art = own_art(base)
         if art:
             path, src_h = art

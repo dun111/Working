@@ -31,45 +31,105 @@ transform mg_pop:
     zoom 0.92
     easein 0.25 alpha 1.0 zoom 1.0
 
+transform mg_card_in:
+    alpha 0.0
+    yoffset (0 if persistent.reduce_motion else 24)
+    easein 0.3 alpha 1.0 yoffset 0
+
 screen mg_scene(title, hint="", bg="black", who=None, who_x=0.86, skippable=True, reward=True):
     modal True
     zorder 300
+
+    # Playtesters needed time to read the rules: the minigame (and its timers)
+    # doesn't start until the player presses START.
+    default mg_go = False
 
     add bg
     add Solid("#0000004a")
     if who:
         add who at mg_npc(who_x)
-    fixed:
-        pos (MAP_X0, MAP_Y0)
-        xysize (DESIGN_W, DESIGN_H)
-        transclude
+
+    if mg_go or persistent.cheat_autowin:
+        fixed:
+            pos (MAP_X0, MAP_Y0)
+            xysize (DESIGN_W, DESIGN_H)
+            transclude
+    else:
+        key "K_SPACE" action SetLocalVariable("mg_go", True)
+        key "K_RETURN" action SetLocalVariable("mg_go", True)
+        key "K_KP_ENTER" action SetLocalVariable("mg_go", True)
+        add Solid("#00000088")
+        frame:
+            align (0.5, 0.46)
+            xsize 1080
+            padding (60, 44)
+            background rbox("#0c0b09f4", 26)
+            at mg_card_in
+            vbox:
+                spacing 20
+                xfill True
+                text _("HOW TO PLAY"):
+                    size 20
+                    color "#c9a24a"
+                    font CREDIT_FONT
+                text title:
+                    size 50
+                    color "#ffd700"
+                    font GFONT
+                add Solid("#c9a24a55"):
+                    ysize 2
+                if hint:
+                    text hint:
+                        size 28
+                        line_spacing 10
+                        color "#e8e4dc"
+                        font say_font()
+                        xmaximum 960
+                if reward:
+                    text (_("WIN: +%d COINS") % MG_COIN_REWARD):
+                        size 20
+                        color "#ffd76a"
+                        font GFONT
+                null height 6
+                hbox:
+                    xfill True
+                    text _("Take your time. Nothing starts until you press START."):
+                        yalign 0.5
+                        size 18
+                        color "#8888a0"
+                        font GFONT
+                    fixed:
+                        xalign 1.0
+                        xysize (220, 64)
+                        use rbtn(_("START"), SetLocalVariable("mg_go", True), w=220, h=64, r=20, size=26, bg="#8a4a22", hov="#b8631f", col="#f2e6d8", hcol="#ffffff")
 
     if persistent.cheat_autowin:
         timer 0.05 action Return("win")
 
-    frame:
-        pos (40, 36)
-        padding (26, 16)
-        background rbox("#0a0a0ecc", 22)
-        at mg_hud_in
-        vbox:
-            spacing 4
-            text title:
-                size 28
-                color "#ffd700"
-                font GFONT
-            if hint:
-                text hint:
-                    size 21
-                    line_spacing 6
-                    color "#e8e4dc"
-                    font say_font()
-                    xmaximum 820
-            if reward:
-                text (_("WIN: +%d COINS") % MG_COIN_REWARD):
-                    size 18
-                    color "#ffd76a"
+    if mg_go:
+        frame:
+            pos (40, 36)
+            padding (26, 16)
+            background rbox("#0a0a0ecc", 22)
+            at mg_hud_in
+            vbox:
+                spacing 4
+                text title:
+                    size 28
+                    color "#ffd700"
                     font GFONT
+                if hint:
+                    text hint:
+                        size 21
+                        line_spacing 6
+                        color "#e8e4dc"
+                        font say_font()
+                        xmaximum 820
+                if reward:
+                    text (_("WIN: +%d COINS") % MG_COIN_REWARD):
+                        size 18
+                        color "#ffd76a"
+                        font GFONT
 
     if skippable and persistent.mg_skip_allowed:
         fixed:
