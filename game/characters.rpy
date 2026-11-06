@@ -50,21 +50,11 @@ init -2 python:
             return sprite(tag, *art, scale=scale)
         return Null()
 
-    MONSTER_TINT = TintMatrix("#ff7a6a") * SaturationMatrix(0.35) * BrightnessMatrix(-0.18)
+    def monster(tag, scale=1.0):
+        # Every monster uses the Shunyu monster art.
+        return sprite(tag, MONSTER_PNG, renpy.image_size(MONSTER_PNG)[1], scale=scale)
 
-    def monster(tag, base, scale=1.0):
-        # A monster with its own art (images/<tag>.png) uses it as drawn;
-        # otherwise it's the passenger's sprite, tinted red.
-        own = "images/%s.png" % tag
-        if renpy.loadable(own):
-            return sprite(tag, own, renpy.image_size(own)[1], scale=scale)
-        art = own_art(base)
-        if art:
-            path, src_h = art
-            return Transform(Transform(_scaled(path, src_h, scale), matrixcolor=MONSTER_TINT),
-                             function=IdleAnim(tag))
-        return Null()
-
+define MONSTER_PNG = "images/shunyu_monster.png"
 define LOUIS_PNG       = ("images/louis_neutral.png", 1323)
 define FEDORA_PNG      = ("images/fedora_neutral.png", 1314)
 define DOROTHY_PNG     = ("images/dorothy_neutral.png", 1305)
@@ -103,13 +93,13 @@ image pattison neutral  = portrait("pattison")
 image alexander neutral = portrait("alexander")
 
 image shunyu_monster neutral = At(
-    monster("shunyu_monster", "shunyu", scale=1.08),
+    monster("shunyu_monster", scale=1.08),
     monster_shudder, monster_glow)
 image himmel_monster neutral = At(
-    monster("himmel_monster", "himmel", scale=1.04),
+    monster("himmel_monster", scale=1.08),
     monster_shudder, monster_glow)
 image conductor_monster neutral = At(
-    monster("conductor_monster", "dorothy", scale=1.18),
+    monster("conductor_monster", scale=1.08),
     distortion_warp, monster_glow)
 
 
