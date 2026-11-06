@@ -120,10 +120,10 @@ screen carriage_4_map():
     use golden_ticket("c4", 420, 860)
     use hs(DOOR_LEFT, Jump("carriage_3_hub"), "Carriage 3", "back")
     if not c4_talked_agatha:
-        use hs((250, 150, 220, 400), Call("c4_agatha_dialogue"), "Agatha", "talk")
+        use hs((585, 345, 140, 230), Call("c4_agatha_dialogue"), "Agatha", "talk")
     if not c4_talked_ichora:
-        use hs((700, 150, 220, 400), Call("c4_ichora_dialogue"), "Ichora", "talk", 0.05)
-    use hs((950, 620, 160, 160), Call("c4_interact_syringe"), "Syringe", delay=0.1)
+        use hs((1630, 380, 140, 195), Call("c4_ichora_dialogue"), "Ichora", "talk", 0.05)
+    use hs((740, 400, 180, 110), Call("c4_interact_syringe"), "Syringe", delay=0.1)
     if c4_talked_agatha and c4_talked_ichora:
         use hs(DOOR_RIGHT, Jump("carriage_5_start"), "Carriage 5", "door", 0.15)
 

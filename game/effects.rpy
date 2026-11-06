@@ -93,7 +93,7 @@ init -2 python:
         renpy.save_persistent()
         renpy.quit(relaunch=True)
 
-    def map_bg(path, top, bottom, ceiling=None, floor=None, lamp=None, lamps=6, eerie=False, backdrop=None):
+    def map_bg(path, top, bottom, ceiling=None, floor=None, lamp=None, lamps=6, eerie=False, backdrop=None, nearest=False):
         # Carriage art sits exactly where the hotspots expect it. Its picture has flat
         # dark bands above and below the carriage (top and bottom are where the carriage
         # starts and ends, as fractions of the picture's height), so the carriage's own
@@ -102,7 +102,7 @@ init -2 python:
         # things in them (drips, a dark corner) that would turn into stripes.
         w, h = map_wh(DESIGN_W, DESIGN_H)
         ox, oy = map_xy(0, 0)
-        art = Transform(path, xysize=(w, h))
+        art = Transform(path, xysize=(w, h), nearest=nearest)
         t = int(h * top) + 3
         b = int(h * bottom) - 3
         parts = []
