@@ -202,6 +202,8 @@ label start:
     if not persistent.tutorial_seen:
         scene black
         call screen tutorial_first
+        # Reading the tutorial shouldn't use up hardcore time.
+        $ hc = HardcoreClock(persistent.hardcore)
 
     $ in_loop = False
     scene Train station

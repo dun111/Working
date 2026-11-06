@@ -1481,17 +1481,28 @@ label splashscreen:
     # the dark before the logo appears, its strongest beat lands on the logo
     # reveal, and its final note on the dot and squirt (see BOOT_JINGLE_AT).
     # Everything waits on the video itself, so a slow load can't throw it off.
+    # A click skips the intro, as it always has.
     show boot_video at boot_fade
-    $ _boot_wait = 0.0
-    while (boot_video_pos() or 0.0) < BOOT_JINGLE_AT and _boot_wait < 3.0:
-        $ renpy.pause(0.01, hard=True)
-        $ _boot_wait += 0.01
-    play sound "audio/boot_jingle.mp3" volume 0.55
-    # Hold until the video has played to its end, rather than on a fixed timer.
-    $ _boot_wait = 0.0
-    while (boot_video_pos() is not None or _boot_wait < 1.0) and _boot_wait < 7.0:
-        $ renpy.pause(0.05, hard=True)
-        $ _boot_wait += 0.05
+    python:
+        _boot_skip = False
+        _boot_wait = 0.0
+        while (boot_video_pos() or 0.0) < BOOT_JINGLE_AT and _boot_wait < 3.0:
+            if renpy.pause(0.01):
+                _boot_skip = True
+                break
+            _boot_wait += 0.01
+    if not _boot_skip:
+        play sound "audio/boot_jingle.mp3" volume 0.55
+        # Hold until the video has played to its end, rather than on a fixed timer.
+        python:
+            _boot_wait = 0.0
+            while (boot_video_pos() is not None or _boot_wait < 1.0) and _boot_wait < 7.0:
+                if renpy.pause(0.05):
+                    _boot_skip = True
+                    break
+                _boot_wait += 0.05
+    if _boot_skip:
+        stop sound fadeout 0.3
 
     scene black
     $ renpy.pause(1.5, hard=True)
