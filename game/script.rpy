@@ -1265,7 +1265,7 @@ label accusation_scene:
     pause 1.0
     scene black with dissolve
     "The train lurches. Every character you spoke to gathers: Eduard behind his bar, Agatha with her kit, Dorothy clutching her ticket punch, Fedora with her notepad ready, Pattison murmuring at the doorway, Alexander shaking in the corner, Kimmy and Himmel arm in arm, Sebastian standing protectively in front of Misha."
-    scene bg carriage_5 with dissolve
+    scene accusation_bg with dissolve
     show fedora neutral at speaker_focus(xalign=0.9)
     f "Well? You've had your little investigation. Who's it going to be, matchstick?"
     show fedora neutral at speaker_background(xalign=0.9)

@@ -128,6 +128,8 @@ image talk_bar = talk_backdrop("images/bg_bar.webp")
 image talk_sleeper = talk_backdrop("images/bg_sleeper.webp")
 image talk_mail = talk_backdrop("images/bg_mail_cart.webp")
 image shunyu_dead = full_cover("images/shunyu_dead.webp")
+# The accusation happens at the crime scene: the Carriage 2 Part 2 map, softened so the speakers stand out.
+image accusation_bg = Fixed(Transform("bg carriage_2", blur=6), Solid("#0a0a0e70"))
 
 image talk to fedora    = "talk_bg"
 image talk to eduard    = "talk_bar"
