@@ -15,7 +15,7 @@ init python:
             (_("READING THE STORY"), [
                 _("Click, or press Space or Enter, for the next line."),
                 _("Hold Ctrl to fast-forward, or press Tab to keep skipping. Scroll up, or open the Logbook, to read earlier lines."),
-                _("Point at the bottom of the screen for the quick menu: Step Back, Logbook (earlier lines), Hurry, Let It Roll (auto), Punch Ticket (save) and more."),
+                _("Point at the bottom of the screen for the quick menu: Back, Logbook (earlier lines), Skip, Let It Roll (auto), Save and more."),
             ]),
             (_("EXPLORING A CARRIAGE"), [
                 _("Each carriage is a map. The glowing diamonds are things you can click: LOOK at objects, TALK to people."),

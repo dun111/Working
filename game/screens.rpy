@@ -2442,6 +2442,30 @@ screen choice(items):
 
 default quick_menu = True
 
+# The quick menu is an old railway ticket: cream stock, perforated edges, a
+# stamped serial number on the stub, and inked labels that stamp red on hover.
+define QM_PAPER = "#e9dcc0"
+define QM_INK = "#3b2a1c"
+define QM_STAMP = "#a8281a"
+
+init python:
+    def _qm_ticket():
+        dot = Fixed(Transform(rbox("#00000038", 3), xysize=(6, 6), pos=(4, 0)), xysize=(14, 6))
+        return Fixed(
+            rbox(QM_PAPER, 6),
+            Transform(Tile(dot), ysize=6, ypos=4),
+            Transform(Tile(dot), ysize=6, yalign=1.0, yoffset=-4),
+        )
+    QM_TICKET = _qm_ticket()
+    QM_TEAR = Fixed(Transform(Solid(QM_INK + "66"), xysize=(2, 5)), xysize=(2, 9))
+
+transform qm_underline:
+    alpha 0.0
+    on hover, selected_hover:
+        ease 0.12 alpha 1.0
+    on idle, selected_idle:
+        ease 0.12 alpha 0.0
+
 screen quick_menu():
     zorder 100
     if quick_menu and persistent.quick_menu_shown:
@@ -2454,70 +2478,90 @@ screen quick_menu():
         frame:
             xalign 0.5
             yalign 1.0
-            yoffset -30
-            padding (8, 5)
-            background rbox("#0a0a0ee0", 20)
+            yoffset -26
+            padding (0, 0)
+            ysize 54
+            background QM_TICKET
             at (qm_shown if quick_menu_hover else qm_hidden)
             hbox:
-                spacing 2
-                for qm_label, qm_act in ([(_("REWIND"), Function(rewind_go))] if rewind_ready() else []) + [
-                    (_("Platform"), MainMenu(confirm=True)),
-                    (_("Step Back"), Rollback()),
+                yalign 0.5
+                # the ticket stub: serial number and a dashed tear line
+                frame:
+                    ysize 54
+                    padding (20, 0, 16, 0)
+                    background None
+                    text "No. 0400":
+                        yalign 0.5
+                        size 15
+                        color QM_STAMP
+                        font CREDIT_FONT
+                add Transform(Tile(QM_TEAR), xsize=2, ysize=46):
+                    yalign 0.5
+                null width 6
+                $ qm_items = ([(_("REWIND"), Function(rewind_go))] if rewind_ready() else []) + [
+                    (_("Home"), MainMenu(confirm=True)),
+                    (_("Back"), Rollback()),
                     (_("Logbook"), ShowMenu("history")),
-                    (_("Hurry"), Skip()),
+                    (_("Skip"), Skip()),
                     (_("Let It Roll"), Preference("auto-forward", "toggle")),
-                    (_("Punch Ticket"), ShowMenu("save")),
+                    (_("Save"), ShowMenu("save")),
                     (_("Journal"), ShowMenu("clues")),
                     (_("Passengers"), ShowMenu("manifest")),
                     (_("Settings"), ShowMenu("preferences")),
-                ] + ([(_("Radio"), Function(radio_toggle))] if persistent.radio_bar else []):
-                    button:
-                        ysize 34
-                        xminimum 74
-                        padding (16, 0)
-                        background None
-                        hover_background rbox("#ffffff1c", 15)
-                        selected_background rbox("#e0521f33", 15)
-                        action qm_act
-                        text qm_label:
-                            align (0.5, 0.5)
-                            layout "nobreak"
-                            size 16
-                            color "#a8a4b4"
-                            hover_color "#ffd700"
-                            selected_color "#ffd700"
-                            font GFONT
-                if _preferences.afm_enable:
-                    frame:
-                        ysize 34
-                        padding (12, 0)
-                        background rbox("#ffffff10", 15)
-                        hbox:
+                ] + ([(_("Radio"), Function(radio_toggle))] if persistent.radio_bar else [])
+                for qi, (qm_label, qm_act) in enumerate(qm_items):
+                    if qi:
+                        add Solid(QM_INK + "30", xsize=1, ysize=22):
                             yalign 0.5
-                            spacing 8
-                            textbutton "−":
-                                yalign 0.5
-                                padding (6, 0)
-                                text_size 20
-                                text_color "#e8e4dc"
-                                text_hover_color "#ffd700"
-                                text_font "DejaVuSans.ttf"
-                                action Function(afm_adjust, -3)
-                            text auto_speed_label():
-                                yalign 0.5
-                                min_width 110
-                                text_align 0.5
+                    button:
+                        ysize 50
+                        padding (14, 0)
+                        background None
+                        action qm_act
+                        vbox:
+                            yalign 0.5
+                            spacing 2
+                            text qm_label.upper():
+                                xalign 0.5
+                                layout "nobreak"
                                 size 15
-                                color "#e6a817"
-                                font GFONT
-                            textbutton "+":
-                                yalign 0.5
-                                padding (6, 0)
-                                text_size 20
-                                text_color "#e8e4dc"
-                                text_hover_color "#ffd700"
-                                text_font "DejaVuSans.ttf"
-                                action Function(afm_adjust, 3)
+                                color QM_INK
+                                hover_color QM_STAMP
+                                selected_color QM_STAMP
+                                font CREDIT_FONT
+                            # hover: an ink underline, like a stamp line
+                            add Solid(QM_STAMP, xysize=(28, 2)):
+                                xalign 0.5
+                                at qm_underline
+                null width 14
+                if _preferences.afm_enable:
+                    hbox:
+                        yalign 0.5
+                        spacing 6
+                        textbutton "−":
+                            yalign 0.5
+                            padding (6, 0)
+                            text_size 20
+                            text_color QM_INK
+                            text_hover_color QM_STAMP
+                            text_font "DejaVuSans.ttf"
+                            action Function(afm_adjust, -3)
+                        text auto_speed_label():
+                            yalign 0.5
+                            min_width 100
+                            text_align 0.5
+                            size 14
+                            color QM_STAMP
+                            font CREDIT_FONT
+                        textbutton "+":
+                            yalign 0.5
+                            padding (6, 0)
+                            text_size 20
+                            text_color QM_INK
+                            text_hover_color QM_STAMP
+                            text_font "DejaVuSans.ttf"
+                            action Function(afm_adjust, 3)
+                    null width 14
 
 
 screen game_menu_header(title):
