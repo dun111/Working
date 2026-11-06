@@ -33,8 +33,7 @@ init -2 python:
                        0, 0, 0, 1])
 
     ART_FILES = {"sebastian": "sebastion"}
-    # kimmy_neutral.png still has a solid grey background, so it isn't used until it's cut out.
-    ART_PENDING = {"kimmy"}
+    ART_PENDING = set()
 
     def own_art(tag):
         if tag in ART_PENDING:
@@ -133,7 +132,8 @@ init python:
             Solid("#1a000088"))
         return ConditionSwitch("in_loop", looped, "True", normal)
 
-image talk_bg = talk_backdrop("images/bg_first_class.webp")
+# Conversations use the clear first-class picture; the main menu slideshow keeps the mosaic one.
+image talk_bg = talk_backdrop("images/bg_first_class_clear.webp")
 image talk_bar = talk_backdrop("images/bg_bar.webp")
 image talk_sleeper = talk_backdrop("images/bg_sleeper.webp")
 image shunyu_dead = full_cover("images/shunyu_dead.webp")
