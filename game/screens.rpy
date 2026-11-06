@@ -771,7 +771,7 @@ image bg carriage_1 = themed(ConditionSwitch(
 image bg carriage_5 = themed(map_bg("images/newmailroom.webp", 0.186, 0.805, floor="#3d3434", lamp="#ffe2b0", lamps=5, backdrop="#150d0d"))
 
 image bg carriage_2 = themed(ConditionSwitch(
-    "in_loop", Solid("#2a2430"),
+    "in_loop", map_bg("images/Buffet_cart_pt2_2.png.webp", 0.186, 0.805, ceiling="#755243", lamp="#ff7a66", lamps=5, eerie=True),
     "True", map_bg("images/Bar_cart_part_1.png.webp", 0.186, 0.805, lamp="#ffd9a0", lamps=5)))
 image bg carriage_3 = themed(map_bg("images/bg_sleeper_cart.webp", 0.185, 0.815, lamp="#ffd9a0", lamps=5, backdrop="#2a1a16", nearest=True))
 image bg carriage_4 = themed(map_bg("images/bg_staff_cart.webp", 0.185, 0.815, lamp="#ffe9c4", lamps=5, nearest=True))

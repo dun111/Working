@@ -149,19 +149,19 @@ screen carriage_5_map():
 screen carriage_2_part2_map():
     add "bg carriage_2"
     use golden_ticket("c2b", 230, 900)
-    use hs((100, 150, 180, 400), Call("c2_p2_interact_window"), "Window")
-    use hs((350, 150, 180, 400), Call("c2_p2_talk_eduard"), "Eduard", "talk", 0.05)
-    use hs((600, 150, 180, 400), Call("c2_p2_overturned_table"), "Overturned table", delay=0.1)
-    use hs((850, 150, 180, 400), Call("c2_p2_broken_glass"), "Broken glass", delay=0.15)
-    use hs((1100, 150, 180, 400), Call("c2_p2_bar_counter"), "Bar counter", delay=0.2)
-    use hs((1350, 150, 180, 400), Jump("c2_p2_second_table"), "Second table", delay=0.25)
+    use hs((555, 235, 225, 165), Call("c2_p2_interact_window"), "Window")
+    use hs((1430, 355, 140, 150), Call("c2_p2_talk_eduard"), "Eduard", "talk", 0.05)
+    use hs((500, 540, 400, 230), Call("c2_p2_overturned_table"), "Overturned table", delay=0.1)
+    use hs((875, 640, 120, 80), Call("c2_p2_broken_glass"), "Broken glass", delay=0.15)
+    use hs((1600, 500, 210, 80), Call("c2_p2_bar_counter"), "Bar counter", delay=0.2)
+    use hs((980, 425, 150, 130), Jump("c2_p2_second_table"), "Second table", delay=0.25)
 
 screen carriage_2_part2_investigation_map():
     add "bg carriage_2"
     if not c2_p2_reinterviewed_eduard:
-        use hs((350, 150, 200, 400), Call("c2_p2_reinterview_eduard"), "Eduard", "talk")
+        use hs((1430, 355, 140, 150), Call("c2_p2_reinterview_eduard"), "Eduard", "talk")
     if not c2_p2_reinterviewed_agatha:
-        use hs((600, 150, 200, 400), Call("c2_p2_reinterview_agatha"), "Agatha", "talk", 0.05)
+        use hs((1085, 500, 105, 180), Call("c2_p2_reinterview_agatha"), "Agatha", "talk", 0.05)
     if c2_p2_reinterviewed_eduard and c2_p2_reinterviewed_agatha:
         use hs(DOOR_RIGHT, Jump("part2_chapter_end"), "Carriage 3", "door", 0.1)
 
