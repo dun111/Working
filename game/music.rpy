@@ -1,17 +1,18 @@
 define SONGS = {
     "main_menu":            ("music/grekhov_theme.mp3",               _("Grekhov Theme"),                 "Departure at 4:00"),
-    "carriage_1":           ("music/carriage_1_clip.mp3",         None,                               None),
+    "carriage_1":           ("music/carriage_1_clip.mp3",         _("Carriage 1"),                    "Departure at 4:00"),
     "carriage_2":           ("music/lets_all_do_the_conga.m4a",   "Let's All Do the Conga",           "Colin Sheen"),
     "carriage_3":           ("music/rendezvous.opus",             "Rendezvous (Instrumental)",        "Carriages 2 and 3"),
-    "part2_carriage_3":     ("music/part2_carriage_3.mp3",        None,                               None),
-    "carriage_4":           ("music/carriage_4.mp3",              None,                               None),
-    "carriage_5":           ("music/carriage_5.mp3",              None,                               None),
+    "part2_carriage_3":     ("music/part2_carriage_3.mp3",        _("Part 2 Carriage 3"),             "Departure at 4:00"),
+    "carriage_4":           ("music/carriage_4.mp3",              _("Carriage 4"),                    "Departure at 4:00"),
+    "carriage_5":           ("music/carriage_5.mp3",              _("Carriage 5"),                    "Departure at 4:00"),
     "flower_in_a_hurricane": ("music/flower_in_a_hurricane.opus", "Flower In A Hurricane", "Justice ft. Tame Impala, SZA, King Gizzard & the Lizard Wizard (GTA VI)"),
 }
 
 define config.main_menu_music_fadein = 2.0
 
-define SONG_ORDER = ["main_menu", "carriage_2", "carriage_3", "flower_in_a_hurricane"]
+define SONG_ORDER = ["main_menu", "carriage_1", "carriage_2", "carriage_3", "part2_carriage_3",
+                     "carriage_4", "carriage_5", "flower_in_a_hurricane"]
 
 define MUSIC_FOR = {
     "c1": ["carriage_1"],
@@ -134,7 +135,13 @@ init python:
             files = files[k + 1:] + files[:k + 1]
             renpy.music.play(files, channel="music", loop=True, fadein=0.5, fadeout=0.5)
         elif q:
-            renpy.music.stop(channel="music", fadeout=0.5)
+            # Each carriage loops one song, so skipping used to fall silent.
+            # Go on to the next song in the Jukebox order instead.
+            order = song_files(SONG_ORDER)
+            if q in order:
+                k = order.index(q)
+                order = order[k + 1:] + order[:k + 1]
+            renpy.music.play(order, channel="music", loop=True, fadein=0.5, fadeout=0.5)
 
     class _RADIO(object):
         history = []

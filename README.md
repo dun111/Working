@@ -1,6 +1,6 @@
 # Departure at 4:00
 
-![Version](https://img.shields.io/badge/Version-3.2%20Beta-yellow)
+![Version](https://img.shields.io/badge/Version-3.3%20Beta-yellow)
 ![Made with Ren'Py](https://img.shields.io/badge/Made%20with-Ren'Py-orange)
 ![Python](https://img.shields.io/badge/Python-3.x-blue)
 ![Genre](https://img.shields.io/badge/Genre-Mystery%20%7C%20Visual%20Novel-purple)
@@ -24,10 +24,12 @@ The builds are on the [Releases](../../releases) page.
 
 ## How it plays
 
+The game opens with a short tutorial, and the full guide is under **HOW TO PLAY** on the main menu (or F1) any time.
+
 - Each carriage is a map. Click the people and objects on it to talk or look around.
 - Some conversations give you a choice, and some choices get you clues.
 - There are minigames along the way: mahjong, picking locks, sorting mail, keeping the engine's steam steady and more. You can replay them later from EXTRAS > ARCADE.
-- Looking around turns up coins. Each door to the next carriage costs a few, so check everything. You can also give coins to passengers on the People screen to fill their hearts.
+- Looking around turns up coins. Each door to the next carriage costs a few, so check everything. Coins also buy presents for the passengers to fill their hearts. Everyone has a favourite present that's worth double. Finding the gift shop is up to you.
 - Once the loop starts, go back through the carriages. Things have changed, and people will tell you more the second time.
 - At the end you name the killer. Pick wrong and that's the end of you.
 

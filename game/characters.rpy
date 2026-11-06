@@ -32,15 +32,38 @@ init -2 python:
                        0, 0, 0, b,
                        0, 0, 0, 1])
 
-    def silhouette(tag, name, path, src_h, color, scale=1.0, label=True):
-        shadow = Transform(_scaled(path, src_h, scale), matrixcolor=flat_color(color))
-        if label:
-            shadow = Fixed(
-                shadow,
-                Text(name.upper(), font=GFONT, size=26, color="#ffffff66",
-                     xalign=0.5, yalign=0.82),
-                fit_first=True)
-        return Transform(shadow, function=IdleAnim(tag))
+    ART_FILES = {"sebastian": "sebastion"}
+    ART_PENDING = set()
+
+    def own_art(tag):
+        if tag in ART_PENDING:
+            return None
+        path = "images/%s_neutral.png" % ART_FILES.get(tag, tag)
+        if renpy.loadable(path):
+            return path, renpy.image_size(path)[1]
+        return None
+
+    # Characters without their own sprite show nothing rather than a stand-in.
+    def portrait(tag, scale=1.0):
+        art = own_art(tag)
+        if art:
+            return sprite(tag, *art, scale=scale)
+        return Null()
+
+    MONSTER_TINT = TintMatrix("#ff7a6a") * SaturationMatrix(0.35) * BrightnessMatrix(-0.18)
+
+    def monster(tag, base, scale=1.0):
+        # A monster with its own art (images/<tag>.png) uses it as drawn;
+        # otherwise it's the passenger's sprite, tinted red.
+        own = "images/%s.png" % tag
+        if renpy.loadable(own):
+            return sprite(tag, own, renpy.image_size(own)[1], scale=scale)
+        art = own_art(base)
+        if art:
+            path, src_h = art
+            return Transform(Transform(_scaled(path, src_h, scale), matrixcolor=MONSTER_TINT),
+                             function=IdleAnim(tag))
+        return Null()
 
 define LOUIS_PNG       = ("images/louis_neutral.png", 1323)
 define FEDORA_PNG      = ("images/fedora_neutral.png", 1314)
@@ -69,24 +92,24 @@ image shunyu excited = sprite("shunyu", *SHUNYU_PNG)
 image ichora neutral = sprite("ichora", *ICHORA_PNG)
 
 
-image eduard neutral    = silhouette("eduard", "Eduard", *LOUIS_PNG, color="#3b2a20")
-image kimmy neutral     = silhouette("kimmy", "Kimmy", *DOROTHY_PNG, color="#4a2026")
-image himmel neutral    = silhouette("himmel", "Himmel", *LOUIS_PNG, color="#203040")
-image sebastian neutral = silhouette("sebastian", "Sebastian", *LOUIS_PNG, color="#202428")
-image misha neutral     = silhouette("misha", "Misha", *LOUIS_PNG, color="#2a3a2a", scale=0.72)
-image misha stares      = silhouette("misha", "Misha", *LOUIS_PNG, color="#2a3a2a", scale=0.72)
-image agatha neutral    = silhouette("agatha", "Agatha", *FEDORA_PNG, color="#2a3438")
-image pattison neutral  = silhouette("pattison", "Pattison", *LOUIS_PNG, color="#30283a")
-image alexander neutral = silhouette("alexander", "Alexander", *LOUIS_PNG, color="#3a3a1e")
+image eduard neutral    = portrait("eduard")
+image kimmy neutral     = portrait("kimmy")
+image himmel neutral    = portrait("himmel")
+image sebastian neutral = portrait("sebastian")
+image misha neutral     = portrait("misha", scale=0.72)
+image misha stares      = portrait("misha", scale=0.72)
+image agatha neutral    = portrait("agatha")
+image pattison neutral  = portrait("pattison")
+image alexander neutral = portrait("alexander")
 
 image shunyu_monster neutral = At(
-    silhouette("shunyu_monster", "", *SHUNYU_PNG, color="#2a0c18", scale=1.08, label=False),
+    monster("shunyu_monster", "shunyu", scale=1.08),
     monster_shudder, monster_glow)
 image himmel_monster neutral = At(
-    silhouette("himmel_monster", "", *LOUIS_PNG, color="#0c1e24", scale=1.04, label=False),
+    monster("himmel_monster", "himmel", scale=1.04),
     monster_shudder, monster_glow)
 image conductor_monster neutral = At(
-    silhouette("conductor_monster", "", *DOROTHY_PNG, color="#1a0606", scale=1.18, label=False),
+    monster("conductor_monster", "dorothy", scale=1.18),
     distortion_warp, monster_glow)
 
 
@@ -97,8 +120,8 @@ transform talk_drift:
     yalign 0.5
     zoom 1.12
     block:
-        ease anim_t(14.0) xalign 0.42 zoom 1.16
-        ease anim_t(14.0) xalign 0.58 zoom 1.12
+        ease 14.0 xalign (0.5 if persistent.reduce_motion else 0.42) zoom (1.12 if persistent.reduce_motion else 1.16)
+        ease 14.0 xalign (0.5 if persistent.reduce_motion else 0.58) zoom 1.12
         repeat
 
 init python:
@@ -109,9 +132,11 @@ init python:
             Solid("#1a000088"))
         return ConditionSwitch("in_loop", looped, "True", normal)
 
-image talk_bg = talk_backdrop("images/bg_first_class.webp")
+# Conversations use the clear first-class picture; the main menu slideshow keeps the mosaic one.
+image talk_bg = talk_backdrop("images/bg_first_class_clear.webp")
 image talk_bar = talk_backdrop("images/bg_bar.webp")
 image talk_sleeper = talk_backdrop("images/bg_sleeper.webp")
+image talk_mail = talk_backdrop("images/bg_mail_cart.webp")
 image shunyu_dead = full_cover("images/shunyu_dead.webp")
 
 image talk to fedora    = "talk_bg"
@@ -123,8 +148,8 @@ image talk to sebastian = "talk_sleeper"
 image talk to misha     = "talk_sleeper"
 image talk to agatha    = "talk_bg"
 image talk to ichora    = "talk_bg"
-image talk to pattison  = "talk_bg"
-image talk to alexander = "talk_bg"
+image talk to pattison  = "talk_mail"
+image talk to alexander = "talk_mail"
 image engine room       = "bg carriage_4"
 
 
@@ -253,8 +278,8 @@ transform hs_pulse:
     rotate 45
     zoom 1.0
     block:
-        ease anim_t(0.9) zoom 1.25
-        ease anim_t(0.9) zoom 1.0
+        ease 0.9 zoom (1.0 if persistent.reduce_motion else 1.25)
+        ease 0.9 zoom 1.0
         repeat
 
 transform hs_ring:
@@ -297,8 +322,8 @@ define DOOR_LEFT = (0, 340, 100, 400)
 transform door_nudge(dx):
     xoffset 0
     block:
-        ease anim_t(0.7) xoffset dx
-        ease anim_t(0.7) xoffset 0
+        ease 0.7 xoffset (0 if persistent.reduce_motion else dx)
+        ease 0.7 xoffset 0
         repeat
 
 transform hs_tag_always:
@@ -466,6 +491,18 @@ init python:
     def _flag(name):
         return name is None or bool(getattr(store, name, False))
 
+    def met_ever(flag):
+        return _flag(flag) or flag in (persistent.met or set())
+
+    def _remember_met(name, abnormal=False):
+        if main_menu:
+            return
+        new = [m[3] for m in MANIFEST if m[3] and m[3] not in (persistent.met or set()) and _flag(m[3])]
+        if new:
+            persistent.met = set(persistent.met or set()) | set(new)
+
+    config.label_callbacks.append(_remember_met)
+
     def manifest_rows():
         rows = []
         for img, name, role, met, notes in MANIFEST:
@@ -490,8 +527,83 @@ transform manifest_thumb(known=True):
 
 define COIN_FIND = 4
 define FARE = 8
-define GIFT_COST = 5
 define BOND_MAX = 5
+
+# Presents you can send from the People screen: (id, name, coin price).
+define PRESENTS = [
+    ("tea",       _("Cup of Tea"),    4),
+    ("bandages",  _("Bandages"),      4),
+    ("flowers",   _("Flowers"),       5),
+    ("stamps",    _("Stamps"),        5),
+    ("sweets",    _("Sweets"),        6),
+    ("notebook",  _("Notebook"),      7),
+    ("whiskey",   _("Whiskey"),       8),
+    ("toy_train", _("Toy Train"),     8),
+    ("charm",     _("Lucky Charm"),   9),
+    ("watch",     _("Pocket Watch"), 12),
+    ("maple",     _("Maple Sugar"),  12),
+]
+
+# Each passenger's favourite present is worth two hearts instead of one.
+define FAVOURITE_PRESENT = {
+    "Dorothy": "tea",
+    "Fedora": "notebook",
+    "Eduard": "whiskey",
+    "Shunyu": "charm",
+    "Kimmy": "flowers",
+    "Himmel": "watch",
+    "Sebastian": "tea",
+    "Misha": "toy_train",
+    "Agatha": "bandages",
+    "Ichora": "sweets",
+    "Pattison": "stamps",
+    "Alexander": "maple",
+}
+
+define FAVOURITE_LINES = {
+    "Dorothy": "Oh! Proper tea... thank you, sir.",
+    "Fedora": "A fresh notebook? Now I can write EVERYTHING down!",
+    "Eduard": "Now that's the good stuff. I'll keep it behind the counter.",
+    "Shunyu": "A lucky charm?! I can't stop winning now!",
+    "Kimmy": "For me, sugar? Well aren't you sweet.",
+    "Himmel": "A watch... so I'll know exactly when the next stop is.",
+    "Sebastian": "Most kind, sir. I shall brew it properly.",
+    "Misha": "A train! A little train, just like this one!",
+    "Agatha": "Finally, someone who gets it. Thanks.",
+    "Ichora": "Sweets! Hey, you're alright, buddy!",
+    "Pattison": "Stamps! Every mailworker's dream.",
+    "Alexander": "THE MAPLE SUGAR!!! You absolute legend!!!",
+}
+
+# After a present that isn't their favourite, they let slip a hint about it.
+define FAVOURITE_HINTS = {
+    "Dorothy": "She glances at the teapot on the trolley.",
+    "Fedora": "She flips through her notebook. Every page is already full.",
+    "Eduard": "He eyes the empty bottle behind the bar.",
+    "Shunyu": "He rubs his hands together. \"I could use a little more luck...\"",
+    "Kimmy": "She tucks a dried petal back under her hat ribbon.",
+    "Himmel": "He keeps checking his wrist, but there's no watch there.",
+    "Sebastian": "He straightens his collar. \"A proper cup would be most welcome.\"",
+    "Misha": "Misha hums and makes quiet chugging noises.",
+    "Agatha": "She winces at a fresh scrape on her hand.",
+    "Ichora": "Ichora's stomach rumbles. \"Got anything sweet on ya?\"",
+    "Pattison": "He sorts a pile of envelopes. None of them have stamps.",
+    "Alexander": "He sniffs the air. \"Is that... maple?\"",
+}
+
+# Hearts that pay out tickets when you reach them (full hearts also give the achievements).
+define BOND_REWARDS = {3: 1, 5: 3}
+
+default persistent.favourites_found = set()
+
+init python:
+    class GIFT_SAID(object):
+        # What the last passenger said in the gift shop.
+        name = None
+        line = ""
+        hint = ""
+        fav = False
+        reward = 0
 define FARE_DOORS = ["c1_door_to_carriage_2", "carriage_3_start", "carriage_4_start", "carriage_5_start",
                      "c5_carriage6_door", "part2_chapter_end", "carriage_5_part2_start"]
 
@@ -537,25 +649,54 @@ init python:
                     renpy.notify(_("The door costs %d coins. Look around for more.") % FARE)
                     return
                 store.fares_paid = store.fares_paid | set([lab])
+                # Coins are persistent but fares_paid isn't, so rolling back would charge the fare twice.
+                renpy.block_rollback()
         elif lab and lab not in store.coin_found:
             store.coin_found = store.coin_found | set([lab])
             give_coins(COIN_FIND)
             renpy.show_screen("coin_toast", COIN_FIND)
+            # Without this, rolling back and clicking again gives the same coins over and over.
+            renpy.block_rollback()
         return renpy.run(act)
 
     def bond(name):
         return (persistent.bond or {}).get(name, 0)
 
-    def gift(name):
-        if bond(name) >= BOND_MAX or (persistent.coins or 0) < GIFT_COST:
+    def present_price(pid):
+        return dict((p, c) for p, _n, c in PRESENTS).get(pid, 0)
+
+    def present_name(pid):
+        return dict((p, n) for p, n, _c in PRESENTS).get(pid, "")
+
+    def favourite_known(name):
+        return name in (persistent.favourites_found or set())
+
+    def gift(name, pid):
+        price = present_price(pid)
+        if bond(name) >= BOND_MAX or (persistent.coins or 0) < price:
             return
-        persistent.coins -= GIFT_COST
+        persistent.coins -= price
+        fav = FAVOURITE_PRESENT.get(name) == pid
+        before = bond(name)
         b = dict(persistent.bond or {})
-        b[name] = bond(name) + 1
+        b[name] = min(BOND_MAX, before + (2 if fav else 1))
         persistent.bond = b
-        renpy.notify("%s: \"%s\"" % (name, renpy.random.choice(GIFT_LINES.get(name, ["..."]))))
+        GIFT_SAID.name = name
+        GIFT_SAID.fav = fav
+        if fav:
+            persistent.favourites_found = set(persistent.favourites_found or set()) | set([name])
+            GIFT_SAID.line = FAVOURITE_LINES.get(name, "My favourite!")
+            GIFT_SAID.hint = ""
+        else:
+            GIFT_SAID.line = renpy.random.choice(GIFT_LINES.get(name, ["..."]))
+            GIFT_SAID.hint = "" if favourite_known(name) else FAVOURITE_HINTS.get(name, "")
+        GIFT_SAID.reward = 0
+        for level, tickets in sorted(BOND_REWARDS.items()):
+            if before < level <= b[name]:
+                GIFT_SAID.reward += tickets
+        if GIFT_SAID.reward:
+            give_tickets(GIFT_SAID.reward)
         if b[name] == BOND_MAX:
-            give_tickets(TICKETS_FOR["secret"])
             achievement.grant("bond_one")
             if all(b.get(m[1], 0) >= BOND_MAX for m in MANIFEST[1:]):
                 achievement.grant("bond_all")
@@ -720,9 +861,12 @@ screen manifest():
                         size 30
                         color "#e0521f"
                         font "DejaVuSans.ttf"
-                    if hearts < BOND_MAX:
-                        use rbtn((_("GIFT %d COINS") % GIFT_COST), (Function(gift, cur["name"]) if (persistent.coins or 0) >= GIFT_COST else None), w=220, h=46, r=14, size=18, bg="#3e2814", hov="#5a3a1c", col="#ffd76a", hcol="#ffffff")
-                text (_("You have %d coins") % (persistent.coins or 0)):
+                $ fav = FAVOURITE_PRESENT.get(cur["name"])
+                text (_("Loves: %s") % (present_name(fav) if favourite_known(cur["name"]) else "???")):
+                    size 18
+                    color "#e6a817"
+                    font GFONT
+                text (_("Hearts full. Thanks for the presents!") if hearts >= BOND_MAX else _("Presents are sent from the main menu.")):
                     size 16
                     color "#8888a0"
                     font GFONT
@@ -746,3 +890,234 @@ screen manifest():
                     font GFONT
 
     use game_menu_back(back_action)
+
+
+# ---------- GIFT SHOP: opened by clicking the big 4:00 on the main menu four times ----------
+
+init python:
+    def gift_shop_people():
+        return [{"img": m[0], "name": m[1], "known": met_ever(m[3])} for m in MANIFEST[1:]]
+
+    def gift_shop_first():
+        for i, p in enumerate(gift_shop_people()):
+            if p["known"]:
+                return i
+        return 0
+
+screen gift_shop():
+    modal True
+    zorder 300
+    key "game_menu" action Hide("gift_shop")
+
+    default sel = gift_shop_first()
+    $ people = gift_shop_people()
+    $ cur = people[sel]
+
+    add Solid("#000000c8")
+
+    frame:
+        align (0.5, 0.5)
+        xysize (1560, 900)
+        padding (48, 36)
+        background rbox("#0c0b09f4", 24)
+        at fade_slide_in(0.0, xoff=0)
+
+        vbox:
+            spacing 6
+            hbox:
+                xfill True
+                text _("GIFT SHOP"):
+                    size 40
+                    color "#ffd76a"
+                    font CREDIT_FONT
+                hbox:
+                    xalign 1.0
+                    yalign 0.5
+                    spacing 10
+                    add circ_coin(26):
+                        yalign 0.5
+                    text (_("%d COINS") % (persistent.coins or 0)):
+                        yalign 0.5
+                        size 22
+                        color "#ffd76a"
+                        font GFONT
+            add Solid("#c9a24a55"):
+                ysize 2
+            null height 12
+
+            hbox:
+                spacing 36
+
+                # passengers
+                vbox:
+                    spacing 6
+                    xsize 380
+                    for i, p in enumerate(people):
+                        $ h = bond(p["name"]) if p["known"] else 0
+                        button:
+                            xsize 380
+                            ysize 50
+                            padding (18, 0)
+                            background rbox(("#2a2312" if i == sel else "#14141a"), 14)
+                            hover_background rbox("#3a3018", 14)
+                            action (SetScreenVariable("sel", i) if p["known"] else None)
+                            hbox:
+                                xfill True
+                                yalign 0.5
+                                text (p["name"] if p["known"] else "???"):
+                                    yalign 0.5
+                                    size 20
+                                    color (("#ffd700" if i == sel else "#e8e4dc") if p["known"] else "#4a4a58")
+                                    font GFONT
+                                if p["known"]:
+                                    text (("★  " if h >= BOND_MAX else "") + "♥" * h + "♡" * (BOND_MAX - h)):
+                                        xalign 1.0
+                                        yalign 0.5
+                                        size 18
+                                        color "#e0521f"
+                                        font "DejaVuSans.ttf"
+
+                # chosen passenger
+                if cur["known"]:
+                    $ hearts = bond(cur["name"])
+                    $ fav = FAVOURITE_PRESENT.get(cur["name"])
+                    fixed:
+                        xsize 1060
+                        ysize 720
+                        add Transform(cur["img"], fit="contain", xysize=(400, 700)):
+                            xalign 1.0
+                            yalign 1.0
+                        vbox:
+                            spacing 12
+                            xmaximum 620
+                            text cur["name"]:
+                                size 46
+                                color "#ffffff"
+                                font GFONT
+                            text ("♥" * hearts + "♡" * (BOND_MAX - hearts)):
+                                size 34
+                                color "#e0521f"
+                                font "DejaVuSans.ttf"
+                            text (_("Loves: %s") % (present_name(fav) if favourite_known(cur["name"]) else "???")):
+                                size 20
+                                color "#e6a817"
+                                font GFONT
+                            if GIFT_SAID.name == cur["name"]:
+                                frame:
+                                    xfill True
+                                    padding (18, 12)
+                                    background rbox(("#2a2312" if GIFT_SAID.fav else "#16161c"), 14)
+                                    vbox:
+                                        spacing 6
+                                        if GIFT_SAID.fav:
+                                            text _("FAVOURITE!"):
+                                                size 15
+                                                color "#ffd700"
+                                                font GFONT
+                                        text ("\"%s\"" % GIFT_SAID.line):
+                                            size 19
+                                            color "#e8e4dc"
+                                            font say_font()
+                                        if GIFT_SAID.hint:
+                                            text ("{i}%s{/i}" % GIFT_SAID.hint):
+                                                size 16
+                                                color "#a8a0c0"
+                                                font say_font()
+                                        if GIFT_SAID.reward:
+                                            text ((_("+%d TICKET") if GIFT_SAID.reward == 1 else _("+%d TICKETS")) % GIFT_SAID.reward):
+                                                size 15
+                                                color "#e6a817"
+                                                font GFONT
+                            null height 4
+                            if hearts < BOND_MAX:
+                                text _("Their favourite fills two hearts. 3 hearts: +1 ticket. 5 hearts: +3 tickets."):
+                                    size 16
+                                    color "#8888a0"
+                                    font GFONT
+                                vpgrid:
+                                    cols 3
+                                    spacing 10
+                                    for pid, pname, price in PRESENTS:
+                                        $ can = (persistent.coins or 0) >= price
+                                        $ known_fav = favourite_known(cur["name"]) and pid == fav
+                                        use rbtn("%s  ·  %d" % (pname, price), (Function(gift, cur["name"], pid) if can else None), w=196, h=50, r=14, size=15, bg=("#5a3a14" if known_fav else "#3e2814"), hov="#6a4a1c", col="#ffd76a", hcol="#ffffff")
+                            else:
+                                text _("Hearts full. Thanks for the presents!"):
+                                    size 18
+                                    color "#8888a0"
+                                    font GFONT
+                else:
+                    text _("Meet someone on the train first."):
+                        yalign 0.3
+                        size 22
+                        color "#8888a0"
+                        font GFONT
+
+        textbutton _("CLOSE"):
+            xalign 1.0
+            yalign 1.0
+            padding (26, 10)
+            background rbox("#1a1814", 12)
+            hover_background rbox("#2a2620", 12)
+            text_size 18
+            text_color "#c9c0b0"
+            text_hover_color "#ffffff"
+            text_font GFONT
+            action Hide("gift_shop")
+
+
+# ---------- LOOK OUTSIDE: a zoomed view of one of Carriage 1's windows ----------
+
+# One window of the Carriage 1 art, frame included (pixel art, so it's scaled with sharp pixels).
+define WINDOW_VIEW_CROP = (830, 225, 260, 190)
+
+image window_view_day = Transform("images/bg_carriage_1.webp", crop=WINDOW_VIEW_CROP, zoom=4.0, nearest=True)
+image window_view_night = Transform("images/bg_carriage_1.webp", crop=WINDOW_VIEW_CROP, zoom=4.0, nearest=True,
+                                    matrixcolor=TintMatrix("#3a4a8a") * SaturationMatrix(0.25) * BrightnessMatrix(-0.45))
+
+transform window_zoom_in:
+    alpha 0.0
+    zoom (1.0 if persistent.reduce_motion else 0.55)
+    easein 0.45 alpha 1.0 zoom 1.0
+
+screen window_view(dark=False):
+    add Solid("#000000c8") at window_zoom_in
+    add ("window_view_night" if dark else "window_view_day"):
+        xalign 0.5
+        ycenter 0.4
+        at window_zoom_in
+
+
+# ---------- FULL-SCREEN POP: zooms in to fill the screen, gone after 2 seconds ----------
+
+define POP_SECS = 2.0
+
+transform pop_fill:
+    anchor (0.5, 0.5)
+    pos (0.5, 0.5)
+    alpha 0.0
+    zoom (1.0 if persistent.reduce_motion else 0.2)
+    easein 0.3 alpha 1.0 zoom 1.0
+    pause (POP_SECS - 0.6)
+    easeout 0.3 alpha 0.0
+
+transform pop_back:
+    alpha 0.0
+    ease 0.2 alpha 1.0
+    pause (POP_SECS - 0.5)
+    ease 0.3 alpha 0.0
+
+# The tile art has a lot of transparent space around it; crop to the tile itself.
+define TILE_CLOSEUP = Transform("images/clue_hidden_tile.webp", crop=(68, 304, 1317, 837))
+
+screen fullscreen_pop(img, cover=False):
+    zorder 350
+    $ sw, sh = config.screen_width, config.screen_height
+    button:
+        xysize (sw, sh)
+        padding (0, 0)
+        background None
+        action Hide("fullscreen_pop")
+        add Solid("#000000e6") at pop_back
+        add Transform(img, fit=("cover" if cover else "contain"), xysize=(sw, sh)) at pop_fill
+    timer POP_SECS action Hide("fullscreen_pop")

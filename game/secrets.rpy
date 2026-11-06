@@ -9,7 +9,7 @@ init 1 python:
         ("shards",     _("Sweep up the glass"),        "mg_shards",         shards_reset,     _("Carriage 2")),
         ("mahjong",    _("Mahjong"),                   "mahjong_minigame",  mahjong_reset,    _("Carriage 2")),
         ("blocks",     _("Misha's blocks"),            "mg_blocks",         blocks_reset,     _("Carriage 3")),
-        ("engine",     _("Keep steam pressure steady"), "mg_engine",        engine_reset,     _("Carriage 4")),
+        ("engine",     _("Keep steam pressure steady"), "mg_engine",        engine_reset,     _("Carriage 5")),
         ("mail",       _("Sort the mail"),             "mg_mail",           mail_reset,       _("Carriage 5")),
         ("combo",      _("The luggage lock"),          "mg_combo",          combo_reset,      _("Part 2, Carriage 3")),
         ("pry",        _("Pull up the carpet"),        "mg_pry",            pry_reset,        _("Part 2, Carriage 3")),
@@ -43,9 +43,9 @@ init python:
         ["door_c2_open_loop"],
         ["c2_p2_found_body", "c2_p2_reinterviewed_eduard", "c2_p2_reinterviewed_agatha",
          "clue_tile_mismatch", "clue_body_moved"],
-        ["clue_drug_wrapper", "clue_hidden_tile", "kimmy_reinterviewed", "himmel_reinterviewed",
-         "sebastian_reinterviewed", "misha_reinterviewed"],
-        ["alexander_reinterviewed", "pattison_reinterviewed", "clue_alexander_alibi"],
+        ["clue_drug_wrapper", "kimmy_reinterviewed", "himmel_reinterviewed"],
+        ["alexander_reinterviewed", "pattison_reinterviewed", "clue_alexander_alibi", "c3_p2_returned",
+         "clue_hidden_tile", "sebastian_reinterviewed", "misha_reinterviewed"],
     ]
 
     CHEAT_CHAPTERS = [
@@ -284,6 +284,7 @@ screen cheat_menu():
                             use cheat_btn(_("Screenshot"), [Hide("cheat_menu"), Screenshot()])
                             use cheat_btn(_("Mouse coordinates"), ToggleField(persistent, "dev_coords"), sel=persistent.dev_coords)
                             use cheat_btn(_("Every gamepass"), Function(dev_all_passes))
+                            use cheat_btn(_("NUKE (blinding carriage lights)"), Function(toggle_nuke), sel=persistent.cheat_nuke)
                             use cheat_btn(_("Debug game"), Function(play_minigame, "mg_debug", debug_reset))
                             if config.developer:
                                 use cheat_btn(_("Reload script"), Function(renpy.reload_script))
@@ -370,165 +371,11 @@ init python:
         if ET_CLOCK.n >= 4:
             ET_CLOCK.n = 0
             secret_found("timetable", "timetable")
-            renpy.show_screen("timetable")
+            renpy.show_screen("gift_shop")
         renpy.restart_interaction()
 
     def clock_color():
         return "#ffffff%02x" % (8 + ET_CLOCK.n * 12)
-
-    def timetable_rows():
-        rows = []
-        for lab, title, sub, loop in CHAPTERS:
-            time, gid, people = TIMETABLE[lab]
-            met = [n for f, n in people if f is None or f in persistent.met]
-            rows.append({
-                "label": lab,
-                "time": time,
-                "title": title,
-                "sub": sub,
-                "loop": loop,
-                "open": chapter_open(lab),
-                "met": "%d / %d" % (len(met), len(people)) if people else "-",
-                "golden": (gid in persistent.golden_found) if gid else None,
-            })
-        return rows
-
-define TIMETABLE = {
-    "carriage_1_start":       ("4:00", "c1", [(None, "Dorothy"), ("c1_talked_fedora", "Fedora")]),
-    "carriage_2_start":       ("4:05", "c2", [("c2_talked_eduard", "Eduard"), ("c2_talked_shunyu", "Shunyu")]),
-    "carriage_3_start":       ("4:10", "c3", [("c3_talked_kimmy", "Kimmy"), ("c3_talked_himmel", "Himmel"),
-                                              ("c3_talked_sebastian", "Sebastian"), ("c3_talked_misha", "Misha")]),
-    "carriage_4_start":       ("4:15", "c4", [("c4_talked_agatha", "Agatha"), ("c4_talked_ichora", "Ichora")]),
-    "carriage_5_start":       ("4:20", "c5", [("c5_talked_pattison", "Pattison"), ("c5_talked_alexander", "Alexander")]),
-    "part2_start":            ("4:00", None, []),
-    "carriage_2_part2_start": ("4:05", "c2b", []),
-    "carriage_3_part2_start": ("4:10", "c3b", []),
-    "carriage_5_part2_start": ("4:20", "c5b", []),
-}
-
-define TIMETABLE_COLS = [(_("TIME"), 120), (_("STOP"), 520), (_("PASSENGERS"), 180), (_("GOLDEN TICKET"), 180), ("", 144)]
-
-screen timetable():
-    modal True
-    zorder 300
-    key "game_menu" action Hide("timetable")
-
-    add Solid("#000000c0")
-
-    frame:
-        align (0.5, 0.5)
-        xsize 1240
-        padding (48, 36)
-        background rbox("#0c0b09f4", 24)
-        at fade_slide_in(0.0, xoff=0)
-
-        vbox:
-            spacing 6
-            hbox:
-                xfill True
-                text _("GREKHOV EXPRESS"):
-                    size 40
-                    color "#ffd76a"
-                    font CREDIT_FONT
-                text _("TIMETABLE"):
-                    xalign 1.0
-                    yalign 0.5
-                    size 22
-                    color "#c9a24a"
-                    font CREDIT_FONT
-            add Solid("#c9a24a55"):
-                ysize 2
-            null height 4
-
-            hbox:
-                for head, w in TIMETABLE_COLS:
-                    fixed:
-                        xysize (w, 24)
-                        text head:
-                            yalign 0.5
-                            size 15
-                            color "#6a6050"
-                            font GFONT
-
-            for i, r in enumerate(timetable_rows()):
-                if i == 5:
-                    null height 10
-                    text _("PART 2"):
-                        size 15
-                        color "#a8281a"
-                        font GFONT
-                frame:
-                    xfill True
-                    ysize 58
-                    padding (0, 0)
-                    background (Solid("#ffffff08") if i % 2 == 0 else None)
-                    at row_pop(min(i * 0.04, 0.4))
-                    hbox:
-                        fixed:
-                            xysize (TIMETABLE_COLS[0][1], 58)
-                            text r["time"]:
-                                yalign 0.5
-                                size 28
-                                color (("#a8281a" if r["loop"] else "#ffd76a") if r["open"] else "#3a3630")
-                                font CREDIT_FONT
-                        fixed:
-                            xysize (TIMETABLE_COLS[1][1], 58)
-                            hbox:
-                                yalign 0.5
-                                spacing 16
-                                text (r["title"] if r["open"] else "???"):
-                                    yalign 0.5
-                                    size 24
-                                    color ("#e8e4dc" if r["open"] else "#4a4640")
-                                    font GFONT
-                                if r["open"]:
-                                    text r["sub"]:
-                                        yalign 0.5
-                                        size 16
-                                        color "#8a8070"
-                                        font GFONT
-                        fixed:
-                            xysize (TIMETABLE_COLS[2][1], 58)
-                            text (r["met"] if r["open"] else "-"):
-                                yalign 0.5
-                                size 20
-                                color "#c9c0b0"
-                                font GFONT
-                        fixed:
-                            xysize (TIMETABLE_COLS[3][1], 58)
-                            text ((_("FOUND") if r["golden"] else _("NOT YET")) if (r["open"] and r["golden"] is not None) else "-"):
-                                yalign 0.5
-                                size 18
-                                color ("#ffd76a" if r["golden"] else "#6a6050")
-                                font GFONT
-                        fixed:
-                            xysize (TIMETABLE_COLS[4][1], 58)
-                            if r["open"]:
-                                textbutton _("BOARD"):
-                                    xalign 1.0
-                                    yalign 0.5
-                                    xsize 120
-                                    text_xalign 0.5
-                                    padding (0, 8)
-                                    background rbox("#3e2814", 10)
-                                    hover_background rbox("#c9a24a", 10)
-                                    text_size 18
-                                    text_color "#f2e6d0"
-                                    text_hover_color "#2a1a0c"
-                                    text_font GFONT
-                                    action [Hide("timetable"), Function(chapter_play, r["label"])]
-
-            null height 14
-            textbutton _("CLOSE"):
-                xalign 1.0
-                padding (26, 10)
-                background rbox("#1a1814", 12)
-                hover_background rbox("#2a2620", 12)
-                text_size 18
-                text_color "#c9c0b0"
-                text_hover_color "#ffffff"
-                text_font GFONT
-                action Hide("timetable")
 
 
 default persistent.crew_found = set()
@@ -658,13 +505,6 @@ screen pixel_parade():
 
 define ENDING_VIDEO = "movies/ending_video.webm"
 
-define CREDITS_CORNER_TEXT = {
-    "eric": "PLACEHOLDER",
-    "hannah": "PLACEHOLDER",
-    "aydin": "PLACEHOLDER",
-    "ryan": "PLACEHOLDER",
-}
-
 default persistent.ending_video_seen = False
 default persistent.credits_clicked = set()
 default persistent.cast_called = set()
@@ -674,7 +514,7 @@ default window_looks = 0
 define MORE_SECRET_ACHIEVEMENTS = [
     {"id": "bond_one", "title": _("You play nice."), "description": _("Fill a passenger's hearts with gifts."), "hidden": False},
     {"id": "bond_all", "title": _("All of us."), "description": _("Fill every passenger's hearts."), "hidden": False},
-    {"id": "timetable", "title": _("There's always a next stop..."), "description": _("Find the timetable on the main menu."), "hidden": True},
+    {"id": "timetable", "title": _("A little something..."), "description": _("Find the gift shop on the main menu."), "hidden": True},
     {"id": "golden_tickets", "title": _("Uh… uh… yes, the ticket."), "description": _("Find every golden ticket hidden on the train."), "hidden": False},
     {"id": "credits_all", "title": _("Anyone like who?"), "description": _("Click everyone in the credits."), "hidden": True},
     {"id": "cast_call", "title": _("Everyone."), "description": _("Type every passenger's name on the main menu."), "hidden": True},
@@ -683,7 +523,7 @@ define MORE_SECRET_ACHIEVEMENTS = [
 ]
 
 define MORE_SECRET_NOTES = [
-    ("timetable", _("\"Inside is a dusty timetable.\"")),
+    ("timetable", _("\"Everyone on this train deserves a little something.\"")),
     ("credits_all", _("\"I don't even know anybody on this express.\"")),
     ("cast_call", _("\"I need to find out who was in this carriage. Everyone.\"")),
     ("quiet", _("\"...It's quiet. Way too quiet.\"")),
@@ -721,9 +561,17 @@ init python:
 
     SECRET_NOTES = SECRET_NOTES[:-1] + MORE_SECRET_NOTES + SECRET_NOTES[-1:]
 
-    SECRET_LETTERS = sorted(set(SECRET_LETTERS) | set("".join(n for n, _i, _l in CAST_CALLS)) | set("kanye") | set("40"))
+    SECRET_LETTERS = sorted(set(SECRET_LETTERS) | set("".join(n for n, _i, _l in CAST_CALLS)) | set("kanye") | set("40") | set("nuke"))
+
+    def toggle_nuke():
+        persistent.cheat_nuke = not persistent.cheat_nuke
+        renpy.notify(_("NUKE MODE ON") if persistent.cheat_nuke else _("Nuke mode off"))
+        renpy.restart_interaction()
 
     def more_secret_word(typed):
+        if typed.endswith("nuke"):
+            toggle_nuke()
+            return True
         if typed.endswith("400"):
             store.board_times = []
             renpy.show_screen("map_stamp", "4:00", _("GREKHOV EXPRESS"))
@@ -757,20 +605,9 @@ init python:
 
     def credits_click(key):
         persistent.credits_clicked = set(persistent.credits_clicked) | set([key])
-        c = [x for x in CREW if x["key"] == key][0]
         if key == "eric":
             persistent.eric_clicks = (persistent.eric_clicks or 0) + 1
-            renpy.show_screen("eric_surprise")
-            renpy.notify(CREDITS_CORNER_TEXT["eric"])
-        elif key == "hannah":
-            renpy.show_screen("hannah_surprise")
-            renpy.notify(CREDITS_CORNER_TEXT["hannah"])
-        elif key == "aydin":
-            renpy.show_screen("aydin_surprise")
-            renpy.notify(CREDITS_CORNER_TEXT["aydin"])
-        elif key == "ryan":
-            renpy.show_screen("ryan_surprise")
-            renpy.notify(CREDITS_CORNER_TEXT["ryan"])
+            secret_found("eric_scare")
         if len(persistent.credits_clicked) >= len(CREW):
             secret_found("credits_all", "credits_all")
 

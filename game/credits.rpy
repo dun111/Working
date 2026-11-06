@@ -1,127 +1,8 @@
 define CREDIT_FONT = "gui/Telegraphem.otf"
-define CREDIT_STEP = 0.3
-define CREDIT_SIZE = 190
 
 init python:
-    import random as _crandom
-
     def _esc(t):
         return t.replace("[", "[[").replace("{", "{{")
-
-    _GLYPHS = "01#$%&*<>/=+;:"
-
-    def _scramble(st, at, word, delay, size, color, font):
-        if st < delay:
-            return Null(), 0.04
-        out = ""
-        for i, ch in enumerate(word):
-            settle = delay + 0.35 + i * 0.14
-            if st >= settle or ch == " ":
-                out += ch
-            else:
-                out += _crandom.choice(_GLYPHS)
-        return Text(_esc(out), size=size, color=color, font=font), (0.04 if st < delay + 0.4 + len(word) * 0.14 else None)
-
-    def scramble_text(word, delay=0.0, size=180, color="#c8b27a", font=None):
-        return DynamicDisplayable(_scramble, word=word, delay=delay, size=size, color=color, font=font or CREDIT_FONT)
-
-    def _typed_plain(st, at, word, delay, cps, size, color, font, caret):
-        n = int(max(0.0, st - delay) * cps)
-        out = _esc(word[:n])
-        if caret and int(st * 2.5) % 2 == 0:
-            out += "|"
-        return Text(out, size=size, color=color, font=font), 0.05
-
-    def typed_text(word, delay=0.0, cps=12, size=60, color="#e8e4dc", font=None, caret=True):
-        return DynamicDisplayable(_typed_plain, word=word, delay=delay, cps=cps, size=size, color=color,
-                                  font=font or CREDIT_FONT, caret=caret)
-
-
-transform credit_dim(total):
-    alpha 0.0
-    easein 0.5 alpha 1.0
-    pause total
-    easeout 0.6 alpha 0.0
-
-transform cam(z0, x0, y0, z1, x1, y1, dur, r0=0, r1=0):
-    anchor (0.5, 0.5)
-    pos (0.5, 0.5)
-    zoom z0
-    xoffset x0
-    yoffset y0
-    rotate r0
-    alpha 0.0
-    parallel:
-        ease 0.4 alpha 1.0
-    parallel:
-        ease dur zoom z1 xoffset x1 yoffset y1 rotate r1
-    easeout 0.5 alpha 0.0
-
-transform credit_grow(d, dur=0.8):
-    xzoom 0.0
-    pause d
-    easeout dur xzoom 1.0
-
-transform draw_in(delay, dur=0.9):
-    crop_relative True
-    crop (0.0, 1.0, 1.0, 0.0)
-    pause delay
-    linear dur crop (0.0, 0.0, 1.0, 1.0)
-
-transform letter_sketch(d):
-    crop_relative True
-    crop (0.0, 0.0, 0.0, 1.0)
-    pause d
-    linear 0.4 crop (0.0, 0.0, 1.0, 1.0)
-
-screen credit_cam(z0, x0, y0, z1, x1, y1, dur, r0=0, r1=0):
-    fixed:
-        xysize (config.screen_width, config.screen_height)
-        at cam(z0, x0, y0, z1, x1, y1, dur, r0, r1)
-        transclude
-
-
-transform eric_type_out(d):
-    alpha 1.0
-    pause d
-    linear 0.05 alpha 0.0
-
-transform eric_glitch(d):
-    alpha 0.0
-    pause d
-    alpha 1.0
-    block:
-        linear 0.04 xoffset 10
-        linear 0.04 xoffset -8
-        linear 0.04 xoffset 0
-        pause 0.5
-        linear 0.03 xoffset 6
-        linear 0.03 xoffset 0
-        pause 1.6
-        repeat
-
-screen eric_surprise():
-    zorder 200
-    $ type_t = 0.5
-    $ decode_t = type_t + 4 / 6.0 + 0.9
-    $ total = decode_t + 2.6
-
-    add Solid("#06060ae8") at credit_dim(total - 0.4)
-    use credit_cam(1.6, 0, 0, 1.0, 0, 0, total - 0.4):
-        add typed_text("ERIC", type_t, 6, CREDIT_SIZE, "#8a8f9c"):
-            align (0.5, 0.46)
-            at eric_type_out(decode_t)
-        add scramble_text("ERIC", decode_t, CREDIT_SIZE, "#c8b27a"):
-            align (0.5, 0.46)
-            at eric_glitch(decode_t)
-        add Solid("#c8b27a"):
-            align (0.5, 0.62)
-            xysize (480, 3)
-            alpha 0.7
-            at credit_grow(decode_t + 0.8, 0.6)
-
-    timer total action [Hide("eric_surprise"), Function(eric_scare)]
-
 
 define DEBUG_POOL = [
     (["label start:", "    scene black", "    l \"I'm gonna look around.", "    jump carriage_1_start"],
@@ -134,7 +15,7 @@ define DEBUG_POOL = [
      2, _("This line isn't indented like the others.")),
     (["$ clues = 3", "if clues = 3:", "    jump accusation_scene", "else:", "    jump carriage_5_hub"],
      1, _("Use == to compare, not =.")),
-    (["label carriage_6:", "    show screen dark_eyes", "    $ jumpscare(\"conductor\"", "    u \"Not me. Him.\""],
+    (["label carriage_6:", "    scene black", "    $ renpy.notify(\"Carriage 6\"", "    u \"Not me. Him.\""],
      2, _("The bracket is never closed.")),
     (["define l = Character(\"Louis\")", "label hello:", "    l \"Oh, I see.\"", "    retrun"],
      3, _("retrun should be return.")),
@@ -190,36 +71,6 @@ init python:
         if store.dbg_t <= 0:
             store.dbg_t = 0
             store.dbg_result = "lose"
-        renpy.restart_interaction()
-
-    def eric_scare():
-        if renpy.get_screen("eric_jumpscare"):
-            return
-        import time
-        _ESCARE.start = time.time()
-        _ESCARE.can_skip = False
-        renpy.music.set_volume(0.0, 0.05, channel="music")
-        renpy.show_screen("eric_jumpscare")
-
-    class _ESCARE(object):
-        start = 0.0
-        can_skip = False
-
-    def eric_scare_tick():
-        import time
-        t = time.time() - _ESCARE.start
-        if t >= ES_DARK + 0.3 and not _ESCARE.can_skip:
-            _ESCARE.can_skip = True
-            renpy.restart_interaction()
-        if t >= ES_DARK + ES_HOLD:
-            eric_scare_end()
-
-    def eric_scare_end():
-        if not renpy.get_screen("eric_jumpscare"):
-            return
-        renpy.hide_screen("eric_jumpscare")
-        renpy.music.set_volume(1.0, 1.5, channel="music")
-        secret_found("eric_scare")
         renpy.restart_interaction()
 
 screen mg_debug():
@@ -287,313 +138,6 @@ screen mg_debug():
             use mg_end(_("BUILD FAILED"), "lose")
 
 
-define HANNAH_DRAWS = [("dorothy neutral", 0.16), ("fedora neutral", 0.84)]
-
-transform ink_over(d):
-    alpha 0.0
-    pause d
-    ease 0.8 alpha 1.0
-
-screen hannah_surprise():
-    zorder 200
-    $ start = 0.6
-    $ ink_t = start + CREDIT_STEP * 6 + 0.2
-    $ total = ink_t + 4.4
-
-    add Solid("#06060ae8") at credit_dim(total - 0.4)
-    use credit_cam(1.35, 300, 0, 1.0, 0, 0, total - 0.4):
-        for i, (img, x) in enumerate(HANNAH_DRAWS):
-            $ d = ink_t + 0.2 + i * 1.2
-            add Transform(img, matrixcolor=flat_color("#3c3a44"), fit="contain", ysize=760):
-                xcenter x
-                yanchor 1.0
-                ypos 1.0
-                at draw_in(d, 1.0)
-            add Transform(img, fit="contain", ysize=760):
-                xcenter x
-                yanchor 1.0
-                ypos 1.0
-                at ink_over(d + 1.0)
-        hbox:
-            align (0.5, 0.42)
-            spacing 4
-            for i, ch in enumerate("HANNAH"):
-                fixed:
-                    fit_first True
-                    text ch:
-                        size CREDIT_SIZE
-                        color "#8a8794"
-                        font CREDIT_FONT
-                        at letter_sketch(start + i * CREDIT_STEP)
-                    text ch:
-                        size CREDIT_SIZE
-                        color "#d9c9a3"
-                        font CREDIT_FONT
-                        at ink_over(ink_t + i * 0.08)
-
-    timer total action Hide("hannah_surprise")
-
-
-define AYDIN_COL = "#9db8b4"
-
-transform wire_box(d):
-    alpha 0.0
-    pause 0.2
-    ease 0.3 alpha 0.8
-    block:
-        ease 0.35 alpha 0.35
-        ease 0.35 alpha 0.8
-        repeat int(d / 0.7) + 1
-    linear 0.08 alpha 0.0
-
-transform web_render(d):
-    alpha 0.0
-    yoffset -26
-    pause d
-    alpha 1.0
-    easein 0.22 yoffset 0
-    alpha 0.4
-    pause 0.04
-    alpha 1.0
-
-transform web_select(d, off):
-    alpha 0.0
-    pause d
-    linear 0.05 alpha 0.4
-    pause (off - d)
-    ease 0.3 alpha 0.0
-
-init python:
-    def _loading(st, at, start, dur):
-        p = int(max(0.0, min(1.0, (st - 0.2) / dur)) * 100)
-        return Text(_("LOADING  %d%%") % p, size=22, color=AYDIN_COL, font=CREDIT_FONT), 0.05
-
-screen aydin_surprise():
-    zorder 200
-    $ start = 1.4
-    $ n = 5
-    $ loaded = start + CREDIT_STEP * n
-    $ sel_t = loaded + 0.5
-    $ desel_t = sel_t + 0.07 * n + 0.9
-    $ total = desel_t + 1.6
-
-    add Solid("#06060ae8") at credit_dim(total - 0.4)
-    use credit_cam(1.3, 0, 260, 1.0, 0, 0, total - 0.4):
-        hbox:
-            align (0.5, 0.44)
-            spacing 10
-            for i, ch in enumerate("AYDIN"):
-                $ d = start + i * CREDIT_STEP
-                fixed:
-                    fit_first True
-                    text ch:
-                        size CREDIT_SIZE
-                        color "#00000000"
-                        font CREDIT_FONT
-                    fixed:
-                        xfill True
-                        yfill True
-                        at web_select(sel_t + i * 0.07, desel_t)
-                        add rbox("#3fa8a0", 6)
-                    fixed:
-                        align (0.5, 0.38)
-                        xysize (120, 160)
-                        at wire_box(d)
-                        add rbox(AYDIN_COL, 12)
-                        add rbox("#06060a", 10):
-                            pos (3, 3)
-                            xysize (114, 154)
-                    text ch:
-                        size CREDIT_SIZE
-                        color AYDIN_COL
-                        font CREDIT_FONT
-                        at web_render(d)
-        add rbox(AYDIN_COL, 3):
-            align (0.5, 0.63)
-            xysize (520, 4)
-            at credit_grow(0.2, loaded - 0.2)
-        add DynamicDisplayable(_loading, start=0.2, dur=loaded - 0.2):
-            align (0.5, 0.68)
-
-    timer total action Hide("aydin_surprise")
-
-
-define RYAN_LETTERS = ["R", "Y", "A", "N", "", "", "", "Y", "A"]
-define RYAN_FOOD = ["#c98a4a", "#b5653a", "#d6a85a", "#9a6a3a", "#c98a4a", "#b5653a"]
-
-transform food_drop(d):
-    alpha 0.0
-    yoffset -460
-    yanchor 1.0
-    ypos 1.0
-    pause d
-    alpha 1.0
-    easein 0.42 yoffset 0
-    ease 0.08 yzoom 0.72 xzoom 1.25
-    ease 0.12 yzoom 1.1 xzoom 0.94
-    ease 0.1 yzoom 1.0 xzoom 1.0
-
-transform bite(d):
-    crop_relative True
-    crop (0.0, 0.0, 1.0, 1.0)
-    pause (d - 0.3)
-    linear 0.05 rotate 6
-    linear 0.05 rotate -6
-    linear 0.05 rotate 4
-    linear 0.05 rotate 0
-    pause 0.1
-    ease 0.1 crop (0.0, 0.0, 0.64, 1.0) zoom 1.1
-    ease 0.12 zoom 1.0
-    pause 0.12
-    ease 0.1 crop (0.0, 0.0, 0.32, 1.0) zoom 1.1
-    ease 0.12 zoom 1.0
-    pause 0.12
-    ease 0.1 crop (0.0, 0.0, 0.0, 1.0)
-
-transform crumb(d, dx, dy):
-    alpha 0.0
-    pause d
-    alpha 1.0
-    parallel:
-        easeout 0.35 yoffset (-dy)
-        easein 0.55 yoffset 140
-    parallel:
-        linear 0.9 xoffset dx rotate (dx * 3)
-    parallel:
-        pause 0.6
-        linear 0.3 alpha 0.0
-
-screen ryan_surprise():
-    zorder 200
-    $ eat_t = 0.6 + CREDIT_STEP * len(RYAN_LETTERS) + 0.9
-    $ total = eat_t + 0.62 * 6 + 1.6
-
-    add Solid("#06060ae8") at credit_dim(total - 0.4)
-    use credit_cam(1.4, 0, 80, 1.0, 0, 0, total - 0.4, -4, 0):
-        hbox:
-            align (0.5, 0.46)
-            spacing 6
-            $ k = 0
-            for i, ch in enumerate(RYAN_LETTERS):
-                if ch:
-                    $ col = RYAN_FOOD[i % len(RYAN_FOOD)]
-                    $ chomp = eat_t + k * 0.62
-                    $ k += 1
-                    fixed:
-                        fit_first True
-                        text ch:
-                            size CREDIT_SIZE
-                            color "#00000000"
-                            font CREDIT_FONT
-                        fixed:
-                            fit_first True
-                            at food_drop(0.6 + i * CREDIT_STEP)
-                            text ch:
-                                size CREDIT_SIZE
-                                color col
-                                font CREDIT_FONT
-                                outlines [(0, "#00000066", 3, 6)]
-                                at bite(chomp)
-                        for b in range(3):
-                            for c in range(3):
-                                add rbox(RYAN_FOOD[(i + c) % len(RYAN_FOOD)], 5):
-                                    xysize (10 + c * 3, 10 + c * 3)
-                                    pos (70 - b * 22, 110)
-                                    at crumb(chomp + 0.12 + b * 0.24, ((c - 1) * 60) + (b - 1) * 15, 40 + c * 25)
-
-    timer total action Hide("ryan_surprise")
-
-
-define ES_DARK = 2.6
-define ES_HOLD = 1.1
-
-transform es_eyes_far:
-    xalign 0.5
-    yalign 0.42
-    alpha 0.0
-    zoom 0.25
-    pause 0.9
-    linear 0.4 alpha 1.0
-    parallel:
-        linear (ES_DARK - 1.3) zoom 0.55
-    parallel:
-        pause 0.6
-        alpha 0.0
-        pause 0.12
-        alpha 1.0
-        pause 0.5
-        linear 0.05 alpha 0.0
-        pause 0.08
-        alpha 1.0
-
-transform es_lunge:
-    xanchor 0.5
-    yanchor 0.42
-    xpos 0.5
-    ypos 0.5
-    zoom 0.5
-    alpha 0.0
-    pause ES_DARK
-    alpha 1.0
-    easein 0.1 zoom 3.4
-    block:
-        linear 0.025 xoffset 26 yoffset -14
-        linear 0.025 xoffset -24 yoffset 16
-        linear 0.025 xoffset 18 yoffset 10
-        linear 0.025 xoffset -20 yoffset -12
-        repeat
-
-transform es_red:
-    alpha 0.0
-    pause ES_DARK
-    block:
-        alpha 0.55
-        pause 0.06
-        alpha 0.15
-        pause 0.05
-        alpha 0.45
-        pause 0.08
-        alpha 0.1
-        pause 0.06
-        repeat
-
-transform es_band(y, dx, delay):
-    ypos y
-    alpha 0.0
-    pause (ES_DARK + delay)
-    alpha 0.9
-    block:
-        linear 0.03 xoffset dx
-        linear 0.03 xoffset (-dx)
-        alpha 0.0
-        pause 0.07
-        alpha 0.9
-        repeat
-
-screen eric_jumpscare():
-    modal True
-    zorder 400
-    key "game_menu" action Function(eric_scare_end)
-    add Solid("#000000")
-    fixed:
-        xysize (1, 1)
-        at es_eyes_far
-        add _eye(-46, 0, 46, 16)
-        add _eye(46, 0, 46, 16)
-    add SCARE_FACES["passenger"] at es_lunge
-    add Solid("#6a0000") at es_red
-    for k, (y, dx) in enumerate([(0.18, 60), (0.41, -90), (0.57, 120), (0.76, -70), (0.9, 40)]):
-        add Solid("#000000"):
-            xysize (config.screen_width, 40 + k * 9)
-            at es_band(y, dx, k * 0.04)
-    timer 0.1 repeat True action Function(eric_scare_tick)
-    if _ESCARE.can_skip:
-        button:
-            xysize (config.screen_width, config.screen_height)
-            background None
-            action Function(eric_scare_end)
-
-
 define CREDIT_STYLES = [
     ("spotlight",  _("SPOTLIGHT")),
     ("tickets",    _("TICKETS")),
@@ -602,8 +146,12 @@ define CREDIT_STYLES = [
 
 define CREDIT_MUSIC = [
     ("Grekhov Theme", "Departure at 4:00"),
-    ("Rendezvous (Instrumental)", "Carriages 2 and 3"),
+    ("Carriage 1", "Departure at 4:00"),
     ("Let's All Do the Conga", "Colin Sheen"),
+    ("Rendezvous (Instrumental)", "Carriages 2 and 3"),
+    ("Part 2 Carriage 3", "Departure at 4:00"),
+    ("Carriage 4", "Departure at 4:00"),
+    ("Carriage 5", "Departure at 4:00"),
     ("Flower In A Hurricane", "Justice ft. Tame Impala, SZA, King Gizzard & the Lizard Wizard"),
 ]
 
@@ -653,506 +201,298 @@ init python:
 
 define CREW_BADGES = {"eric": "</>", "hannah": "✎", "aydin": "www", "ryan": "☕"}
 
-screen crew_card(ci, c):
-    $ card_h = max(150, 96 + 34 * len(c["roles"]))
-    hbox:
-        frame:
-            xsize 150
-            ysize card_h
-            background rbox("#e0521f", 26)
-            text ("%02d" % (ci + 1)):
-                align (0.5, 0.5)
-                size 54
-                color "#0a0a0e"
-                font GFONT
+define CRED_BG = "#08080c"
+define CRED_PANEL = "#121218"
+define CRED_ACCENT = "#e0521f"
+define CRED_GOLD = "#e6a817"
+define CRED_TEXT = "#f2ead8"
+define CRED_MUTED = "#8888a0"
 
-        vbox:
-            xsize 24
-            yalign 0.5
-            spacing 10
-            for _d in range(max(6, len(c["roles"]) + 3)):
-                add rbox("#33334a", 4):
-                    xalign 0.5
-                    xsize 8
-                    ysize 8
+init python:
+    def credits_roll(adj, state):
+        # Hold still for the first 3 seconds so the crew can be read, then roll.
+        state["ticks"] += 1
+        if state["ticks"] > 100:
+            credits_step(adj)
 
+transform cred_fade(d=0.0):
+    alpha 0.0
+    pause d
+    ease 0.5 alpha 1.0
+
+
+# ---------- TICKETS: a scrolling list of plain cards ----------
+
+screen crew_card(c):
+    button:
+        xfill True
+        padding (40, 28)
+        background rbox(CRED_PANEL, 22)
+        hover_background rbox("#191920", 22)
+        action Function(credits_click, c["key"])
         vbox:
-            yalign 0.5
-            spacing 4
-            xoffset 14
+            spacing 14
             hbox:
-                spacing 18
+                spacing 16
                 text c["name"]:
-                    size 60
-                    color "#f2ead8"
-                    hover_color "#e0521f"
+                    size 56
+                    color CRED_TEXT
+                    hover_color CRED_ACCENT
                     font CREDIT_FONT
-                    outlines [(0, "#00000080", 2, 3)]
                 if c["key"] in CREW_BADGES:
                     frame:
-                        yalign 0.6
-                        padding (12, 4)
-                        background rbox("#22222c", 10)
-                        text CREW_BADGES[c["key"]]:
-                            size 22
-                            color "#8888a0"
-                            hover_color "#e8e4dc"
-                            font "DejaVuSans.ttf"
-            null height 4
-            for role in c["roles"]:
-                hbox:
-                    spacing 12
-                    add rbox("#e0521f", 2):
-                        xysize (8, 8)
                         yalign 0.5
-                    text role:
-                        size 22
-                        color "#e6a817"
-                        font GFONT
+                        padding (10, 3)
+                        background rbox("#22222c", 8)
+                        text CREW_BADGES[c["key"]]:
+                            size 18
+                            color CRED_MUTED
+                            font "DejaVuSans.ttf"
+            add Solid(CRED_ACCENT, xsize=60, ysize=3)
+            text "\u00a0\u00a0·   ".join(c["roles"]):
+                size 20
+                color CRED_GOLD
+                font GFONT
+                line_spacing 6
 
-transform card_in(d):
-    alpha 0.0
-    xoffset 260
-    pause d
-    easein 0.6 alpha 1.0 xoffset 0
+screen cred_section(heading, lines):
+    frame:
+        xfill True
+        padding (40, 28)
+        background rbox(CRED_PANEL, 22)
+        vbox:
+            spacing 10
+            xfill True
+            text heading.upper():
+                xalign 0.5
+                size 18
+                color CRED_GOLD
+                font GFONT
+            null height 2
+            for ln, sub in lines:
+                text _esc((ln + "   ·   " + sub) if sub else ln):
+                    xalign 0.5
+                    text_align 0.5
+                    size 26
+                    color CRED_TEXT
+                    font GFONT
 
-transform card_hover:
-    on idle:
-        ease 0.25 xoffset 0 zoom 1.0
-    on hover:
-        ease 0.25 xoffset -18 zoom 1.01
-
+define CRED_TOP = 70
+define CRED_H = config.screen_height - 230
 
 screen credits_tickets():
     default cred_adj = ui.adjustment()
-    add Solid("#08080c")
-
-    if persistent.menu_fx and not persistent.reduce_motion:
-        for sy, sdur, sdelay, slen in MENU_STREAKS:
-            add Solid("#ffffff10", xsize=slen, ysize=2):
-                ypos sy
-                at streak(sdur, sdelay)
+    default cred_roll = {"ticks": 0}
+    add Solid(CRED_BG)
 
     frame:
         xpos 80
-        ypos 70
-        xsize 560
-        ysize 830
-        padding (2, 2)
-        background rbox("#ffffff1e", 40)
-        at fade_slide_in(0.0, xoff=-50)
-
-        frame:
+        ypos CRED_TOP
+        xsize 520
+        ysize CRED_H
+        padding (40, 48)
+        background rbox(CRED_PANEL, 30)
+        at cred_fade(0.0)
+        vbox:
             xfill True
-            yfill True
-            padding (40, 40)
-            background rbox("#14141aee", 38)
-
-            vbox:
-                spacing 26
-                xfill True
-
-                text _("CREDITS"):
-                    xalign 0.5
-                    size 54
-                    color "#ffffff"
-                    font GFONT
-
-                add rbox("#e0521f", 2):
-                    xalign 0.5
-                    xsize 160
-                    ysize 6
-
-                add "game_logo_cycle":
-                    xsize 440
-                    ysize 260
-                    fit "contain"
-                    xalign 0.5
-                    at logo_float
-
-                fixed:
-                    xfill True
-                    ysize 22
-                    use menu_tagline
-
-                null height 10
-
-                text _("Version [config.version]"):
-                    xalign 0.5
-                    size 20
-                    color "#e6a817"
-                    font GFONT
-
-                text _("Made with Ren'Py [renpy.version_only]"):
-                    xalign 0.5
-                    size 16
-                    color "#8888a0"
-                    font GFONT
+            spacing 22
+            text _("CREDITS"):
+                xalign 0.5
+                size 48
+                color "#ffffff"
+                font GFONT
+            add Solid(CRED_ACCENT, xsize=120, ysize=3):
+                xalign 0.5
+            null height 10
+            add "game_logo_cycle":
+                xsize 420
+                ysize 250
+                fit "contain"
+                xalign 0.5
+            null height 10
+            text _("Version [config.version]"):
+                xalign 0.5
+                size 20
+                color CRED_GOLD
+                font GFONT
+            text _("Made with Ren'Py [renpy.version_only]"):
+                xalign 0.5
+                size 16
+                color CRED_MUTED
+                font GFONT
 
     viewport:
-        xpos 720
-        ypos 70
-        xsize (config.screen_width - 800)
-        ysize 830
+        xpos 680
+        ypos CRED_TOP
+        xsize (config.screen_width - 760)
+        ysize CRED_H
         yadjustment cred_adj
         mousewheel True
         draggable True
+        at cred_fade(0.2)
 
         vbox:
-            xsize (config.screen_width - 820)
-            spacing 22
+            xsize (config.screen_width - 760)
+            spacing 18
 
-            null height 760
-
-            for ci, c in enumerate(CREW):
-                frame:
-                    xfill True
-                    padding (0, 0)
-                    background None
-                    at card_in(0.3 + ci * 0.15)
-                    button:
-                        xfill True
-                        padding (0, 0)
-                        background None
-                        action Function(credits_click, c["key"])
-                        frame:
-                            xfill True
-                            padding (0, 0)
-                            background rbox("#14141a", 26)
-                            hover_background rbox("#1d1820", 26)
-                            at card_hover
-                            use crew_card(ci, c)
-
-            for heading, lines in credit_sections():
-                frame:
-                    xfill True
-                    background rbox("#14141a", 26)
-                    padding (40, 30)
-                    vbox:
-                        spacing 8
-                        xalign 0.5
-                        text heading.upper():
-                            xalign 0.5
-                            size 20
-                            color "#e6a817"
-                            font GFONT
-                        for ln, sub in lines:
-                            text ((ln + "   ·   " + sub) if sub else ln):
-                                xalign 0.5
-                                size 34
-                                color "#ffffff"
-                                font GFONT
-
-            frame:
-                xfill True
-                background rbox("#14141a", 26)
-                padding (40, 34)
-                vbox:
-                    spacing 10
-                    xalign 0.5
-                    text _("SPECIAL CREDITS"):
-                        xalign 0.5
-                        size 20
-                        color "#e6a817"
-                        font GFONT
-                    text _("larp music"):
-                        xalign 0.5
-                        size 44
-                        color "#ffffff"
-                        font GFONT
-
-            text _("THANKS FOR PLAYING!"):
-                xalign 0.5
-                size 64
-                italic True
-                color "#8888a0"
+            text _("THE CREW"):
+                size 18
+                color CRED_GOLD
                 font GFONT
 
-            null height 760
+            for c in CREW:
+                use crew_card(c)
 
-    timer 0.03 repeat True action Function(credits_step, cred_adj)
+            null height 20
+
+            for heading, lines in credit_sections():
+                use cred_section(heading, lines)
+
+            use cred_section(_("Special credits"), [("larp music", "")])
+
+            null height 40
+            text _("THANKS FOR PLAYING!"):
+                xalign 0.5
+                size 48
+                color CRED_MUTED
+                font GFONT
+            null height CRED_H
+
+    timer 0.03 repeat True action Function(credits_roll, cred_adj, cred_roll)
 
 
-define SPOT_TIME = 7.0
-define SPOT_X = 0.36
-define SPOT_Y = 0.52
-define SPOT_RX = 0.85
-define SPOT_RY = 1.25
+# ---------- SPOTLIGHT: one picture and one credit at a time ----------
+
+define SPOT_TIME = 6.0
 
 define SPOT_SLIDES = [
-    ("images/bg_carriage_1_passengers.webp", "place"),
-    ("images/logo_game_yellow.webp", "thing"),
-    ("images/louis_neutral.png", "person"),
-    ("images/dorothy_neutral.png", "person"),
-    ("images/fedora_neutral.png", "person"),
-    ("images/train_blueprint.webp", "place"),
-    ("eduard neutral", "person"),
-    ("shunyu neutral", "person"),
-    ("images/kimmy_neutral.png", "person"),
-    ("himmel neutral", "person"),
-    ("images/bg_carriage_5.webp", "place"),
-    ("sebastian neutral", "person"),
-    ("misha neutral", "person"),
-    ("agatha neutral", "person"),
-    ("ichora neutral", "person"),
-    ("images/bg_carriage_1_passengers_part2.webp", "place"),
-    ("pattison neutral", "person"),
-    ("alexander neutral", "person"),
-    ("images/dorothy_sad.png", "person"),
-    ("images/bg_first_class.webp", "place"),
-    ("images/key.webp", "thing"),
-    ("shunyu_monster neutral", "person"),
-    ("himmel_monster neutral", "person"),
-    ("conductor_monster neutral", "person"),
-    ("images/bg_carriage_1.webp", "place"),
-    ("images/pixel_sprites.webp", "thing"),
-    ("images/ui_achievement_unlocked.webp", "thing"),
-    ("images/logo_studio_full.webp", "thing"),
+    "images/bg_carriage_1_passengers.webp",
+    "louis neutral",
+    "dorothy neutral",
+    "fedora neutral",
+    "images/train_blueprint.webp",
+    "eduard neutral",
+    "shunyu neutral",
+    "kimmy neutral",
+    "images/bg_mail_cart.webp",
+    "himmel neutral",
+    "sebastian neutral",
+    "misha neutral",
+    "agatha neutral",
+    "ichora neutral",
+    "images/bg_carriage_1_passengers_part2.webp",
+    "pattison neutral",
+    "alexander neutral",
+    "dorothy sad",
+    "images/bg_first_class_clear.webp",
+    "images/key.webp",
+    "shunyu_monster neutral",
+    "himmel_monster neutral",
+    "conductor_monster neutral",
+    "images/bg_carriage_1.webp",
+    "images/logo_studio_full.webp",
 ]
 
 init python:
-    def spot_slide(i):
-        img, kind = SPOT_SLIDES[i % len(SPOT_SLIDES)]
-        sw, sh = config.screen_width, config.screen_height
-        if kind == "person":
-            return Transform(img, fit="contain", ysize=int(sh * 0.92))
-        if kind == "thing":
-            return Transform(img, fit="contain", xysize=(int(sh * 0.62), int(sh * 0.62)))
-        return Transform(img, fit="cover", xysize=(int(sw * 1.3), int(sh * 1.3)))
+    _SPOT_PICS = []
 
-    def spot_credit(i):
+    def spot_pictures():
+        # Built once: drops any character whose sprite isn't there, so no slide is ever empty.
+        if not _SPOT_PICS:
+            for img in SPOT_SLIDES:
+                if img.startswith("images/"):
+                    if renpy.loadable(img):
+                        _SPOT_PICS.append((img, False))
+                elif renpy.render(renpy.displayable(img), 1920, 1200, 0, 0).get_size() != (0, 0):
+                    _SPOT_PICS.append((img, True))
+        return _SPOT_PICS
+
+    def spot_picture(i):
+        pics = spot_pictures()
+        img, person = pics[(i - 1) % len(pics)]
+        if person:
+            return Transform(img, fit="contain", xysize=(860, int(config.screen_height * 0.9))), True
+        return Transform(img, fit="contain", xysize=(860, 600)), False
+
+    def spot_blocks():
         blocks = list(credit_roles())
         for heading, lines in credit_sections():
-            if len(lines) <= 4 or any(sub for _l, sub in lines):
-                for ln, sub in lines:
-                    blocks.append(([heading] + ([sub] if sub else []), [{"key": None, "name": ln}]))
-            else:
-                for k in range(0, len(lines), 3):
-                    blocks.append(([heading], [{"key": None, "name": ln} for ln, _s in lines[k:k + 3]]))
+            for k in range(0, len(lines), 4):
+                blocks.append(([heading], [{"key": None, "name": ln + ("  ·  " + sub if sub else "")}
+                                           for ln, sub in lines[k:k + 4]]))
         blocks.append(([_("Special credits")], [{"key": None, "name": "larp music"}]))
+        return blocks
+
+    def spot_credit(i):
         if i == 0:
             return None
+        blocks = spot_blocks()
         return blocks[(i - 1) % len(blocks)]
 
-    SPOT_MOVES = [
-        (1.00, 1.18, -60, 60, 30, -20),
-        (1.15, 1.02, 70, -50, -20, 20),
-        (1.05, 1.25, 0, 0, 60, -40),
-        (1.22, 1.05, -80, 40, -30, 10),
-    ]
-
-    def spot_move(i):
-        return SPOT_MOVES[i % len(SPOT_MOVES)]
-
-define SPOT_ROLE = 1.1
-
-init python:
-    def spot_duration(i):
-        block = spot_credit(i)
-        if block is None:
-            return SPOT_TIME
-        return max(SPOT_TIME, 2.2 + len(block[0]) * SPOT_ROLE + 1.8)
-
-transform spot_cam(z0, z1, x0, x1, y0, y1, d, key):
+transform spot_show(dur):
     alpha 0.0
-    zoom z0
-    xoffset x0
-    yoffset y0
-    parallel:
-        ease 1.0 alpha 1.0
-        pause (d - 2.0)
-        ease 1.0 alpha 0.0
-    parallel:
-        linear d zoom z1 xoffset x1 yoffset y1
-
-transform spot_cut(key):
-    alpha 1.0
-    pause 0.08
-    ease 0.55 alpha 0.0
-
-transform spot_sway:
-    xoffset 0
-    yoffset 0
-    block:
-        ease 3.1 xoffset 26 yoffset -10
-        ease 2.7 xoffset -18 yoffset 8
-        ease 3.4 xoffset 8 yoffset 14
-        ease 2.9 xoffset 0 yoffset 0
-        repeat
-
-transform spot_letter(d):
-    alpha 0.0
-    yoffset -60
-    zoom 1.5
-    blur 10
-    pause d
-    parallel:
-        easein_back 0.45 yoffset 0 zoom 1.0
-    parallel:
-        easein 0.3 alpha 1.0 blur 0
-
-transform spot_role(d, hold):
-    alpha 0.0
-    zoom 1.7
-    blur 14
-    xoffset 0
-    matrixcolor BrightnessMatrix(0.0)
-    pause d
-    parallel:
-        easein 0.2 zoom 1.0 blur 0 alpha 1.0
-    parallel:
-        matrixcolor BrightnessMatrix(0.8)
-        ease 0.45 matrixcolor BrightnessMatrix(0.0)
-    pause (hold - 0.45)
-    easeout 0.22 alpha 0.0 xoffset -70 blur 8
-
-transform spot_role_last(d):
-    alpha 0.0
-    zoom 1.7
-    blur 14
-    matrixcolor BrightnessMatrix(0.0)
-    pause d
-    parallel:
-        easein 0.2 zoom 1.0 blur 0 alpha 1.0
-    parallel:
-        matrixcolor BrightnessMatrix(0.8)
-        ease 0.45 matrixcolor BrightnessMatrix(0.0)
-
-transform spot_underline(d):
-    xzoom 0.0
-    pause d
-    easeout 0.6 xzoom 1.0
-
-transform spot_hold(d):
-    alpha 1.0
-    yoffset 0
-    parallel:
-        pause (d - 0.7)
-        ease 0.6 alpha 0.0
-    parallel:
-        block:
-            ease 2.2 yoffset -6
-            ease 2.2 yoffset 6
-            repeat
-
-transform spot_logo_in(d):
-    alpha 0.0
-    zoom 0.85
-    blur 12
-    pause 0.4
-    easein 1.2 alpha 1.0 zoom 1.0 blur 0
-    pause (d - 2.4)
+    ease 0.7 alpha 1.0
+    pause max(0.1, dur - 1.4)
     ease 0.7 alpha 0.0
-
-screen spot_name(c, start):
-    $ nsz = 96 if len(c["name"]) <= 11 else max(50, int(96 * 11 / len(c["name"])))
-    button:
-        padding (0, 0)
-        background None
-        action (Function(credits_click, c["key"]) if c.get("key") else None)
-        hbox:
-            for li, ch in enumerate(c["name"]):
-                text ch:
-                    size nsz
-                    color "#f2ead8"
-                    hover_color "#e0521f"
-                    font CREDIT_FONT
-                    outlines [(6, "#e0521f38", 0, 0), (2, "#00000099", 0, 0)]
-                    at spot_letter(start + li * 0.07)
 
 screen credits_spotlight():
     default slide = 0
-    $ sw, sh = config.screen_width, config.screen_height
-    $ z0, z1, x0, x1, y0, y1 = spot_move(slide)
-    $ kind = SPOT_SLIDES[slide % len(SPOT_SLIDES)][1]
-    $ dur = spot_duration(slide)
-    $ still = persistent.reduce_motion
+    $ block = spot_credit(slide)
 
     for k index k in [slide]:
-        timer dur action SetLocalVariable("slide", slide + 1)
+        timer SPOT_TIME action SetLocalVariable("slide", slide + 1)
 
     add Solid("#000000")
 
-    fixed:
-        at (spot_sway if not still else Transform())
+    if block is None:
         for k index k in [slide]:
-            add spot_slide(k):
-                xcenter SPOT_X
-                yanchor (1.0 if kind == "person" else 0.5)
-                ypos (1.04 if kind == "person" else SPOT_Y)
-                at spot_cam(z0, (z1 if not still else z0), x0, (x1 if not still else x0), y0, (y1 if not still else y0), dur, k)
-
-        add Solid("#000000"):
-            pos (-100, -100)
-            xysize (max(0, int(sw * SPOT_X - sh * SPOT_RX) + 102), sh + 200)
-        add Solid("#000000"):
-            pos (int(sw * SPOT_X + sh * SPOT_RX) - 2, -100)
-            xysize (max(0, sw - int(sw * SPOT_X + sh * SPOT_RX) + 102), sh + 200)
-        add Solid("#000000"):
-            pos (-100, -100)
-            xysize (sw + 200, max(0, int(sh * SPOT_Y - sh * SPOT_RY) + 102))
-        add Solid("#000000"):
-            pos (-100, sh - 2)
-            xysize (sw + 200, 102)
-
-    if not still:
-        for k index k in [slide]:
-            add Solid("#000000") at spot_cut(k)
-
-    if not still:
-        for ex, esz, edur, edelay, esway in MENU_EMBERS[:14]:
-            add Solid("#fff4dc88"):
-                xpos (SPOT_X - 0.12 + ex * 0.24)
-                xsize max(2, esz - 2)
-                ysize max(2, esz - 2)
-                at ember(edur * 1.4, edelay, esway // 2)
-
-    $ block = spot_credit(slide)
-    for k index k in [slide]:
-      fixed:
-        xpos 0.6
-        ypos 0
-        xsize int(sw * 0.37)
-        ysize sh
-        if block is None:
             vbox:
-                yalign 0.5
-                spacing 14
-                at spot_logo_in(dur)
-                add Transform("images/logo_game_yellow.webp", fit="contain", xysize=(620, 400))
+                align (0.5, 0.48)
+                spacing 24
+                at spot_show(SPOT_TIME)
+                add Transform("images/logo_game_yellow.webp", fit="contain", xysize=(760, 460)):
+                    xalign 0.5
                 text _("A BLACKBERRY STUDIOS GAME"):
+                    xalign 0.5
                     size 22
-                    color "#8a8a8a"
+                    color CRED_MUTED
                     font GFONT
-        else:
-            $ roles, people = block
-            $ n = len(roles)
-            vbox:
-                yalign 0.5
-                spacing 4
-                at spot_hold(dur)
-                fixed:
-                    xsize int(sw * 0.37)
-                    ysize 40
-                    for j, role in enumerate(roles):
-                        text role.upper():
-                            yalign 0.5
-                            size 26
-                            color "#e0521f"
+    else:
+        $ pic, person = spot_picture(slide)
+        $ roles, people = block
+        for k index k in [slide]:
+            fixed:
+                at spot_show(SPOT_TIME)
+
+                if person:
+                    add pic:
+                        xcenter 0.3
+                        yalign 1.0
+                else:
+                    add pic:
+                        xcenter 0.3
+                        yalign 0.5
+
+                vbox:
+                    xpos 0.6
+                    yalign 0.5
+                    xmaximum int(config.screen_width * 0.36)
+                    spacing 12
+                    for role in roles:
+                        text _esc(role.upper()):
+                            size 24
+                            color CRED_ACCENT
                             font GFONT
-                            outlines [(3, "#00000099", 0, 0)]
-                            at (spot_role_last(1.4 + j * SPOT_ROLE) if j == n - 1 else spot_role(1.4 + j * SPOT_ROLE, SPOT_ROLE))
-                if n > 1:
-                    text (_("%d ROLES") % n):
-                        size 14
-                        color "#6a6a6a"
-                        font GFONT
-                        at spot_letter(1.0)
-                null height 6
-                for pi, c in enumerate(people):
-                    fixed:
-                        fit_first True
-                        use spot_name(c, 0.35 + pi * 0.35)
-                add Solid("#e0521f"):
-                    xysize (360, 3)
-                    at spot_underline(0.9)
+                    add Solid(CRED_ACCENT, xsize=80, ysize=3)
+                    null height 8
+                    $ longest = max(len(c["name"]) for c in people)
+                    $ nsz = 80 if longest <= 12 else max(34, int(80 * 12 / longest))
+                    for c in people:
+                        textbutton _esc(c["name"]):
+                            padding (0, 0)
+                            background None
+                            text_size nsz
+                            text_color CRED_TEXT
+                            text_hover_color CRED_ACCENT
+                            text_font CREDIT_FONT
+                            action (Function(credits_click, c["key"]) if c.get("key") else None)
