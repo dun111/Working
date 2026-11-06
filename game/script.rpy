@@ -101,17 +101,21 @@ screen carriage_3_map():
     use golden_ticket("c3", 1820, 300)
     use hs(DOOR_LEFT, Jump("carriage_2_hub"), "Carriage 2", "back")
     if not c3_talked_kimmy:
-        use hs((100, 150, 180, 400), Call("c3_kimmy_dialogue"), "Kimmy", "talk")
+        use hs((230, 650, 160, 200), Call("c3_kimmy_dialogue"), "Kimmy", "talk")
     if not c3_talked_himmel:
-        use hs((350, 150, 180, 400), Call("c3_himmel_dialogue"), "Himmel", "talk", 0.05)
+        use hs((480, 650, 160, 200), Call("c3_himmel_dialogue"), "Himmel", "talk", 0.05)
     if not c3_talked_sebastian:
-        use hs((600, 150, 180, 400), Call("c3_sebastian_dialogue"), "Sebastian", "talk", 0.1)
-    if not c3_talked_misha:
-        use hs((850, 150, 180, 400), Call("c3_misha_dialogue"), "Misha", "talk", 0.15)
-    use hs((950, 620, 160, 160), Call("c3_interact_empty_room"), "Empty room", delay=0.2)
-    use hs((1150, 620, 160, 160), Call("c3_interact_carpet"), "Carpet", delay=0.25)
-    use hs((1350, 620, 160, 160), Call("c3_interact_toys"), "Toys", delay=0.3)
-    use hs((1550, 620, 160, 160), Call("c3_interact_luggage"), "Luggage", delay=0.35)
+        use hs((1270, 405, 115, 170), Call("c3_sebastian_dialogue"), "Sebastian", "talk", 0.1)
+    # Misha's cabin stays locked until Sebastian has spoken to Louis.
+    if c3_talked_sebastian:
+        if not c3_talked_misha:
+            use hs((1000, 650, 180, 200), Call("c3_misha_dialogue"), "Misha", "talk", 0.15)
+        use hs((1210, 680, 150, 160), Call("c3_interact_toys"), "Toys", delay=0.3)
+    else:
+        use hs((1000, 650, 360, 200), Function(renpy.notify, _("Locked. Talk to Sebastian first.")), "Misha's door", delay=0.15)
+    use hs((1450, 650, 180, 200), Call("c3_interact_empty_room"), "Empty room", delay=0.2)
+    use hs((420, 470, 260, 90), Call("c3_interact_carpet"), "Carpet", delay=0.25)
+    use hs((1760, 750, 100, 90), Call("c3_interact_luggage"), "Luggage", delay=0.35)
     if c3_talked_kimmy and c3_talked_himmel and c3_talked_sebastian and c3_talked_misha:
         use hs(DOOR_RIGHT, Jump("carriage_4_start"), "Carriage 4", "door", 0.4)
 
@@ -173,19 +177,19 @@ screen carriage_3_part2_map():
     # Script order: luggage and Kimmy first, then the mail room (Carriage 5), then
     # back here for the carpet, Sebastian and Misha, then the decision.
     if clue_drug_wrapper and not kimmy_reinterviewed:
-        use hs((100, 150, 180, 400), Call("c3_p2_kimmy_reinterview"), "Kimmy", "talk")
+        use hs((230, 650, 160, 200), Call("c3_p2_kimmy_reinterview"), "Kimmy", "talk")
     if clue_drug_wrapper and not himmel_reinterviewed:
-        use hs((350, 150, 180, 400), Call("c3_p2_himmel_reinterview"), "Himmel", "talk", 0.05)
+        use hs((480, 650, 160, 200), Call("c3_p2_himmel_reinterview"), "Himmel", "talk", 0.05)
 
     if clue_hidden_tile and not sebastian_reinterviewed:
-        use hs((600, 150, 180, 400), Call("c3_p2_sebastian_reinterview"), "Sebastian", "talk", 0.1)
+        use hs((1270, 405, 115, 170), Call("c3_p2_sebastian_reinterview"), "Sebastian", "talk", 0.1)
     if clue_hidden_tile and not misha_reinterviewed:
-        use hs((850, 150, 180, 400), Call("c3_p2_misha_reinterview"), "Misha", "talk", 0.15)
+        use hs((1000, 650, 180, 200), Call("c3_p2_misha_reinterview"), "Misha", "talk", 0.15)
 
     if clue_alexander_alibi:
-        use hs((1150, 620, 160, 160), Call("c3_p2_interact_carpet"), "Carpet", delay=0.2)
-    use hs((1350, 620, 160, 160), Call("c3_p2_interact_toys"), "Toys", delay=0.25)
-    use hs((1550, 620, 160, 160), Call("c3_p2_interact_luggage"), "Luggage", delay=0.3)
+        use hs((420, 470, 260, 90), Call("c3_p2_interact_carpet"), "Carpet", delay=0.2)
+    use hs((1210, 680, 150, 160), Call("c3_p2_interact_toys"), "Toys", delay=0.25)
+    use hs((1760, 750, 100, 90), Call("c3_p2_interact_luggage"), "Luggage", delay=0.3)
 
     if kimmy_reinterviewed and not clue_alexander_alibi:
         use hs(DOOR_RIGHT, Jump("carriage_5_part2_start"), "Carriage 5", "door", 0.35)
