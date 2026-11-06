@@ -2451,17 +2451,15 @@ screen choice(items):
 
 default quick_menu = True
 
-# The quick menu: a soft, tinted bar. A blurred halo fades it into whatever is
-# behind it, with a warm tint and a faint highlight along the top edge.
+# The quick menu: the original dark rounded bar, with a blurred halo so its
+# edges fade softly into whatever is behind it.
 define QM_BOTTOM = 30
-define QM_TINT = "#2a1620c4"
-define QM_TEXT = "#d6cdbf"
+define QM_TEXT = "#a8a4b4"
 
 init python:
     QM_GLASS = Fixed(
-        Transform(rbox("#000000a0", 26), blur=14),
-        Transform(rbox(QM_TINT, 22), xysize=(1.0, 1.0)),
-        Transform(Solid("#ffffff14"), ysize=1, xsize=0.9, xalign=0.5, ypos=2),
+        Transform(rbox("#000000b0", 24), blur=16),
+        rbox("#0a0a0ee0", 20),
     )
 
 screen quick_menu():
@@ -2477,26 +2475,26 @@ screen quick_menu():
             xalign 0.5
             yalign 1.0
             yoffset -QM_BOTTOM
-            padding (14, 6)
+            padding (10, 6)
             background QM_GLASS
             at (qm_shown if quick_menu_hover else qm_hidden)
             hbox:
-                spacing 2
+                yalign 0.5
+                spacing 4
                 for qm_label, qm_act in ([(_("REWIND"), Function(rewind_go))] if rewind_ready() else []) + [
                     (_("Home"), MainMenu(confirm=True)),
                     (_("Back"), Rollback()),
                     (_("Logbook"), ShowMenu("history")),
                     (_("Skip"), Skip()),
-                    (_("Let It Roll"), Preference("auto-forward", "toggle")),
                     (_("Save"), ShowMenu("save")),
                     (_("Journal"), ShowMenu("clues")),
                     (_("Passengers"), ShowMenu("manifest")),
                     (_("Settings"), ShowMenu("preferences")),
                 ] + ([(_("Radio"), Function(radio_toggle))] if persistent.radio_bar else []):
                     button:
-                        ysize 34
-                        xminimum 74
+                        ysize 36
                         padding (16, 0)
+                        yalign 0.5
                         background None
                         hover_background rbox("#ffffff1c", 15)
                         selected_background rbox("#e0521f33", 15)
