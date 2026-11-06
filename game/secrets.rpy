@@ -43,9 +43,9 @@ init python:
         ["door_c2_open_loop"],
         ["c2_p2_found_body", "c2_p2_reinterviewed_eduard", "c2_p2_reinterviewed_agatha",
          "clue_tile_mismatch", "clue_body_moved"],
-        ["clue_drug_wrapper", "clue_hidden_tile", "kimmy_reinterviewed", "himmel_reinterviewed",
-         "sebastian_reinterviewed", "misha_reinterviewed"],
-        ["alexander_reinterviewed", "pattison_reinterviewed", "clue_alexander_alibi"],
+        ["clue_drug_wrapper", "kimmy_reinterviewed", "himmel_reinterviewed"],
+        ["alexander_reinterviewed", "pattison_reinterviewed", "clue_alexander_alibi", "c3_p2_returned",
+         "clue_hidden_tile", "sebastian_reinterviewed", "misha_reinterviewed"],
     ]
 
     CHEAT_CHAPTERS = [

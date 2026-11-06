@@ -12,6 +12,7 @@ define ic  = C("Ichora",    "ichora",    "#7a5a22")
 define p   = C("Pattison",  "pattison",  "#5a3a6a")
 define al  = C("Alexander", "alexander", "#6a6a22")
 define pas = C("Passenger")
+define gam = C("Other Gambler")
 define u   = C("???", plate="#3a0a0a", creepy=True)
 
 define shunyu_monster    = C("The Passenger",  "shunyu_monster",    "#5a0a0a", creepy=True)
@@ -52,6 +53,7 @@ default clue_tile_mismatch = False
 default clue_body_moved = False
 default clue_alexander_alibi = False
 default clue_hidden_tile = False
+default c3_p2_returned = False
 default clue_drug_wrapper = False
 
 default kimmy_reinterviewed = False
@@ -168,6 +170,8 @@ screen carriage_3_part2_map():
     use golden_ticket("c3b", 1500, 120)
     use hs(DOOR_LEFT, Jump("carriage_2_part2_return"), "Carriage 2", "back")
 
+    # Script order: luggage and Kimmy first, then the mail room (Carriage 5), then
+    # back here for the carpet, Sebastian and Misha, then the decision.
     if clue_drug_wrapper and not kimmy_reinterviewed:
         use hs((100, 150, 180, 400), Call("c3_p2_kimmy_reinterview"), "Kimmy", "talk")
     if clue_drug_wrapper and not himmel_reinterviewed:
@@ -178,23 +182,24 @@ screen carriage_3_part2_map():
     if clue_hidden_tile and not misha_reinterviewed:
         use hs((850, 150, 180, 400), Call("c3_p2_misha_reinterview"), "Misha", "talk", 0.15)
 
-    use hs((1150, 620, 160, 160), Call("c3_p2_interact_carpet"), "Carpet", delay=0.2)
+    if clue_alexander_alibi:
+        use hs((1150, 620, 160, 160), Call("c3_p2_interact_carpet"), "Carpet", delay=0.2)
     use hs((1350, 620, 160, 160), Call("c3_p2_interact_toys"), "Toys", delay=0.25)
     use hs((1550, 620, 160, 160), Call("c3_p2_interact_luggage"), "Luggage", delay=0.3)
 
-    if kimmy_reinterviewed and himmel_reinterviewed and sebastian_reinterviewed and misha_reinterviewed:
+    if kimmy_reinterviewed and not clue_alexander_alibi:
         use hs(DOOR_RIGHT, Jump("carriage_5_part2_start"), "Carriage 5", "door", 0.35)
+    if sebastian_reinterviewed and misha_reinterviewed:
+        use hs((1400, 200, 150, 400), Jump("accusation_scene"), "Time to decide", "decide", 0.1)
 
 screen carriage_5_part2_map():
     add "bg carriage_5"
     use golden_ticket("c5b", 90, 200)
-    use hs(DOOR_LEFT, Jump("carriage_3_part2_hub"), "Carriage 3", "back")
+    use hs(DOOR_LEFT, Jump("carriage_3_part2_return" if clue_alexander_alibi else "carriage_3_part2_hub"), "Carriage 3", "back")
     if not alexander_reinterviewed:
         use hs((1080, 645, 125, 165), Call("c5_p2_alexander_dialogue"), "Alexander", "talk")
     if alexander_reinterviewed and not pattison_reinterviewed:
         use hs((200, 345, 125, 205), Call("c5_p2_pattison_dialogue"), "Pattison", "talk")
-    if alexander_reinterviewed and pattison_reinterviewed:
-        use hs((1400, 200, 150, 400), Jump("accusation_scene"), "Time to decide", "decide", 0.1)
 
 
 label start:
@@ -230,7 +235,7 @@ label start:
     show dorothy confused at speaker_background(xalign=0.9)
     show louis looking_around at speaker_focus(xalign=0.1)
     "{i}Louis feels something in his pocket, looks down and sees a ticket.{/i}"
-    l "Uh… uh… yes, the ticket. I think it's somewhere here…"
+    l "{i}(brain freeze){/i} Uh… uh… yes, the ticket. I think it's somewhere here…"
     call play_required("mg_ticket", ticket_reset) from _call_play_required
     "{i}He pulls the ticket out of his pocket.{/i}"
     show louis confused at speaker_focus(xalign=0.1)
@@ -990,8 +995,16 @@ label carriage_2_part2_return:
 label carriage_3_part2_start:
     $ autosave_checkpoint()
     scene bg carriage_3 with dissolve
-    "{i}The sleeper cabin is colder than before. The four rooms all sit slightly ajar, as if something moved through recently and didn't bother closing doors behind it.{/i}"
     show screen map_stamp(_("CARRIAGE 3"), _("SLEEPER CABINS"))
+    jump carriage_3_part2_hub
+
+# Back from the mail room, once Pattison has confirmed Alexander's alibi.
+label carriage_3_part2_return:
+    if not c3_p2_returned:
+        $ c3_p2_returned = True
+        $ autosave_checkpoint()
+        scene bg carriage_3 with dissolve
+        "{i}The sleeper cabin is colder than before. The four rooms all sit slightly ajar, as if something moved through recently and didn't bother closing doors behind it.{/i}"
     jump carriage_3_part2_hub
 
 label carriage_3_part2_hub:
@@ -1144,6 +1157,8 @@ label c3_p2_misha_reinterview:
     show misha neutral at speaker_background(xalign=0.9)
     l "{i}(to himself){/i} 'They always come back.' What does that even mean..."
     $ misha_reinterviewed = True
+    if sebastian_reinterviewed:
+        l "I have everything I think I'm going to get. The tile. The blood. The alibis. It's time to decide."
     return
 
 
@@ -1190,6 +1205,11 @@ label c5_p2_alexander_dialogue:
     show louis neutral at speaker_background(xalign=0.1)
     al "Here. Same as always. Ask the postman, he's always lurking round here too."
     $ alexander_reinterviewed = True
+    scene bg carriage_5 with dissolve
+    show louis neutral at speaker_focus(xalign=0.5)
+    l "Two unpaid debts. Two people connected to him, and one of them's already dead."
+    l "...Alexander had a reason. But did he have the chance?"
+    l "He said the postman would vouch for him. Guess it's worth checking."
     return
 
 label c5_p2_pattison_dialogue:
@@ -1224,6 +1244,10 @@ label c5_p2_pattison_dialogue:
     show pattison neutral at speaker_focus(xalign=0.9)
     p "This goes to the clock, while this goes to the end..."
     "{i}He returns to his sorting like the conversation never happened.{/i}"
+    scene bg carriage_5 with dissolve
+    show louis neutral at speaker_focus(xalign=0.5)
+    l "No creaking door. No one saw him leave. If Pattison's telling the truth, Alexander physically couldn't have made it to Carriage 2 and back without being noticed."
+    l "...He had every reason to want Shunyu gone. He just didn't have the chance to actually do it."
     $ found_clue("clue_alexander_alibi")
     $ achievement.grant("alibi_confirmed")
     $ pattison_reinterviewed = True
@@ -1232,15 +1256,8 @@ label c5_p2_pattison_dialogue:
 
 label accusation_scene:
     $ autosave_checkpoint()
-    scene bg carriage_5
-    l "Two unpaid debts. Two people connected to him, and one of them's already dead."
-    l "...Alexander had a reason. But did he have the chance?"
-    l "He said the postman would vouch for him. Guess it's worth checking."
-    l "No creaking door. No one saw him leave. If Pattison's telling the truth, Alexander physically couldn't have made it to Carriage 2 and back without being noticed."
-    l "...He had every reason to want Shunyu gone. He just didn't have the chance to actually do it."
-    pause 1.0
-    $ renpy.notify("ALL CLUES COLLECTED")
-    l "I have everything I think I'm going to get. The tile. The blood. The alibis. It's time to decide."
+    scene bg carriage_3
+    $ renpy.notify("COMPLETED CLUES!")
     pause 1.0
     scene black with dissolve
     "The train lurches. Every character you spoke to gathers: Eduard behind his bar, Agatha with her kit, Dorothy clutching her ticket punch, Fedora with her notepad ready, Pattison murmuring at the doorway, Alexander shaking in the corner, Kimmy and Himmel arm in arm, Sebastian standing protectively in front of Misha."
@@ -1488,14 +1505,10 @@ label ending_2_escape:
 
 label ending_3_true:
     hide screen loop_overlay
-    scene Train station with dissolve
+    $ in_loop = False
+    scene bg carriage_1 with dissolve
     show dorothy happy at speaker_focus(xalign=0.9)
     d "Thank you for saving us. You can finally leave!"
-    show dorothy happy at speaker_background(xalign=0.9)
-    show louis neutral at speaker_focus(xalign=0.1)
-    l "I... I can go home?"
-    show louis neutral at speaker_background(xalign=0.1)
-    d "Yes. The train is free. All of us."
     scene black with dissolve
     call screen ending_card(_("ENDING 3"), _("THE TRUE LINE"), _("You solved the mystery and freed everyone from the loop."))
     call ending_video from _call_ending_video_2
@@ -1554,7 +1567,7 @@ label c1_interact_cupboard:
 label c2_interact_broken_glass:
     show louis neutral at speaker_focus(xalign=0.5)
     l "Damn, how'd that gambler guy even break it?"
-    u "Can yer shut up?"
+    gam "Can yer shut up?"
     if not in_loop:
         menu:
             "Sweep up the glass?"

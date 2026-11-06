@@ -4052,13 +4052,15 @@ init python:
             return "Carriage 2: question Eduard and Agatha."
         if not _flag_on("clue_drug_wrapper"):
             return "Carriage 3: check the luggage."
-        if not _flag_on("clue_hidden_tile"):
-            return "Carriage 3: check the carpet."
-        if not (_flag_on("kimmy_reinterviewed") and _flag_on("himmel_reinterviewed") and _flag_on("sebastian_reinterviewed") and _flag_on("misha_reinterviewed")):
-            return "Carriage 3: question everyone again."
+        if not _flag_on("kimmy_reinterviewed"):
+            return "Carriage 3: ask Kimmy about the wrapper."
         if not (_flag_on("alexander_reinterviewed") and _flag_on("pattison_reinterviewed")):
             return "Carriage 5: question Alexander, then Pattison."
-        return "Decide who did it."
+        if not _flag_on("clue_hidden_tile"):
+            return "Back to Carriage 3: check the carpet."
+        if not (_flag_on("sebastian_reinterviewed") and _flag_on("misha_reinterviewed")):
+            return "Carriage 3: question Sebastian and Misha."
+        return "Carriage 3: decide who did it."
 
     KONAMI = ["UP", "UP", "DOWN", "DOWN", "LEFT", "RIGHT", "LEFT", "RIGHT", "b", "a"]
     _konami_buf = []
