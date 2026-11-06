@@ -124,9 +124,8 @@ screen carriage_4_map():
     if not c4_talked_ichora:
         use hs((700, 150, 220, 400), Call("c4_ichora_dialogue"), "Ichora", "talk", 0.05)
     use hs((950, 620, 160, 160), Call("c4_interact_syringe"), "Syringe", delay=0.1)
-    use hs((1150, 620, 160, 160), Call("c4_interact_engine"), "Engine", delay=0.15)
     if c4_talked_agatha and c4_talked_ichora:
-        use hs(DOOR_RIGHT, Jump("carriage_5_start"), "Carriage 5", "door", 0.2)
+        use hs(DOOR_RIGHT, Jump("carriage_5_start"), "Carriage 5", "door", 0.15)
 
 screen carriage_5_map():
     add "bg carriage_5"
@@ -138,8 +137,9 @@ screen carriage_5_map():
         use hs((1080, 645, 125, 165), Call("c5_alexander_dialogue"), "Alexander", "talk", 0.05)
     use hs((120, 640, 360, 200), Call("c5_interact_mail_room"), "Mail", delay=0.1)
     use hs((920, 470, 500, 170), Call("c5_interact_luggage_room"), "Luggage room", delay=0.15)
+    use hs((1455, 344, 330, 166), Call("c5_interact_engine"), "Engine", delay=0.2)
     if c5_talked_pattison and c5_talked_alexander:
-        use hs(DOOR_RIGHT, Jump("c5_carriage6_door"), "Carriage 6", "door", 0.2)
+        use hs(DOOR_RIGHT, Jump("c5_carriage6_door"), "Carriage 6", "door", 0.25)
 
 
 screen carriage_2_part2_map():
@@ -1602,7 +1602,7 @@ label c3_interact_toys:
             pass
     return
 
-label c4_interact_engine:
+label c5_interact_engine:
     "This looks like it has a lot of… Zebra power? No, horse power."
     menu:
         "Give the engine a hand?"

@@ -9,7 +9,7 @@ init 1 python:
         ("shards",     _("Sweep up the glass"),        "mg_shards",         shards_reset,     _("Carriage 2")),
         ("mahjong",    _("Mahjong"),                   "mahjong_minigame",  mahjong_reset,    _("Carriage 2")),
         ("blocks",     _("Misha's blocks"),            "mg_blocks",         blocks_reset,     _("Carriage 3")),
-        ("engine",     _("Keep steam pressure steady"), "mg_engine",        engine_reset,     _("Carriage 4")),
+        ("engine",     _("Keep steam pressure steady"), "mg_engine",        engine_reset,     _("Carriage 5")),
         ("mail",       _("Sort the mail"),             "mg_mail",           mail_reset,       _("Carriage 5")),
         ("combo",      _("The luggage lock"),          "mg_combo",          combo_reset,      _("Part 2, Carriage 3")),
         ("pry",        _("Pull up the carpet"),        "mg_pry",            pry_reset,        _("Part 2, Carriage 3")),
