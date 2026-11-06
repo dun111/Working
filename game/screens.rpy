@@ -1394,8 +1394,21 @@ transform boot_fade:
     align (0.5, 0.5)
     alpha 0.0
     linear 0.8 alpha 1.0
-    pause 2.9
-    linear 0.8 alpha 0.0
+
+init python:
+    def boot_video_pos():
+        # How far the studio video has played, from Ren'Py's own movie channel
+        # (None until its first frame is ready, and again once it has ended).
+        chans = list(renpy.display.video.texture.keys())
+        if not chans:
+            return None
+        return renpy.music.get_pos(chans[0])
+
+# Boot jingle sync, on the studio video's own clock: the dot and the squirt burst
+# out of the logo about 3.4s into the video, and the jingle's final note is 3.2s
+# into the file, so the jingle starts when the video reaches 0.2s. Lower = later
+# music, higher = earlier music.
+define BOOT_JINGLE_AT = 0.2
 
 label splashscreen:
     $ check_window_shape()
@@ -1403,16 +1416,21 @@ label splashscreen:
     scene black
     $ renpy.pause(1.0, hard=True)
 
-    # "As I Was Saying" (grumpynora, 6-second edit), synced to the studio video.
-    # The short pause holds the sound until the video has loaded and shows its
-    # first frame (about 0.5s in). The jingle then starts 0.15s into the file,
-    # so its opening hit lands on that first frame and its strongest beat on
-    # the logo reveal (about 1.7s); it finishes just before the video ends.
-    # No fade-in, so the hit isn't lost; volume 0.55 because the file is louder.
+    # "As I Was Saying" (grumpynora, 6-second edit). Its opening hit plays in
+    # the dark before the logo appears, its strongest beat lands on the logo
+    # reveal, and its final note on the dot and squirt (see BOOT_JINGLE_AT).
+    # Everything waits on the video itself, so a slow load can't throw it off.
     show boot_video at boot_fade
-    $ renpy.pause(0.1, hard=True)
-    play sound "<from 0.15>audio/boot_jingle.mp3" volume 0.55
-    pause 4.4
+    $ _boot_wait = 0.0
+    while (boot_video_pos() or 0.0) < BOOT_JINGLE_AT and _boot_wait < 3.0:
+        $ renpy.pause(0.01, hard=True)
+        $ _boot_wait += 0.01
+    play sound "audio/boot_jingle.mp3" volume 0.55
+    # Hold until the video has played to its end, rather than on a fixed timer.
+    $ _boot_wait = 0.0
+    while (boot_video_pos() is not None or _boot_wait < 1.0) and _boot_wait < 7.0:
+        $ renpy.pause(0.05, hard=True)
+        $ _boot_wait += 0.05
 
     scene black
     $ renpy.pause(1.5, hard=True)
