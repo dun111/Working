@@ -374,7 +374,7 @@ define SPOT_SLIDES = [
     "eduard neutral",
     "shunyu neutral",
     "kimmy neutral",
-    "images/bg_carriage_5.webp",
+    "images/bg_mail_cart.webp",
     "himmel neutral",
     "sebastian neutral",
     "misha neutral",

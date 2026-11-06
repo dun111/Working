@@ -136,6 +136,7 @@ init python:
 image talk_bg = talk_backdrop("images/bg_first_class_clear.webp")
 image talk_bar = talk_backdrop("images/bg_bar.webp")
 image talk_sleeper = talk_backdrop("images/bg_sleeper.webp")
+image talk_mail = talk_backdrop("images/bg_mail_cart.webp")
 image shunyu_dead = full_cover("images/shunyu_dead.webp")
 
 image talk to fedora    = "talk_bg"
@@ -147,8 +148,8 @@ image talk to sebastian = "talk_sleeper"
 image talk to misha     = "talk_sleeper"
 image talk to agatha    = "talk_bg"
 image talk to ichora    = "talk_bg"
-image talk to pattison  = "talk_bg"
-image talk to alexander = "talk_bg"
+image talk to pattison  = "talk_mail"
+image talk to alexander = "talk_mail"
 image engine room       = "bg carriage_4"
 
 

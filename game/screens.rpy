@@ -284,6 +284,8 @@ image menu_slideshow:
     pause 8.0
     full_cover("images/bg_sleeper.webp") with Dissolve(2.0)
     pause 8.0
+    full_cover("images/bg_mail_cart.webp") with Dissolve(2.0)
+    pause 8.0
     repeat
 
 transform menu_bg_drift:
@@ -2435,17 +2437,15 @@ screen quick_menu():
             hbox:
                 spacing 2
                 for qm_label, qm_act in ([(_("REWIND"), Function(rewind_go))] if rewind_ready() else []) + [
-                    (_("Home"), MainMenu(confirm=True)),
-                    (_("Back"), Rollback()),
-                    (_("History"), ShowMenu("history")),
-                    (_("Skip"), Skip()),
-                    (_("Auto"), Preference("auto-forward", "toggle")),
-                    (_("Save"), ShowMenu("save")),
-                    (_("QSave"), QuickSave()),
-                    (_("QLoad"), Function(quick_load)),
-                    (_("Clues"), ShowMenu("clues")),
-                    (_("People"), ShowMenu("manifest")),
-                    (_("Prefs"), ShowMenu("preferences")),
+                    (_("Platform"), MainMenu(confirm=True)),
+                    (_("Step Back"), Rollback()),
+                    (_("Logbook"), ShowMenu("history")),
+                    (_("Hurry"), Skip()),
+                    (_("Let It Roll"), Preference("auto-forward", "toggle")),
+                    (_("Punch Ticket"), ShowMenu("save")),
+                    (_("Journal"), ShowMenu("clues")),
+                    (_("Passengers"), ShowMenu("manifest")),
+                    (_("Settings"), ShowMenu("preferences")),
                 ] + ([(_("Radio"), Function(radio_toggle))] if persistent.radio_bar else []):
                     button:
                         ysize 34
