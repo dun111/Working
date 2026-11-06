@@ -3729,12 +3729,12 @@ define MAP_TITLES = {
     "carriage_2_map": ("CARRIAGE 2", "THE LOUNGE"),
     "carriage_3_map": ("CARRIAGE 3", "SLEEPER CABINS"),
     "carriage_4_map": ("CARRIAGE 4", "STAFF CART"),
-    "carriage_5_map": ("CARRIAGE 5", "THE MAIL ROOM"),
+    "carriage_5_map": ("CARRIAGE 5", "ENGINE & MAIL ROOM"),
     "carriage_2_part2_map": ("CARRIAGE 2", "THE CRIME SCENE"),
     "carriage_2_part2_investigation_map": ("CARRIAGE 2", "THE CRIME SCENE"),
     "carriage_2_part2_after_map": ("CARRIAGE 2", "THE CRIME SCENE"),
     "carriage_3_part2_map": ("CARRIAGE 3", "SLEEPER CABINS"),
-    "carriage_5_part2_map": ("CARRIAGE 5", "THE MAIL ROOM"),
+    "carriage_5_part2_map": ("CARRIAGE 5", "ENGINE & MAIL ROOM"),
 }
 
 init python:
@@ -3879,11 +3879,11 @@ define CHAPTERS = [
     ("carriage_2_start",       _("CARRIAGE 2"), _("THE LOUNGE"),      False),
     ("carriage_3_start",       _("CARRIAGE 3"), _("SLEEPER CABINS"),  False),
     ("carriage_4_start",       _("CARRIAGE 4"), _("STAFF CART"),      False),
-    ("carriage_5_start",       _("CARRIAGE 5"), _("THE MAIL ROOM"),   False),
+    ("carriage_5_start",       _("CARRIAGE 5"), _("ENGINE & MAIL ROOM"),   False),
     ("part2_start",            _("CARRIAGE 1"), _("HERE AGAIN?"),     True),
     ("carriage_2_part2_start", _("CARRIAGE 2"), _("THE CRIME SCENE"), True),
     ("carriage_3_part2_start", _("CARRIAGE 3"), _("SLEEPER CABINS"),  True),
-    ("carriage_5_part2_start", _("CARRIAGE 5"), _("THE MAIL ROOM"),   True),
+    ("carriage_5_part2_start", _("CARRIAGE 5"), _("ENGINE & MAIL ROOM"),   True),
 ]
 
 define CHAPTER_STAGE = {

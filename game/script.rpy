@@ -602,7 +602,7 @@ label carriage_5_start:
         $ autosave_checkpoint()
         show louis neutral at speaker_focus(xalign=0.5)
         l "A lot is going on here, huh."
-        show screen map_stamp(_("CARRIAGE 5"), _("THE MAIL ROOM"))
+        show screen map_stamp(_("CARRIAGE 5"), _("ENGINE & MAIL ROOM"))
     jump carriage_5_hub
 
 label carriage_5_hub:
@@ -1167,7 +1167,7 @@ label carriage_5_part2_start:
         $ visited_carriages.append("p2_c5")
         $ autosave_checkpoint()
         scene bg carriage_5 with dissolve
-        show screen map_stamp(_("CARRIAGE 5"), _("THE MAIL ROOM"))
+        show screen map_stamp(_("CARRIAGE 5"), _("ENGINE & MAIL ROOM"))
     jump carriage_5_part2_hub
 
 label carriage_5_part2_hub:
