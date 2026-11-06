@@ -1565,6 +1565,30 @@ define MENU_TAGLINES = [
     "Larp music intensifies",
     "Something is lurking",
     "Foreshadowing??",
+    # foreshadowing
+    "Departs at 4:00. Arrives at 4:00.",
+    "Have we met before?",
+    "Do not open Carriage 6",
+    "Next stop: the next stop",
+    "Someone on this train is lying",
+    "Count the carriages",
+    "It's always 4:00 somewhere",
+    "Wake up, Louis",
+    "The conductor is fine. Probably.",
+    "Don't trust the tea",
+    # running gags
+    "Tickets please",
+    "Please stop poking the key",
+    "Shunyu cannot stop winning",
+    "Now with 0% real maple sugar",
+    "No refunds",
+    "Ryan is still #####",
+    "Hannah drew all of this",
+    "Eric wrote the code. Sorry.",
+    "Aydin made a website",
+    "Blackberries are still black",
+    "Beta. Very beta.",
+    "Larp music intensifies (again)",
 ]
 
 init python:

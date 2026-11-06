@@ -76,10 +76,13 @@ init -2 python:
         if pw <= 0 or ph <= 0:
             return
         aspect = round(pw / float(ph), 4)
-        persistent.window_aspect = aspect
-        want = _size_for(aspect)
-        if want == (config.screen_width, config.screen_height):
+        current = config.screen_width / float(config.screen_height)
+        # macOS gives the window a slightly different height on different launches
+        # (779-782 pixels on this Mac). Only a real change of shape is worth a
+        # restart; a few pixels leave a sliver nobody can see.
+        if abs(aspect - current) / current < 0.02:
             return
+        persistent.window_aspect = aspect
         # Only restart once for a given window shape, and never twice within two
         # minutes, so it can never loop.
         import time
