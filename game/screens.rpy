@@ -1622,8 +1622,17 @@ transform tagline_swap:
 
 screen menu_tagline(xa=0.5, size=16):
     default tag_i = renpy.random.randint(0, len(MENU_TAGLINES) - 1)
-    timer 4.0 repeat True action SetLocalVariable("tag_i", next_tagline(tag_i))
-    for ti, tline in enumerate(MENU_TAGLINES):
+    # After the knockout at the end of Part 1, the menu holds one line until the player goes back.
+    if persistent.loop_waiting:
+        text _("Louis is still on the train. Press CONTINUE."):
+            xalign xa
+            size size
+            color "#e0521f"
+            font GFONT
+            at loading_pulse
+    else:
+        timer 4.0 repeat True action SetLocalVariable("tag_i", next_tagline(tag_i))
+    for ti, tline in enumerate(MENU_TAGLINES if not persistent.loop_waiting else []):
         showif ti == tag_i:
             text tline:
                 xalign xa
@@ -3482,13 +3491,6 @@ init python:
                 blocks.append(([r], who[r]))
         return blocks
 
-transform logo_float:
-    yoffset 0
-    block:
-        ease 2.4 yoffset -10
-        ease 2.4 yoffset 0
-        repeat
-
 screen about():
     tag menu
     key "game_menu" action (ShowMenu("main_menu") if main_menu else Return())
@@ -3547,6 +3549,20 @@ screen ending_card(label_text, title, subtitle):
             color "#8a8478"
             font CREDIT_FONT
             at fade_in(1.6)
+        null height 30
+        $ found = len(persistent.endings_seen or ())
+        text (_("Endings found: %d of %d") % (found, len(ENDINGS))):
+            size 20
+            color "#c9a24a"
+            font GFONT
+            at fade_in(2.4)
+        if found < len(ENDINGS):
+            text _("CONTINUE on the main menu takes you back to your last save. Hints for the other endings are in EXTRAS > ENDINGS."):
+                size 18
+                color "#6a6458"
+                font GFONT
+                xmaximum 1200
+                at fade_in(2.4)
 
     button:
         xfill True

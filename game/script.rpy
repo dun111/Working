@@ -64,9 +64,10 @@ default sebastian_reinterviewed = False
 default misha_reinterviewed = False
 
 default c6_q1_correct = False
-default c6_right = 0
 default c6_q2_correct = False
 default c6_q3_correct = False
+default c6_right = 0
+default persistent.loop_waiting = False
 
 default door_c2_open = False
 default door_c4_open = False
@@ -209,6 +210,7 @@ screen carriage_5_part2_map():
 
 label start:
     $ menu_music_filter_off()
+    $ persistent.loop_waiting = False
     if not persistent.tutorial_seen:
         scene black
         call screen tutorial_first
@@ -710,6 +712,8 @@ init python:
 
     def _knockout_after_load():
         _KNOCKOUT.loaded = True
+        # Any load means the player has gone back in, so the menu stops asking.
+        persistent.loop_waiting = False
 
     config.after_load_callbacks.append(_knockout_after_load)
 
@@ -722,12 +726,14 @@ label part1_knockout:
     if _KNOCKOUT.loaded:
         $ _KNOCKOUT.loaded = False
         jump part2_start
+    $ persistent.loop_waiting = True
     $ renpy.save("loop-1", _("Part 2: wake up"))
     $ renpy.run(MainMenu(confirm=False, save=False))
     jump part2_start
 
 
 label part2_start:
+    $ persistent.loop_waiting = False
     $ achievement.grant("the_loop_begins")
     $ autosave_checkpoint()
     $ in_loop = True

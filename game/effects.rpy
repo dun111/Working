@@ -58,15 +58,6 @@ init -100 python:
 
 
 init -2 python:
-    def wide_bg(path):
-        if (GAME_W, GAME_H) == (DESIGN_W, DESIGN_H):
-            return path
-        tiny = Flatten(Transform(path, xysize=(64, 36)))
-        back = Transform(tiny, fit="cover", xysize=(GAME_W, GAME_H),
-                         matrixcolor=BrightnessMatrix(-0.22))
-        front = Transform(path, xysize=map_wh(DESIGN_W, DESIGN_H), pos=map_xy(0, 0))
-        return Fixed(back, front, xysize=(GAME_W, GAME_H))
-
     def check_window_shape():
         # Called once at startup. If the window isn't the shape the game started
         # at, remember its shape and restart once so the game fills it exactly.
