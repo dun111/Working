@@ -44,6 +44,8 @@ default warned_fedora = False
 default clock_tries = 0
 default clock_open = False
 default owe_guessed = False
+default owe_tries = 0
+default persistent.accused = set()
 default seen_blank_carriage = False
 
 default c4_talked_agatha = False
@@ -339,6 +341,7 @@ label c1_interact_mysterious_door:
         "I'm not supposed to enter this carriage, am I… Eh. Just a peek."
     $ renpy.music.set_volume(0.0, delay=0.6, channel="music")
     scene black with Dissolve(0.6)
+    $ achievement.grant("nothing_there")
     if not seen_blank_carriage:
         l "...Hello?"
         l "{i}(No walls. No floor. Not even the sound of the tracks.){/i}"
@@ -610,6 +613,8 @@ label c3_clock_lock:
                 "{i}From a cabin behind him, Kimmy calls out sleepily:{/i}"
                 k "Sugar, every clock on this train says the same thing. Departure at four."
     "{i}Click. The hands lock at 4:00, and the door swings open.{/i}"
+    if clock_tries == 0:
+        $ achievement.grant("clockwork")
     l "Departure at 4:00… Of course it is."
     return
 
@@ -757,19 +762,25 @@ label c5_alexander_dialogue:
     show louis neutral at speaker_background(xalign=0.1)
     al "Tell ya what. You've been walkin' the train. Guess who owes me, and maybe I'll believe you're not a narc."
     $ owe_guessed = False
+    $ owe_tries = 0
     while not owe_guessed:
         menu:
             "Who owes Alexander money?"
             "Eduard, the bartender":
+                $ owe_tries += 1
                 al "The bartender? He couldn't afford me if he sold the bar."
                 l "{i}(Who did Eduard say was running up a tab?){/i}"
             "Shunyu, the gambler":
                 $ owe_guessed = True
+                if owe_tries == 0:
+                    $ achievement.grant("not_a_narc")
                 al "Ding ding ding! Mister Jackpot himself. Keeps winnin', keeps forgettin' to pay me for his last portion. Don't worry, I'll make him suffer."
             "Kimmy, the rich lady":
+                $ owe_tries += 1
                 al "That lady's richer than the train. She pays. ...Her husband, though. Eh. Never mind."
                 l "{i}(Her husband?){/i}"
             "Fedora, the reporter":
+                $ owe_tries += 1
                 al "The reporter? She'd write me up, not pay me."
     al "And as for the other one… the stuff was strong so I don't remember."
     show alexander neutral at speaker_background(xalign=0.9)
@@ -1429,6 +1440,8 @@ label c5_p2_pattison_dialogue:
 
 label accusation_scene:
     $ autosave_checkpoint()
+    if len(first_ride_recap()) == 9:
+        $ achievement.grant("total_recall")
     scene bg carriage_3
     $ renpy.notify("COMPLETED CLUES!")
     pause 1.0
@@ -1478,6 +1491,7 @@ label accusation_pick:
                     jump accusation_pick
 
 label accusation_dorothy:
+    $ note_accused("dorothy")
     hide fedora
     show louis neutral at speaker_focus(xalign=0.1)
     l "It was you, Dorothy."
@@ -1486,6 +1500,7 @@ label accusation_dorothy:
     jump wrong_ending
 
 label accusation_ichora:
+    $ note_accused("ichora")
     hide fedora
     show louis neutral at speaker_focus(xalign=0.1)
     l "It was you, Ichora."
@@ -1494,6 +1509,7 @@ label accusation_ichora:
     jump wrong_ending
 
 label accusation_pattison:
+    $ note_accused("pattison")
     hide fedora
     show louis neutral at speaker_focus(xalign=0.1)
     l "It was you, Pattison."
@@ -1502,6 +1518,7 @@ label accusation_pattison:
     jump wrong_ending
 
 label accusation_fedora:
+    $ note_accused("fedora")
     hide fedora
     show louis neutral at speaker_focus(xalign=0.1)
     l "It was you, Fedora. You knew there'd be a killer before anyone did."
@@ -1510,6 +1527,7 @@ label accusation_fedora:
     jump wrong_ending
 
 label accusation_kimmy:
+    $ note_accused("kimmy")
     hide fedora
     show louis neutral at speaker_focus(xalign=0.1)
     l "It was you, Kimmy."
@@ -1518,6 +1536,7 @@ label accusation_kimmy:
     jump wrong_ending
 
 label accusation_sebastian:
+    $ note_accused("sebastian")
     hide fedora
     show louis neutral at speaker_focus(xalign=0.1)
     l "It was you, Sebastian."
@@ -1527,6 +1546,7 @@ label accusation_sebastian:
     jump wrong_ending
 
 label accusation_eduard:
+    $ note_accused("eduard")
     hide fedora
     show louis neutral at speaker_focus(xalign=0.1)
     l "It was you."
@@ -1535,6 +1555,7 @@ label accusation_eduard:
     jump wrong_ending
 
 label accusation_alexander:
+    $ note_accused("alexander")
     hide fedora
     show louis neutral at speaker_focus(xalign=0.1)
     l "It was you."
@@ -1543,6 +1564,7 @@ label accusation_alexander:
     jump wrong_ending
 
 label accusation_agatha:
+    $ note_accused("agatha")
     hide fedora
     show louis neutral at speaker_focus(xalign=0.1)
     l "It was you."
@@ -1551,6 +1573,7 @@ label accusation_agatha:
     jump wrong_ending
 
 label accusation_himmel:
+    $ note_accused("himmel")
     hide fedora
     show louis neutral at speaker_focus(xalign=0.1)
     l "It was you. You owed Alexander, same as Shunyu did."
@@ -1576,6 +1599,7 @@ label wrong_ending:
     jump ending_1_death
 
 label accusation_misha:
+    $ note_accused("misha")
     hide fedora
     show louis neutral at speaker_focus(xalign=0.1)
     if not (clue_tile_mismatch and clue_body_moved and clue_alexander_alibi and clue_hidden_tile):

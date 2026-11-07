@@ -260,6 +260,15 @@ init python:
             out.append(_("You warned Fedora. She trusted you over the body."))
         return out
 
+    ACCUSABLE = ["dorothy", "eduard", "agatha", "ichora", "pattison",
+                 "fedora", "alexander", "kimmy", "himmel", "sebastian", "misha"]
+
+    def note_accused(who):
+        # Remembered across playthroughs, for The Usual Suspects.
+        persistent.accused = set(persistent.accused or ()) | set([who])
+        if all(w in persistent.accused for w in ACCUSABLE):
+            achievement.grant("usual_suspects")
+
     def remember(text):
         # Tells the player a choice will come back later.
         renpy.notify(text)

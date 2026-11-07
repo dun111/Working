@@ -1084,6 +1084,11 @@ define ACHIEVEMENTS = [
     {"id": "full_steam", "title": _("Full Steam Ahead"), "description": _("Keep the engine pressure stable."), "hidden": False},
     {"id": "sorted", "title": _("Return to Sender"), "description": _("Help Pattison sort the mail."), "hidden": False},
     {"id": "game_night", "title": _("Game Night"), "description": _("Win every minigame on the train."), "hidden": False, "stat_max": 11},
+    {"id": "clockwork", "title": _("Clockwork"), "description": _("Open the clock lock on the first try."), "hidden": False},
+    {"id": "not_a_narc", "title": _("Not a Narc"), "description": _("Guess who owes Alexander on the first try."), "hidden": False},
+    {"id": "total_recall", "title": _("Total Recall"), "description": _("Make every first-ride choice that comes back later."), "hidden": False},
+    {"id": "usual_suspects", "title": _("The Usual Suspects"), "description": _("Point the finger at everyone. Eventually."), "hidden": False},
+    {"id": "nothing_there", "title": _("Nothing"), "description": _("Step into the carriage behind the mysterious door."), "hidden": True},
 ]
 
 init python:
