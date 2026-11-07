@@ -329,18 +329,15 @@ label c1_interact_window:
 
 
 label c1_interact_mysterious_door:
-    if has_pass("door_key"):
-        $ renpy.music.set_volume(0.0, delay=0.6, channel="music")
-        scene black with Dissolve(0.6)
-        call screen mysterious_room
-        $ renpy.music.set_volume(1.0, delay=0.6, channel="music")
-        scene bg carriage_1 with Dissolve(0.6)
-        return
     if in_loop:
-        "{i}Something on the other side knocks. Twice. Then nothing.{/i}"
-        l "...Nope. Not opening that one."
-        return
-    "I'm not supposed to enter this carriage, am I…"
+        "{i}Something on the other side knocks. Twice. Then the door swings open by itself.{/i}"
+    else:
+        "I'm not supposed to enter this carriage, am I… Eh. Just a peek."
+    $ renpy.music.set_volume(0.0, delay=0.6, channel="music")
+    scene black with Dissolve(0.6)
+    call screen mysterious_room
+    $ renpy.music.set_volume(1.0, delay=0.6, channel="music")
+    scene bg carriage_1 with Dissolve(0.6)
     return
 
 label c1_interact_tea_stain:

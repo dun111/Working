@@ -11,7 +11,6 @@ define GAMEPASSES = [
     ("cheats",       _("CHEAT MENU"),     _("Press F9 to open the cheat menu."), 15),
     ("revealer",     _("CHOICE REVEALER"), _("Choices show where they lead."), 18),
     ("high_roller",  _("HIGH ROLLER"),    _("Bigger casino bets and double daily coins."), 10),
-    ("door_key",     _("MYSTERIOUS KEY"), _("Opens the mysterious door in Carriage 1."), 12),
 ]
 
 init python:
