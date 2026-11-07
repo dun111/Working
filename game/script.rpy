@@ -541,8 +541,7 @@ label carriage_4_hub:
     jump carriage_4_hub
 
 label c4_agatha_dialogue:
-    scene talk to agatha with talk_in
-    show agatha neutral at speaker_focus(xalign=0.9)
+    scene agatha_special with dissolve
     a "C'mon, put the bandage on."
     pas "Ouuuchhh it hurtssss oh my my poor finger, I may never play Marvel Rivals again!"
     a "I don't care. You pricked it, it's not bleeding. Put the bandaid on and stop wasting my time."
@@ -551,6 +550,7 @@ label c4_agatha_dialogue:
     a "Actual infants…"
     "{i}Agatha looks at you.{/i}"
     a "What, need help too?"
+    scene talk to agatha with dissolve
     show agatha neutral at speaker_background(xalign=0.9)
     show louis neutral at speaker_focus(xalign=0.1)
     l "No, but, what's this carriage?"
