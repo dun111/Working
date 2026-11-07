@@ -696,7 +696,33 @@ label c5_carriage6_door:
     l "Huh… it's…"
     scene black with dissolve
     u "Not yet! Try to see the truth before you see the future."
+    $ _KNOCKOUT.loaded = False
     "{i}Two pairs of eyes glint in the blackness, watching.{/i}"
+    jump part1_knockout
+
+
+# Louis is knocked out at the end of Part 1: the game saves and drops back to
+# the start screen, as if it were over. CONTINUE wakes him up in Part 2.
+init python:
+    class _KNOCKOUT(object):
+        loaded = False   # a class attribute, so it is never saved
+
+    def _knockout_after_load():
+        _KNOCKOUT.loaded = True
+
+    config.after_load_callbacks.append(_knockout_after_load)
+
+label part1_knockout:
+    scene black
+    window hide
+    pause 1.5
+    # Loading this save resumes just after the "two pairs of eyes" line, so it
+    # comes back through here; after a load, go straight on to Part 2.
+    if _KNOCKOUT.loaded:
+        $ _KNOCKOUT.loaded = False
+        jump part2_start
+    $ renpy.save("loop-1", _("Part 2: wake up"))
+    $ renpy.run(MainMenu(confirm=False, save=False))
     jump part2_start
 
 
