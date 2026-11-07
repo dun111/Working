@@ -225,6 +225,10 @@ init python:
         title, text = _clue_text(var)
         renpy.show_screen("clue_popup", _("NEW CLUE  (press J)"), title or var, text)
 
+    def remember(text):
+        # Tells the player a choice will come back later.
+        renpy.notify(text)
+
     def got_item(name, desc=""):
         renpy.show_screen("clue_popup", _("GOT ITEM"), name, desc)
 

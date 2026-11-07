@@ -1564,6 +1564,7 @@ define MENU_TAGLINES = [
     "Tip: Carriage 6 doesn't want the obvious answer",
     "Tip: answer for them, not for you",
     "Tip: the true ending needs all three right",
+    "Tip: what you do on the first ride comes back",
     "Ryan is #####",
     "Blackberries are black",
     "AWWWWHHH",

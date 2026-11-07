@@ -37,6 +37,11 @@ default c3_talked_himmel = False
 default c3_talked_sebastian = False
 default c3_talked_misha = False
 default c3_kimmy_dangerous_choice = False
+# Part 1 choices that come back in Part 2.
+default swept_glass = False
+default played_blocks = False
+default sorted_mail = False
+default warned_fedora = False
 
 default c4_talked_agatha = False
 default c4_talked_ichora = False
@@ -283,8 +288,19 @@ label c1_fedora_dialogue:
         l "Calamity?"
         f "I boarded this train to speak to the conductor after we arrived in Grekhov, I heard CALAMITY will open up once we reach there. It'll rack NUMBERS for the steamboat. I CAN'T WAIT to interview the KILLER."
         l "Killer?"
-        f "Well, it's been LOVELY talking to you, but my editor Twinkles is calling me. WATCH OUT."
-        l "OKAY…. or what?"
+        menu:
+            "Tell her what's coming?"
+            "“Someone's going to die tonight.”":
+                $ warned_fedora = True
+                l "...Someone on this train is going to die tonight."
+                "{i}Fedora's pen stops.{/i}"
+                f "You say that like you've READ it somewhere. Where'd you hear that, matchstick?"
+                l "I… I don't know. I just know."
+                f "Hm. Then I'll keep my notepad ready. And my eye on YOU."
+                $ remember(_("Fedora will remember that."))
+            "Keep it to yourself":
+                f "Well, it's been LOVELY talking to you, but my editor Twinkles is calling me. WATCH OUT."
+                l "OKAY…. or what?"
     else:
         show louis neutral at speaker_focus(xalign=0.1)
         l "Uh, excuse me miss?"
@@ -300,6 +316,12 @@ label c1_fedora_dialogue:
     return
 
 label c1_interact_window:
+    if in_loop:
+        show screen window_view(dark=True)
+        "{i}The same hills. The same cloud, in the same place.{/i}"
+        l "...It hasn't moved. Not one inch since last time."
+        hide screen window_view with dissolve
+        return
     show screen window_view
     "What a beautiful sight outside! You can see everything from this train!"
     hide screen window_view with dissolve
@@ -309,6 +331,10 @@ label c1_interact_window:
 label c1_interact_mysterious_door:
     if has_pass("door_key"):
         call screen mysterious_room
+        return
+    if in_loop:
+        "{i}Something on the other side knocks. Twice. Then nothing.{/i}"
+        l "...Nope. Not opening that one."
         return
     "I'm not supposed to enter this carriage, am I…"
     return
@@ -361,12 +387,14 @@ label c2_eduard_dialogue:
             l "Sure."
             ed "Awh shucks, seems we just ran out! That gambler's been drinking since he got here!"
             l "Wow…"
+            $ remember(_("Eduard will remember that."))
         "No":
             $ drank = False
             show eduard neutral at speaker_background(xalign=0.9)
             show louis neutral at speaker_focus(xalign=0.1)
             l "Uh, it's okay… I'm not really thirsty right now."
             ed "All the better for me, I reckon. That mahjong monster almost got me out of whiskey! He better win quick, before his tab gets as large as his confidence."
+            $ remember(_("Eduard will remember that."))
     $ c2_talked_eduard = True
     return
 
@@ -401,6 +429,7 @@ label c2_shunyu_dialogue:
                 show shunyu neutral at speaker_focus(xalign=0.9)
                 s "Aw, shoot. Unlucky draw! Better luck next time, alright?"
                 $ played_mahjong = "lost"
+            $ remember(_("Shunyu will remember that."))
         "No":
             $ played_mahjong = False
             show louis neutral at speaker_focus(xalign=0.1)
@@ -453,6 +482,7 @@ label c3_kimmy_dialogue:
             show louis neutral at speaker_background(xalign=0.1)
             show kimmy neutral at speaker_focus(xalign=0.5)
             k "With THAT frame… I don't think so, sweetie."
+            $ remember(_("Kimmy will remember that."))
         "I am NOT dangerous.":
             $ c3_kimmy_dangerous_choice = False
             show louis neutral at speaker_focus(xalign=0.1)
@@ -460,6 +490,7 @@ label c3_kimmy_dialogue:
             show louis neutral at speaker_background(xalign=0.1)
             show kimmy neutral at speaker_focus(xalign=0.5)
             k "Yeah, it's kinda obvious, matchstick."
+            $ remember(_("Kimmy will remember that."))
     show kimmy neutral at speaker_background(xalign=0.5)
     l "Wow damn… So… Expensive cabin, huh?"
     show louis neutral at speaker_background(xalign=0.1)
@@ -665,6 +696,7 @@ label c5_alexander_dialogue:
             show louis neutral at speaker_background(xalign=0.1)
             al "Attaboy! Here ya go - one satchel of pure happiness."
             $ got_item(_("Satchel of Maple Sugar"), _("\"First one is free, next one is 2000 perkels.\""))
+            $ remember(_("Alexander will remember that."))
         "No":
             $ has_maple_sugar = False
             show alexander neutral at speaker_background(xalign=0.9)
@@ -823,7 +855,11 @@ label c2_p2_overturned_table:
 
 label c2_p2_broken_glass:
     show louis neutral at speaker_focus(xalign=0.5)
-    l "This is the same glass from before… why hasn't anyone cleaned this up?"
+    if swept_glass:
+        l "I swept this up. I know I did. Six shards… and the big one was already missing."
+        l "...Before anyone was hurt. Someone took it before."
+    else:
+        l "This is the same glass from before… why hasn't anyone cleaned this up?"
     "{i}Louis notices a piece missing from the largest shard - snapped clean off, edges sharp.{/i}"
     u "Can yer shut up?"
     show louis confused at speaker_focus(xalign=0.5)
@@ -877,11 +913,20 @@ label c2_p2_fedora_arrives:
     show louis confused at speaker_focus(xalign=0.1)
     l "Fedora, thank god, please, you have to help me…"
     show louis confused at speaker_background(xalign=0.1)
-    f "{i}(quiet, unusually so){/i} I told you to watch out."
-    show fedora neutral at speaker_background(xalign=0.9)
-    l "What?? You knew this would-"
-    show louis confused at speaker_background(xalign=0.1)
-    f "I said I CAN'T WAIT to interview the killer. I didn't say I knew who they were."
+    if warned_fedora:
+        f "{i}(quiet, unusually so){/i} ...You said someone would die. You SAID it."
+        show fedora neutral at speaker_background(xalign=0.9)
+        l "I didn't know it'd be him! I didn't know anything!"
+        show louis confused at speaker_background(xalign=0.1)
+        f "Then how did you know at all?"
+        "{i}She studies him for a long moment, then lowers her pen.{/i}"
+        f "...No. If you'd done this, you wouldn't have told a reporter. Fine. We find who did, together."
+    else:
+        f "{i}(quiet, unusually so){/i} I told you to watch out."
+        show fedora neutral at speaker_background(xalign=0.9)
+        l "What?? You knew this would-"
+        show louis confused at speaker_background(xalign=0.1)
+        f "I said I CAN'T WAIT to interview the killer. I didn't say I knew who they were."
     "{i}She kneels by the body, professional mask sliding back over her face, though her hands are shaking slightly as she jots something down.{/i}"
     f "Tile placed in the palm. No struggle, far as I can tell. And that glass - that's not from a weapon someone brought with them. That's from HERE. Whoever did this either knew him, or he never saw them as a threat at all... well, not until it was already too late."
     show fedora neutral at speaker_background(xalign=0.9)
@@ -985,6 +1030,18 @@ label c2_p2_reinterview_eduard:
     l "How do you know his hand that well?"
     show louis neutral at speaker_background(xalign=0.1)
     ed "Man complained about his own wins loud enough for the whole carriage to hear, all night, every night. Hard NOT to know it."
+    if played_mahjong:
+        l "He's right. I played him. Three dragons, every single time."
+    if drank:
+        show eduard neutral at speaker_focus(xalign=0.9)
+        ed "You. You wanted a drink, before. I didn't have a drop left. He'd had the lot."
+        ed "...So who poured the full glass sitting in front of him?"
+        show eduard neutral at speaker_background(xalign=0.9)
+        l "Someone set the whole table. Like a stage."
+    else:
+        show eduard neutral at speaker_focus(xalign=0.9)
+        ed "You turned down a drink, earlier. Smart lad. Last man who drank everything I had is over there."
+        show eduard neutral at speaker_background(xalign=0.9)
     $ c2_p2_reinterviewed_eduard = True
     return
 
@@ -1060,6 +1117,8 @@ label c3_p2_interact_luggage:
         "{i}He nudges one of the bags open, just slightly. Something crinkles.{/i}"
         "{i}Louis finds a small, crumpled wrapper wedged between the folds of a coat. Printed on it, half torn: “...APLE SUGAR… BANNED SUBSTANCE, RESTRICTED USE ONLY.”{/i}"
         l "...This is the same stuff Alexander was selling."
+        if has_maple_sugar:
+            l "Same wrapper as the satchel he gave me. I've still got mine."
         l "Why would Himmel have this?"
         $ found_clue("clue_drug_wrapper")
         $ achievement.grant("suspicious_luggage")
@@ -1087,7 +1146,14 @@ label c3_p2_kimmy_reinterview:
     show louis neutral at speaker_focus(xalign=0.1)
     l "Kimmy, can I ask you something a little... sensitive?"
     show louis neutral at speaker_background(xalign=0.1)
-    k "Sensitive is my favorite kind of question, sugar. Go on."
+    if c3_kimmy_dangerous_choice:
+        k "Well, well. The 'dangerous' one. Did your little joke come true, matchstick?"
+        show kimmy neutral at speaker_background(xalign=0.9)
+        l "That's not funny."
+        show louis neutral at speaker_background(xalign=0.1)
+        k "No. It isn't. ...Go on, then. Ask."
+    else:
+        k "Ah, the harmless one. Good. I could use harmless right now. Go on."
     show kimmy neutral at speaker_background(xalign=0.9)
     l "Did Himmel ever buy anything from the storage carriage? From a man named Alexander?"
     "{i}Kimmy's smile falters, just barely.{/i}"
@@ -1174,6 +1240,9 @@ label c3_p2_misha_reinterview:
     "{i}Misha doesn't look up.{/i}"
     show louis neutral at speaker_background(xalign=0.1)
     mi "{i}(humming, quiet){/i} Tuck it in his hand… tuck it in his hand… that's how you keep the score..."
+    if played_blocks:
+        mi "You know the order. You played it right, before. Not like the others."
+        l "{i}(The order. Back then I thought he meant the blocks.){/i}"
     show misha neutral at speaker_background(xalign=0.9)
     l "What score? Misha, what are you talking about?"
     "{i}Misha finally looks up, and smiles calmly.{/i}"
@@ -1215,6 +1284,10 @@ label carriage_5_part2_hub:
 label c5_p2_alexander_dialogue:
     scene talk to alexander with talk_in
     "{i}Alexander is slumped in his corner, twitchier than before, sweat on his brow despite the cold.{/i}"
+    if has_maple_sugar:
+        show alexander neutral at speaker_focus(xalign=0.9)
+        al "Buddy! First one was free, remember? You here about the second?"
+        l "Not exactly."
     show alexander neutral at speaker_background(xalign=0.9)
     show louis neutral at speaker_focus(xalign=0.1)
     l "Alexander. I found this in Himmel's luggage."
@@ -1257,6 +1330,8 @@ label c5_p2_pattison_dialogue:
     l "Pattison. I need to ask you something important."
     show louis neutral at speaker_background(xalign=0.1)
     p "This goes to the clock, while this goes to the end..."
+    if sorted_mail:
+        p "Ah. You helped me sort, before. I told you you'd be needed before it ends."
     show pattison neutral at speaker_background(xalign=0.9)
     l "Pattison, please. Was Alexander here the whole night? In this carriage?"
     "{i}Pattison stops sorting. Looks at Louis properly for the first time.{/i}"
@@ -1443,6 +1518,8 @@ label c6_question_1:
     "{i}The Passenger lurches forward, tiles clicking and clattering out of his throat, arranging themselves on the floor into a crude, shifting sentence only Louis can read.{/i}"
     show shunyu_monster neutral at speaker_focus(xalign=0.2)
     shunyu_monster "{i}(wet, clicking){/i} You can only lose one hundred percent... but you can win one hundred thousand percent... So tell me, matchstick... what did I actually lose?"
+    if played_mahjong:
+        l "{i}(I sat at his table. He told me I could only lose 100 percent. He never once said what that 100 percent was.){/i}"
     menu:
         "“Your life.”":
             l "Your life. You lost your life."
@@ -1466,6 +1543,8 @@ label c6_question_2:
     "{i}The Gentleman vibrates closer, wrappers crinkling with every juddering step, hands still clawing at his own chest.{/i}"
     show himmel_monster neutral at speaker_focus(xalign=0.8)
     himmel_monster "{i}(rapid, overlapping){/i} Tell me, tell me, WHAT was I actually running toward? Every time. Every single time. WHAT WAS IT."
+    if has_maple_sugar:
+        l "{i}(I remember how that maple sugar felt. It didn't take me anywhere. It just made everything else go quiet.){/i}"
     menu:
         "“Peace.”":
             l "Peace, maybe?"
@@ -1490,6 +1569,8 @@ label c6_question_3:
     "{i}The Conductor-thing unfolds to its full, impossible height, the faceless expanse of fabric-skin tilting down toward Louis. The mouth-hole opens, and Dorothy's stolen voice pours out, layered and wrong.{/i}"
     show conductor_monster neutral at speaker_focus(xalign=0.5)
     conductor_monster "Thank you for boarding... the Grekhov Express... Tell me, passenger... what is a conductor FOR... if none of you ever truly get off?"
+    if sorted_mail:
+        l "{i}(Pattison sorted letters 'to the end'. Nobody ever writes back from the end. Someone has to tell them it's already arrived.){/i}"
     menu:
         "“To keep the train running forever.”":
             l "Maybe… maybe just to keep it moving?"
@@ -1585,7 +1666,13 @@ label old_film_to_map:
 
 label c1_interact_cupboard:
     if in_loop:
-        u "Be careful, young one. Do you really wanna do that?"
+        if found_timetable:
+            "{i}The cupboard isn't locked any more. The timetable is still inside.{/i}"
+            "{i}Under every single 4:00, someone has written in pencil: AGAIN.{/i}"
+            l "...Was that there before? Who's been writing in this?"
+            u "Be careful, young one. Do you really wanna know?"
+        else:
+            u "Be careful, young one. Do you really wanna do that?"
         return
 
     "Hmm… It seems to be locked. What would be in there?"
@@ -1599,6 +1686,7 @@ label c1_interact_cupboard:
                 $ found_timetable = True
                 "{i}The lock clicks open. Inside is a dusty timetable. Every departure on it is printed the same way: 4:00.{/i}"
                 l "…Every single one? Even the ones from years ago?"
+                $ remember(_("Louis will remember that."))
             elif _return == "lose":
                 "{i}The pick snaps. The lock stays shut.{/i}"
         "Leave it":
@@ -1617,7 +1705,9 @@ label c2_interact_broken_glass:
                 $ renpy.block_rollback()
                 call screen mg_shards
                 if _return == "win":
+                    $ swept_glass = True
                     l "Got it all… huh. I only counted six shards. Wasn't there a bigger one?"
+                    $ remember(_("Louis will remember that."))
                 elif _return == "lose":
                     "{i}You give up and leave the glass where it is.{/i}"
             "Leave it":
@@ -1637,6 +1727,8 @@ label c3_interact_toys:
                 mi "You play nice. Not like the others. They always forget the order."
                 l "…The order of what?"
                 "{i}Misha goes back to his blocks.{/i}"
+                $ played_blocks = True
+                $ remember(_("Misha will remember that."))
             elif _return == "lose":
                 "{i}Misha stares at the fallen blocks, then at you. Sebastian clears his throat from the doorway.{/i}"
         "Leave them":
@@ -1669,6 +1761,8 @@ label c5_interact_mail_room:
             call screen mg_mail
             if _return == "win":
                 p "This goes to the clock, while this goes to the end… thank you, Sir. You'll be needed before it ends."
+                $ sorted_mail = True
+                $ remember(_("Pattison will remember that."))
             elif _return == "lose":
                 p "No, no, no. That goes to the fake ones. Never mind. I'll do it."
         "Leave it":

@@ -227,7 +227,8 @@ screen cheat_menu():
                                 for fl in ["in_loop", "has_key", "has_maple_sugar", "found_timetable",
                                            "clue_tile_mismatch", "clue_body_moved", "clue_drug_wrapper",
                                            "clue_hidden_tile", "clue_alexander_alibi", "c2_p2_found_body",
-                                           "door_c2_open", "door_c4_open"]:
+                                           "door_c2_open", "door_c4_open", "drank", "c3_kimmy_dangerous_choice",
+                                           "swept_glass", "played_blocks", "sorted_mail", "warned_fedora"]:
                                     use cheat_btn(fl, ToggleVariable(fl), sel=bool(getattr(store, fl, False)))
 
                 elif ct == "games":
