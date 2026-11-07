@@ -759,7 +759,8 @@ transform toast_timer:
     linear 4.3 xzoom 0.0
 
 
-image carriage_6 = Solid("#0a0a0e")
+# The caboose: the carriage with the monsters in it.
+image carriage_6 = full_cover("images/bg_carriage_6.webp")
 image carriage_6_fog = At(Solid("#4a0a0a"), carriage_6_ambient)
 
 image black = Solid("#000000")
@@ -777,12 +778,14 @@ image bg carriage_2 = themed(ConditionSwitch(
     "in_loop and not c2_p2_found_body", map_bg("images/bg_bar_cart_part2_body.webp", 0.186, 0.805, ceiling="#755243", lamp="#ff7a66", lamps=5, eerie=True),
     "in_loop", map_bg("images/bg_bar_cart_part2_crowd.webp", 0.186, 0.805, ceiling="#755243", lamp="#ff7a66", lamps=5, eerie=True),
     "True", map_bg("images/bg_bar_cart.webp", 0.186, 0.805, lamp="#ffd9a0", lamps=5)))
-# Carriages 3 and 5 have no Part 2 art yet: after the loop they go dark and red,
+# Carriage 5 has no Part 2 art yet: after the loop it goes dark and red,
 # so the sunny windows don't clash with "it's dark" next door.
 define LOOP_NIGHT = TintMatrix("#d08a80") * SaturationMatrix(0.55) * BrightnessMatrix(-0.16)
 
 image bg carriage_3 = themed(ConditionSwitch(
-    "in_loop", Transform(map_bg("images/bg_sleeper_cart.webp", 0.185, 0.815, lamp="#ff7a66", lamps=5, eerie=True, backdrop="#2a1a16", nearest=True), matrixcolor=LOOP_NIGHT),
+    # Part 2 has its own art (night windows, Misha out in the corridor). Its top edge
+    # drips, so the ceiling above it is one flat colour.
+    "in_loop", map_bg("images/bg_sleeper_cart_part2.webp", 0.185, 0.815, ceiling="#7d5847", lamp="#ff7a66", lamps=5, eerie=True, backdrop="#2a1a16", nearest=True),
     "True", map_bg("images/bg_sleeper_cart.webp", 0.185, 0.815, lamp="#ffd9a0", lamps=5, backdrop="#2a1a16", nearest=True)))
 image bg carriage_4 = themed(map_bg("images/bg_staff_cart.webp", 0.185, 0.815, lamp="#ffe9c4", lamps=5, nearest=True))
 
@@ -1012,6 +1015,7 @@ init python:
             Preference("text speed", 0),
             Preference("auto-forward time", 15),
             Preference("music volume", 1.0),
+            Preference("sound volume", 1.0),
             Preference("skip", "seen"),
             Preference("after choices", "stop"),
             Preference("all mute", "disable"),
@@ -2635,6 +2639,7 @@ define CLUE_LIST = [
 ]
 
 define CLUE_IMAGES = {
+    "clue_tile_mismatch": "images/clue_wrong_tile.webp",
     "clue_hidden_tile": "images/clue_hidden_tile.webp",
 }
 
@@ -3001,6 +3006,9 @@ screen preferences():
 
                     use pref_row(_("MUSIC VOLUME"), _("Music volume."), 0.0):
                         use pref_slider(Preference("music volume"), vol_pct("music"))
+
+                    use pref_row(_("SOUND VOLUME"), _("Buttons, doors and minigame sounds."), 0.03):
+                        use pref_slider(Preference("sound volume"), vol_pct("sfx"))
 
                     use pref_row(_("MUTE ALL AUDIO"), _("Mute all sound."), 0.06):
                         use pref_toggle(_("MUTED"), Preference("all mute", "enable"))
@@ -3605,6 +3613,7 @@ screen ending_card(label_text, title, subtitle):
         xfill True
         yfill True
         background None
+        hover_sound None
         action Return()
     key "dismiss" action Return()
 

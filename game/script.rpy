@@ -197,7 +197,8 @@ screen carriage_3_part2_map():
     if clue_hidden_tile and not sebastian_reinterviewed:
         use hs((1270, 405, 115, 170), Call("c3_p2_sebastian_reinterview"), "Sebastian", "talk", 0.1)
     if clue_hidden_tile and not misha_reinterviewed:
-        use hs((1000, 650, 180, 200), Call("c3_p2_misha_reinterview"), "Misha", "talk", 0.15)
+        # In the Part 2 art Misha stands in the corridor on the far left.
+        use hs((90, 330, 80, 175), Call("c3_p2_misha_reinterview"), "Misha", "talk", 0.15)
 
     if clue_alexander_alibi:
         use hs((420, 470, 260, 90), Call("c3_p2_interact_carpet"), "Carpet", delay=0.2)
@@ -1096,6 +1097,7 @@ label c2_p2_reinterview_eduard:
     show eduard neutral at speaker_background(xalign=0.9)
     l "Did you see the tile in his hand before? While he was playing?"
     show louis neutral at speaker_background(xalign=0.1)
+    $ renpy.show_screen("fullscreen_pop", WRONG_TILE_CLOSEUP)
     ed "No, no way. That's not even from his hand. He had three of the dragon tiles laid out, not that one. Someone put that there after."
     $ found_clue("clue_tile_mismatch")
     show eduard neutral at speaker_background(xalign=0.9)

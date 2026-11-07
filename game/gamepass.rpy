@@ -306,6 +306,7 @@ screen gallery_view(img, name):
     button:
         xysize (config.screen_width, config.screen_height)
         background None
+        hover_sound None
         action Hide("gallery_view")
     key "game_menu" action Hide("gallery_view")
 

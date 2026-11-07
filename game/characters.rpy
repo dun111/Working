@@ -1157,6 +1157,7 @@ transform pop_back:
 
 # The tile art has a lot of transparent space around it; crop to the tile itself.
 define TILE_CLOSEUP = Transform("images/clue_hidden_tile.webp", crop=(68, 304, 1317, 837))
+define WRONG_TILE_CLOSEUP = Transform("images/clue_wrong_tile.webp", crop=(68, 316, 1376, 872))
 
 screen fullscreen_pop(img, cover=False):
     zorder 350
@@ -1165,6 +1166,7 @@ screen fullscreen_pop(img, cover=False):
         xysize (sw, sh)
         padding (0, 0)
         background None
+        hover_sound None
         action Hide("fullscreen_pop")
         add Solid("#000000e6") at pop_back
         add Transform(img, fit=("cover" if cover else "contain"), xysize=(sw, sh)) at pop_fill

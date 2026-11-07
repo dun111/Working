@@ -386,6 +386,7 @@ define SPOT_SLIDES = [
     "dorothy sad",
     "images/bg_first_class_clear.webp",
     "images/key.webp",
+    "images/bg_carriage_6.webp",
     "shunyu_monster neutral",
     "himmel_monster neutral",
     "conductor_monster neutral",

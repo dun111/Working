@@ -593,7 +593,9 @@ init python:
         s = store.mj_sel
         if s is None or s == i:
             store.mj_sel = None if s == i else i
+            sfx(SFX_TILE_CLICK)
         elif store.mj_face[s] == store.mj_face[i]:
+            sfx(SFX_TILE_MATCH)
             store.mj_gone[s] = store.mj_gone[i] = True
             store.mj_sel = None
             if all(store.mj_gone):
@@ -606,6 +608,7 @@ init python:
                 store.mj_result = "lose"
                 store.mj_end_msg = _("No more matches.")
         else:
+            sfx(SFX_TILE_CLICK)
             store.mj_sel = i
         renpy.restart_interaction()
 
@@ -628,6 +631,7 @@ screen mahjong_jackpot():
         xysize (config.screen_width, config.screen_height)
         padding (0, 0)
         background None
+        hover_sound None
         action Hide("mahjong_jackpot")
         add full_cover(JACKPOT_ART) at pop_fill
     timer POP_SECS action Hide("mahjong_jackpot")
@@ -661,6 +665,8 @@ screen mahjong_minigame():
                         xysize (MJ_W + 8, MJ_H + 9)
                         padding (0, 0)
                         background None
+                        hover_sound None
+                        activate_sound None
                         action (Function(mahjong_pick, i) if free else None)
                         add MJ_TILE[mj_face[i]]
                         if mj_sel == i:
@@ -717,6 +723,7 @@ init python:
                 store.ms_lit_i = None
             else:
                 store.ms_lit_i = store.ms_seq[i]
+                sfx(SFX_BLOCK_SHOW)
         else:
             store.ms_lit_i = None
         store.ms_step += 1
@@ -729,6 +736,7 @@ init python:
     def blocks_pick(i):
         if store.ms_phase != "input" or store.ms_result is not None:
             return
+        sfx(SFX_BLOCK_PRESS)
         store.ms_lit_i = i
         n = store.ms_round + 1
         if store.ms_seq[store.ms_idx] == i:
@@ -781,6 +789,8 @@ screen mg_blocks():
                 xysize (180, 220)
                 padding (0, 0)
                 background None
+                hover_sound None
+                activate_sound None
                 action Function(blocks_pick, i)
                 add rbox(MS_LIT[i] if lit else MS_LIT[i] + "aa", 14):
                     xysize (180, 60)
