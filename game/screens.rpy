@@ -3565,6 +3565,29 @@ screen ending_card(label_text, title, subtitle):
             color "#c9a24a"
             font GFONT
             at fade_in(2.4)
+        # Only once Part 2 has been reached (the true ending switches the loop off first).
+        $ recap = first_ride_recap() if store.c2_p2_found_body else []
+        if recap:
+            null height 14
+            text _("YOUR FIRST RIDE"):
+                size 16
+                color "#8a8478"
+                font GFONT
+                at fade_in(2.8)
+            for line in recap:
+                text ("• " + line):
+                    size 17
+                    color "#a8a090"
+                    font GFONT
+                    xmaximum 1300
+                    at fade_in(2.8)
+            if len(recap) < 9:
+                text (_("%d other choices on the first ride went untried.") % (9 - len(recap))):
+                    size 16
+                    color "#6a6458"
+                    font GFONT
+                    at fade_in(2.8)
+            null height 14
         if found < len(ENDINGS):
             text _("CONTINUE on the main menu takes you back to your last save. Hints for the other endings are in EXTRAS > ENDINGS."):
                 size 18

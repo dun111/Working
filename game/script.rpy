@@ -41,6 +41,9 @@ default swept_glass = False
 default played_blocks = False
 default sorted_mail = False
 default warned_fedora = False
+default clock_tries = 0
+default clock_open = False
+default owe_guessed = False
 default seen_blank_carriage = False
 
 default c4_talked_agatha = False
@@ -336,12 +339,21 @@ label c1_interact_mysterious_door:
         "I'm not supposed to enter this carriage, am I… Eh. Just a peek."
     $ renpy.music.set_volume(0.0, delay=0.6, channel="music")
     scene black with Dissolve(0.6)
+    if not seen_blank_carriage:
+        l "...Hello?"
+        l "{i}(No walls. No floor. Not even the sound of the tracks.){/i}"
+        l "It's not dark in here. It's just… nothing."
+    elif in_loop:
+        l "{i}(Still nothing. Somehow that's worse the second time.){/i}"
+    else:
+        l "{i}(Still nothing.){/i}"
+    window hide
     call screen mysterious_room
     $ renpy.music.set_volume(1.0, delay=0.6, channel="music")
     scene bg carriage_1 with Dissolve(0.6)
     if not seen_blank_carriage:
         $ seen_blank_carriage = True
-        l "...Huh. There was nothing in there. Not even a floor."
+        l "...I'm not telling anyone about that."
     return
 
 label c1_interact_tea_stain:
@@ -564,8 +576,7 @@ label c3_interact_luggage:
 
 label carriage_4_start:
     if not door_c4_open:
-        $ dr_bg = "bg carriage_3"
-        call play_required("mg_door", door_reset) from _call_play_required_3
+        call c3_clock_lock
         $ door_c4_open = True
     if "c4" not in visited_carriages:
         $ visited_carriages.append("c4")
@@ -573,6 +584,34 @@ label carriage_4_start:
         $ autosave_checkpoint()
         show screen map_stamp(_("CARRIAGE 4"), _("STAFF CART"))
     jump carriage_4_hub
+
+# A puzzle: the staff cart door is locked by a clock. Everything on this train says 4:00.
+label c3_clock_lock:
+    "{i}The door to the next carriage won't budge. Where the handle should be, there's a small brass clock face with loose hands.{/i}"
+    l "A clock lock? What am I meant to set it to?"
+    $ clock_tries = 0
+    $ clock_open = False
+    while not clock_open:
+        menu:
+            "Set the clock to…"
+            "12:00":
+                $ clock_tries += 1
+            "3:45":
+                $ clock_tries += 1
+            "4:00":
+                $ clock_open = True
+            "7:15":
+                $ clock_tries += 1
+        if not clock_open:
+            "{i}The hands spring back to where they started.{/i}"
+            if clock_tries == 1:
+                l "{i}(Think. What time does everything on this train say?){/i}"
+            elif clock_tries >= 2:
+                "{i}From a cabin behind him, Kimmy calls out sleepily:{/i}"
+                k "Sugar, every clock on this train says the same thing. Departure at four."
+    "{i}Click. The hands lock at 4:00, and the door swings open.{/i}"
+    l "Departure at 4:00… Of course it is."
+    return
 
 label carriage_4_hub:
     scene bg carriage_4
@@ -716,7 +755,22 @@ label c5_alexander_dialogue:
     show alexander neutral at speaker_background(xalign=0.9)
     l "No."
     show louis neutral at speaker_background(xalign=0.1)
-    al "Well, there's this guy that keeps winning money from gambling, yet still hasn't paid for his last portion. Don't worry, I'll make him suffer."
+    al "Tell ya what. You've been walkin' the train. Guess who owes me, and maybe I'll believe you're not a narc."
+    $ owe_guessed = False
+    while not owe_guessed:
+        menu:
+            "Who owes Alexander money?"
+            "Eduard, the bartender":
+                al "The bartender? He couldn't afford me if he sold the bar."
+                l "{i}(Who did Eduard say was running up a tab?){/i}"
+            "Shunyu, the gambler":
+                $ owe_guessed = True
+                al "Ding ding ding! Mister Jackpot himself. Keeps winnin', keeps forgettin' to pay me for his last portion. Don't worry, I'll make him suffer."
+            "Kimmy, the rich lady":
+                al "That lady's richer than the train. She pays. ...Her husband, though. Eh. Never mind."
+                l "{i}(Her husband?){/i}"
+            "Fedora, the reporter":
+                al "The reporter? She'd write me up, not pay me."
     al "And as for the other one… the stuff was strong so I don't remember."
     show alexander neutral at speaker_background(xalign=0.9)
     l "Why did I expect that? But who's the other person?"
@@ -1386,17 +1440,91 @@ label accusation_scene:
     show fedora neutral at speaker_background(xalign=0.9)
     show louis neutral at speaker_focus(xalign=0.5)
     l "..."
+    jump accusation_pick
+
+# Everyone who gathered can be accused: staff on one list, passengers on the other.
+label accusation_pick:
     menu:
-        "Accuse Eduard":
-            jump accusation_eduard
-        "Accuse Alexander":
-            jump accusation_alexander
-        "Accuse Agatha":
-            jump accusation_agatha
-        "Accuse Himmel":
-            jump accusation_himmel
-        "Accuse Misha":
-            jump accusation_misha
+        "Who did it?"
+        "Someone on the staff":
+            menu:
+                "Accuse Dorothy":
+                    jump accusation_dorothy
+                "Accuse Eduard":
+                    jump accusation_eduard
+                "Accuse Agatha":
+                    jump accusation_agatha
+                "Accuse Ichora":
+                    jump accusation_ichora
+                "Accuse Pattison":
+                    jump accusation_pattison
+                "Go back":
+                    jump accusation_pick
+        "One of the passengers":
+            menu:
+                "Accuse Fedora":
+                    jump accusation_fedora
+                "Accuse Alexander":
+                    jump accusation_alexander
+                "Accuse Kimmy":
+                    jump accusation_kimmy
+                "Accuse Himmel":
+                    jump accusation_himmel
+                "Accuse Sebastian":
+                    jump accusation_sebastian
+                "Accuse Misha":
+                    jump accusation_misha
+                "Go back":
+                    jump accusation_pick
+
+label accusation_dorothy:
+    hide fedora
+    show louis neutral at speaker_focus(xalign=0.1)
+    l "It was you, Dorothy."
+    show dorothy surprised at speaker_focus(xalign=0.9)
+    d "M-me? Sir, I punch tickets. I was at the front of the train all night, checking the same ticket over and over…"
+    jump wrong_ending
+
+label accusation_ichora:
+    hide fedora
+    show louis neutral at speaker_focus(xalign=0.1)
+    l "It was you, Ichora."
+    show ichora neutral at speaker_focus(xalign=0.9)
+    ic "Buddy. I gave you a KEY. This is how you thank me?"
+    jump wrong_ending
+
+label accusation_pattison:
+    hide fedora
+    show louis neutral at speaker_focus(xalign=0.1)
+    l "It was you, Pattison."
+    show pattison neutral at speaker_focus(xalign=0.9)
+    p "This goes to the clock… and this goes to you, sir. Wrong pile."
+    jump wrong_ending
+
+label accusation_fedora:
+    hide fedora
+    show louis neutral at speaker_focus(xalign=0.1)
+    l "It was you, Fedora. You knew there'd be a killer before anyone did."
+    show fedora neutral at speaker_focus(xalign=0.9)
+    f "ME? Matchstick, I'd have had the scoop of the CENTURY. I wouldn't waste it on myself."
+    jump wrong_ending
+
+label accusation_kimmy:
+    hide fedora
+    show louis neutral at speaker_focus(xalign=0.1)
+    l "It was you, Kimmy."
+    show kimmy neutral at speaker_focus(xalign=0.9)
+    k "Darling. I don't get blood on silk. Ever."
+    jump wrong_ending
+
+label accusation_sebastian:
+    hide fedora
+    show louis neutral at speaker_focus(xalign=0.1)
+    l "It was you, Sebastian."
+    show sebastian neutral at speaker_focus(xalign=0.9)
+    seb "I stood at that cabin door all night, sir. Guarding it. Guarding him."
+    "{i}His eyes flick, just once, to the boy behind him.{/i}"
+    jump wrong_ending
 
 label accusation_eduard:
     hide fedora

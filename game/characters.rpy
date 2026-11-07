@@ -236,6 +236,30 @@ init python:
         title, text = _clue_text(var)
         renpy.show_screen("clue_popup", _("NEW CLUE  (press J)"), title or var, text)
 
+    def first_ride_recap():
+        # What the first-ride choices led to, for the ending card. Only choices the player made.
+        st = store
+        out = []
+        if st.drank:
+            out.append(_("You asked Eduard for a drink, so he noticed the glass that shouldn't have been full."))
+        if st.played_mahjong:
+            out.append(_("You sat at Shunyu's table. It helped you understand what he lost."))
+        if st.swept_glass:
+            out.append(_("You swept the broken glass, and noticed the big shard was gone before anyone died."))
+        if st.c3_kimmy_dangerous_choice:
+            out.append(_("You told Kimmy you were dangerous. She didn't forget."))
+        if st.played_blocks:
+            out.append(_("You played Misha's blocks. He said you knew 'the order'."))
+        if st.has_maple_sugar:
+            out.append(_("You took Alexander's maple sugar. It helped you understand Himmel."))
+        if st.sorted_mail:
+            out.append(_("You sorted Pattison's mail. It helped you understand the Conductor."))
+        if st.found_timetable:
+            out.append(_("You opened the cupboard. The timetable was waiting for you again."))
+        if st.warned_fedora:
+            out.append(_("You warned Fedora. She trusted you over the body."))
+        return out
+
     def remember(text):
         # Tells the player a choice will come back later.
         renpy.notify(text)
