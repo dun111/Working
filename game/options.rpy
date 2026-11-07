@@ -58,6 +58,7 @@ init python:
     build.classify('game/music/Carriage 5.mp3', None)
     build.classify('game/music/Part_2_Carriage_3.mp3', None)
     build.classify('game/music/audiomass-output.mp3', None)
+    build.classify('game/images/bg_carriage_1.webp', None)
     build.classify('game/images/bg_carriage_5.webp', None)
     build.classify('game/gui/TaskBar_icon_Departureat4.webp', None)
 

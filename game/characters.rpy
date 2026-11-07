@@ -1115,10 +1115,12 @@ screen gift_shop():
 # ---------- LOOK OUTSIDE: a zoomed view of one of Carriage 1's windows ----------
 
 # One window of the Carriage 1 art, frame included (pixel art, so it's scaled with sharp pixels).
-define WINDOW_VIEW_CROP = (830, 225, 260, 190)
+# The crop is in the full-size art (4096 wide); no passenger stands in front of this window.
+define WINDOW_VIEW_ART = "images/bg_carriage_1_passengers.webp"
+define WINDOW_VIEW_CROP = (1771, 480, 555, 405)
 
-image window_view_day = Transform("images/bg_carriage_1.webp", crop=WINDOW_VIEW_CROP, zoom=4.0, nearest=True)
-image window_view_night = Transform("images/bg_carriage_1.webp", crop=WINDOW_VIEW_CROP, zoom=4.0, nearest=True,
+image window_view_day = Transform(WINDOW_VIEW_ART, crop=WINDOW_VIEW_CROP, zoom=1.875, nearest=True)
+image window_view_night = Transform(WINDOW_VIEW_ART, crop=WINDOW_VIEW_CROP, zoom=1.875, nearest=True,
                                     matrixcolor=TintMatrix("#3a4a8a") * SaturationMatrix(0.25) * BrightnessMatrix(-0.45))
 
 transform window_zoom_in:

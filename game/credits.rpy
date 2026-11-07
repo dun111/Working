@@ -389,7 +389,7 @@ define SPOT_SLIDES = [
     "shunyu_monster neutral",
     "himmel_monster neutral",
     "conductor_monster neutral",
-    "images/bg_carriage_1.webp",
+    "images/bg_carriage_1_passengers.webp",
     "images/logo_studio_full.webp",
 ]
 
