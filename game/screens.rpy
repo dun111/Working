@@ -772,9 +772,9 @@ image bg carriage_5 = themed(map_bg("images/newmailroom.webp", 0.186, 0.805, flo
 
 image bg carriage_2 = themed(ConditionSwitch(
     # Part 2: just Eduard and the body until it's found, then everyone who came running.
-    "in_loop and not c2_p2_found_body", map_bg("images/Buffet_cart_pt2_1.png.webp", 0.186, 0.805, ceiling="#755243", lamp="#ff7a66", lamps=5, eerie=True),
-    "in_loop", map_bg("images/Buffet_cart_pt2_2.png.webp", 0.186, 0.805, ceiling="#755243", lamp="#ff7a66", lamps=5, eerie=True),
-    "True", map_bg("images/Bar_cart_part_1.png.webp", 0.186, 0.805, lamp="#ffd9a0", lamps=5)))
+    "in_loop and not c2_p2_found_body", map_bg("images/bg_bar_cart_part2_body.webp", 0.186, 0.805, ceiling="#755243", lamp="#ff7a66", lamps=5, eerie=True),
+    "in_loop", map_bg("images/bg_bar_cart_part2_crowd.webp", 0.186, 0.805, ceiling="#755243", lamp="#ff7a66", lamps=5, eerie=True),
+    "True", map_bg("images/bg_bar_cart.webp", 0.186, 0.805, lamp="#ffd9a0", lamps=5)))
 image bg carriage_3 = themed(map_bg("images/bg_sleeper_cart.webp", 0.185, 0.815, lamp="#ffd9a0", lamps=5, backdrop="#2a1a16", nearest=True))
 image bg carriage_4 = themed(map_bg("images/bg_staff_cart.webp", 0.185, 0.815, lamp="#ffe9c4", lamps=5, nearest=True))
 
@@ -1561,6 +1561,9 @@ screen menu_entry(caption, act, delay=0.0, bright=False):
                 yalign 0.5
 
 define MENU_TAGLINES = [
+    "Tip: Carriage 6 doesn't want the obvious answer",
+    "Tip: answer for them, not for you",
+    "Tip: the true ending needs all three right",
     "Ryan is #####",
     "Blackberries are black",
     "AWWWWHHH",

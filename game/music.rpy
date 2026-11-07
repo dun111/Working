@@ -6,13 +6,14 @@ define SONGS = {
     "part2_carriage_3":     ("music/part2_carriage_3.mp3",        _("Part 2 Carriage 3"),             "Departure at 4:00"),
     "carriage_4":           ("music/carriage_4.mp3",              _("Carriage 4"),                    "Departure at 4:00"),
     "carriage_5":           ("music/carriage_5.mp3",              _("Carriage 5"),                    "Departure at 4:00"),
+    "accusation":           ("audio/pizzicato_intrigue.mp3",      _("Pizzicato Intrigue"),            "Departure at 4:00"),
     "flower_in_a_hurricane": ("music/flower_in_a_hurricane.opus", "Flower In A Hurricane", "Justice ft. Tame Impala, SZA, King Gizzard & the Lizard Wizard (GTA VI)"),
 }
 
 define config.main_menu_music_fadein = 2.0
 
 define SONG_ORDER = ["main_menu", "carriage_1", "carriage_2", "carriage_3", "part2_carriage_3",
-                     "carriage_4", "carriage_5", "flower_in_a_hurricane"]
+                     "carriage_4", "carriage_5", "accusation", "flower_in_a_hurricane"]
 
 define MUSIC_FOR = {
     "c1": ["carriage_1"],
@@ -24,6 +25,7 @@ define MUSIC_FOR = {
     "part2_c2": ["carriage_3"],
     "part2_c3": ["part2_carriage_3"],
     "part2_c5": ["carriage_5"],
+    "accusation": ["accusation"],
     "silence": None,
     "escape": ["main_menu"],
     "true": ["main_menu"],
@@ -61,7 +63,8 @@ define LABEL_MUSIC = {
     "carriage_3_part2_hub":    ("part2_c3", "part2_c3"),
     "carriage_5_part2_start":  ("part2_c5", "part2_c5"),
     "carriage_5_part2_hub":    ("part2_c5", "part2_c5"),
-    "accusation_scene":        ("silence", "silence"),
+    "accusation_scene":        ("accusation", "accusation"),
+    "wrong_ending":            ("silence", "silence"),
     "carriage_6_start":        ("silence", "silence"),
     "ending_1_death":          ("silence", "silence"),
     "ending_2_escape":         ("escape", "escape"),

@@ -64,6 +64,7 @@ default sebastian_reinterviewed = False
 default misha_reinterviewed = False
 
 default c6_q1_correct = False
+default c6_right = 0
 default c6_q2_correct = False
 default c6_q3_correct = False
 
@@ -1428,6 +1429,7 @@ label carriage_6_start:
     l "...What happens if I get it wrong?"
     "{i}The Passenger's grin stretches wider. The Gentleman's shaking speeds up, wrappers peeling further off his skin like scabs. The Conductor-thing unfolds another half-foot taller, the ceiling groaning under it.{/i}"
     u "You'll see. Three questions. Three chances. Choose carefully, Louis."
+    l "{i}(They're not asking what happened to them. They're asking what they never understood about themselves.){/i}"
     hide misha with dissolve
     jump c6_question_1
 
@@ -1512,6 +1514,7 @@ label carriage_6_aftermath:
         $ achievement.grant("total_failure")
         scene black with dissolve
         "You found the truth, and still couldn't carry it. That may be worse than never finding it at all."
+        "{i}None of the three were set free. The answer each one needed was the one it could never see for itself.{/i}"
         "{i}Louis is hit with the darkness.{/i}"
         jump ending_1_death
 
@@ -1528,6 +1531,8 @@ label ending_2_escape:
     hide screen loop_overlay
     scene black with dissolve
     "Nice, you escaped!"
+    $ c6_right = int(c6_q1_correct) + int(c6_q2_correct) + int(c6_q3_correct)
+    "{i}You set [c6_right] of the 3 free. Answer all three truly, and maybe the whole train goes free with you.{/i}"
     call screen ending_card(_("ENDING 2"), _("PARTIAL TRUTH"), _("You escaped, but not everything was resolved."))
     call ending_video from _call_ending_video_1
     $ MainMenu(confirm=False)()

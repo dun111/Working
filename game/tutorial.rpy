@@ -45,6 +45,7 @@ init python:
             (_("NAMING THE KILLER"), [
                 _("At the end you accuse someone. Choose carefully: a wrong guess ends badly."),
                 _("There are three endings. The more of the truth you've found, the better the ending you can reach."),
+                _("Beyond the accusation, the true ending asks three more questions. Every answer has to be right."),
                 _("Missed something? Replay any chapter from EXTRAS > CHAPTERS."),
             ]),
             (_("SAVING"), [
