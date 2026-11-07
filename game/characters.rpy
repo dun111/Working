@@ -22,6 +22,9 @@ init -2 python:
     def _scaled(path, src_h, scale):
         return Transform(path, zoom=SPRITE_H * scale / float(src_h))
 
+    def art_file(path):
+        return (path, renpy.image_size(path)[1])
+
     def sprite(tag, path, src_h, scale=1.0):
         return Transform(_scaled(path, src_h, scale), function=IdleAnim(tag))
 
@@ -55,12 +58,13 @@ init -2 python:
         return sprite(tag, MONSTER_PNG, renpy.image_size(MONSTER_PNG)[1], scale=scale)
 
 define MONSTER_PNG = "images/shunyu_monster.png"
-define LOUIS_PNG       = ("images/louis_neutral.png", 1323)
-define FEDORA_PNG      = ("images/fedora_neutral.png", 1314)
-define DOROTHY_PNG     = ("images/dorothy_neutral.png", 1305)
-define DOROTHY_SAD_PNG = ("images/dorothy_sad.png", 1298)
-define SHUNYU_PNG      = ("images/shunyu_neutral.png", 1341)
-define ICHORA_PNG      = ("images/ichora_neutral.png", 1288)
+# (path, height) read from the files, so re-exported art keeps the right size.
+define LOUIS_PNG       = art_file("images/louis_neutral.png")
+define FEDORA_PNG      = art_file("images/fedora_neutral.png")
+define DOROTHY_PNG     = art_file("images/dorothy_neutral.png")
+define DOROTHY_SAD_PNG = art_file("images/dorothy_sad.png")
+define SHUNYU_PNG      = art_file("images/shunyu_neutral.png")
+define ICHORA_PNG      = art_file("images/ichora_neutral.png")
 
 
 image louis neutral        = sprite("louis", *LOUIS_PNG)
@@ -122,11 +126,17 @@ init python:
             Solid("#1a000088"))
         return ConditionSwitch("in_loop", looped, "True", normal)
 
+    def talk_map(bg):
+        return Fixed(At(Transform(bg, blur=6), talk_drift), Solid("#0a0a0e70"))
+
 # Conversations use the clear first-class picture; the main menu slideshow keeps the mosaic one.
 image talk_bg = talk_backdrop("images/bg_first_class_clear.webp")
 image talk_bar = talk_backdrop("images/bg_bar.webp")
 image talk_sleeper = talk_backdrop("images/bg_sleeper.webp")
 image talk_mail = talk_backdrop("images/bg_mail_cart.webp")
+# Carriages with no painted backdrop talk in front of their own map, softened.
+image talk_staff = talk_map("bg carriage_4")
+image talk_engine = talk_map("bg carriage_5")
 image shunyu_dead = full_cover("images/shunyu_dead.webp")
 # Agatha's first appearance, in the staff cart.
 image agatha_special = full_cover("images/cg_agatha_gloves.webp")
@@ -140,11 +150,12 @@ image talk to kimmy     = "talk_sleeper"
 image talk to himmel    = "talk_sleeper"
 image talk to sebastian = "talk_sleeper"
 image talk to misha     = "talk_sleeper"
-image talk to agatha    = "talk_bg"
-image talk to ichora    = "talk_bg"
+# Agatha works in the staff cart; in Part 2 she's questioned at the crime scene.
+image talk to agatha    = ConditionSwitch("in_loop", "talk_bar", "True", "talk_staff")
+image talk to ichora    = "talk_staff"
 image talk to pattison  = "talk_mail"
 image talk to alexander = "talk_mail"
-image engine room       = "bg carriage_5"
+image engine room       = "talk_engine"
 
 
 image lights_dying:
