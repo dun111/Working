@@ -164,10 +164,10 @@ screen carriage_2_part2_map():
     use golden_ticket("c2b", 230, 900)
     use hs((555, 235, 225, 165), Call("c2_p2_interact_window"), "Window")
     use hs((1430, 355, 140, 150), Call("c2_p2_talk_eduard"), "Eduard", "talk", 0.05)
-    use hs((500, 540, 400, 230), Call("c2_p2_overturned_table"), "Overturned table", delay=0.1)
+    use hs((165, 420, 280, 190), Call("c2_p2_overturned_table"), "Overturned table", delay=0.1)
     use hs((875, 640, 120, 80), Call("c2_p2_broken_glass"), "Broken glass", delay=0.15)
     use hs((1600, 500, 210, 80), Call("c2_p2_bar_counter"), "Bar counter", delay=0.2)
-    use hs((980, 425, 150, 130), Jump("c2_p2_second_table"), "Second table", delay=0.25)
+    use hs((500, 540, 400, 230), Jump("c2_p2_second_table"), "Second table", delay=0.25)
 
 screen carriage_2_part2_investigation_map():
     add "bg carriage_2"

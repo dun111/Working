@@ -2,7 +2,9 @@ define SONGS = {
     "main_menu":            ("music/grekhov_theme.mp3",               _("Grekhov Theme"),                 "Departure at 4:00"),
     "carriage_1":           ("music/carriage_1_clip.mp3",         _("Carriage 1"),                    "Departure at 4:00"),
     "carriage_2":           ("music/lets_all_do_the_conga.m4a",   "Let's All Do the Conga",           "Colin Sheen"),
-    "carriage_3":           ("music/rendezvous.opus",             "Rendezvous (Instrumental)",        "Carriages 2 and 3"),
+    "carriage_3":           ("music/rendezvous.opus",             "Rendezvous (Instrumental)",        "Carriage 3"),
+    "part2_carriage_1":     ("music/part2_carriage_1.mp3",        _("Part 2 Carriage 1"),             "Departure at 4:00"),
+    "part2_carriage_2":     ("music/part2_carriage_2.mp3",        _("Part 2 Carriage 2"),             "Departure at 4:00"),
     "part2_carriage_3":     ("music/part2_carriage_3.mp3",        _("Part 2 Carriage 3"),             "Departure at 4:00"),
     "carriage_4":           ("music/carriage_4.mp3",              _("Carriage 4"),                    "Departure at 4:00"),
     "carriage_5":           ("music/carriage_5.mp3",              _("Carriage 5"),                    "Departure at 4:00"),
@@ -12,8 +14,9 @@ define SONGS = {
 
 define config.main_menu_music_fadein = 2.0
 
-define SONG_ORDER = ["main_menu", "carriage_1", "carriage_2", "carriage_3", "part2_carriage_3",
-                     "carriage_4", "carriage_5", "accusation", "flower_in_a_hurricane"]
+define SONG_ORDER = ["main_menu", "carriage_1", "carriage_2", "carriage_3", "carriage_4", "carriage_5",
+                     "part2_carriage_1", "part2_carriage_2", "part2_carriage_3",
+                     "accusation", "flower_in_a_hurricane"]
 
 define MUSIC_FOR = {
     "c1": ["carriage_1"],
@@ -21,8 +24,8 @@ define MUSIC_FOR = {
     "c3": ["carriage_3"],
     "c4": ["carriage_4"],
     "c5": ["carriage_5"],
-    "part2": ["main_menu"],
-    "part2_c2": ["carriage_3"],
+    "part2": ["part2_carriage_1"],
+    "part2_c2": ["part2_carriage_2"],
     "part2_c3": ["part2_carriage_3"],
     "part2_c5": ["carriage_5"],
     "accusation": ["accusation"],
