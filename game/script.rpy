@@ -628,16 +628,23 @@ label carriage_4_hub:
     jump carriage_4_hub
 
 label c4_agatha_dialogue:
-    scene agatha_special with dissolve
+    # Her picture just flashes up, then the talk carries on in front of the staff cart.
+    scene agatha_special with Dissolve(0.15)
+    pause 1.2
+    scene talk to agatha with Dissolve(0.4)
+    show agatha neutral at speaker_focus(xalign=0.9)
     a "C'mon, put the bandage on."
+    show agatha neutral at speaker_background(xalign=0.9)
     pas "Ouuuchhh it hurtssss oh my my poor finger, I may never play Marvel Rivals again!"
+    show agatha neutral at speaker_focus(xalign=0.9)
     a "I don't care. You pricked it, it's not bleeding. Put the bandaid on and stop wasting my time."
+    show agatha neutral at speaker_background(xalign=0.9)
     pas "Fine."
     "{i}The passenger pouts for a second and storms off.{/i}"
+    show agatha neutral at speaker_focus(xalign=0.9)
     a "Actual infants…"
     "{i}Agatha looks at you.{/i}"
     a "What, need help too?"
-    scene talk to agatha with dissolve
     show agatha neutral at speaker_background(xalign=0.9)
     show louis neutral at speaker_focus(xalign=0.1)
     l "No, but, what's this carriage?"
