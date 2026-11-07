@@ -32,21 +32,9 @@ init python:
         toggle_pass("cheats")
         renpy.notify(_("Cheats ON (F9)") if has_pass("cheats") else _("Cheats OFF"))
 
-    P1_TALKS = [
-        ["c1_talked_fedora", "door_c2_open"],
-        ["c2_talked_eduard", "c2_talked_shunyu"],
-        ["c3_talked_kimmy", "c3_talked_himmel", "c3_talked_sebastian", "c3_talked_misha", "door_c4_open"],
-        ["c4_talked_agatha", "c4_talked_ichora", "has_key"],
-        ["c5_talked_pattison", "c5_talked_alexander"],
-    ]
-    P2_STEPS = [
-        ["door_c2_open_loop"],
-        ["c2_p2_found_body", "c2_p2_reinterviewed_eduard", "c2_p2_reinterviewed_agatha",
-         "clue_tile_mismatch", "clue_body_moved"],
-        ["clue_drug_wrapper", "kimmy_reinterviewed", "himmel_reinterviewed"],
-        ["alexander_reinterviewed", "pattison_reinterviewed", "clue_alexander_alibi", "c3_p2_returned",
-         "clue_hidden_tile", "sebastian_reinterviewed", "misha_reinterviewed"],
-    ]
+    # Built from the story route in route.rpy.
+    P1_TALKS = route_flags(ROUTE_PART1)
+    P2_STEPS = route_flags(ROUTE_PART2)
 
     CHEAT_CHAPTERS = [
         (_("Start: the ticket"), "start", 0),

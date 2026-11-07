@@ -3891,11 +3891,6 @@ define CHAPTERS = [
     ("carriage_5_part2_start", _("CARRIAGE 5"), _("ENGINE & MAIL ROOM"),   True),
 ]
 
-define CHAPTER_STAGE = {
-    "carriage_1_start": 0, "carriage_2_start": 1, "carriage_3_start": 2,
-    "carriage_4_start": 3, "carriage_5_start": 4, "part2_start": 5,
-    "carriage_2_part2_start": 6, "carriage_3_part2_start": 7, "carriage_5_part2_start": 8,
-}
 
 define CHAPTER_BG = {
     "carriage_1_start": "bg carriage_1",
@@ -4034,38 +4029,6 @@ init python:
             ("SECRETS FOUND", str(len([n for sid, n in SECRET_NOTES if sid and sid in persistent.secrets]))),
             ("TICKETS / COINS", "%d / %d" % (persistent.tickets or 0, persistent.coins or 0)),
         ]
-
-    def _flag_on(n):
-        return bool(getattr(store, n, False))
-
-    def current_objective():
-        if not _flag_on("in_loop"):
-            if not _flag_on("c1_talked_fedora"):
-                return "Carriage 1: talk to Fedora."
-            if not (_flag_on("c2_talked_eduard") and _flag_on("c2_talked_shunyu")):
-                return "Carriage 2: talk to Eduard and Shunyu."
-            if not (_flag_on("c3_talked_kimmy") and _flag_on("c3_talked_himmel") and _flag_on("c3_talked_sebastian") and _flag_on("c3_talked_misha")):
-                return "Carriage 3: talk to everyone in the cabins."
-            if not (_flag_on("c4_talked_agatha") and _flag_on("c4_talked_ichora")):
-                return "Carriage 4: meet the staff."
-            if not (_flag_on("c5_talked_pattison") and _flag_on("c5_talked_alexander")):
-                return "Carriage 5: talk to Pattison and Alexander."
-            return "Go through the door at the end of Carriage 5."
-        if not _flag_on("c2_p2_found_body"):
-            return "Carriage 2: look at the second table."
-        if not (_flag_on("c2_p2_reinterviewed_eduard") and _flag_on("c2_p2_reinterviewed_agatha")):
-            return "Carriage 2: question Eduard and Agatha."
-        if not _flag_on("clue_drug_wrapper"):
-            return "Carriage 3: check the luggage."
-        if not _flag_on("kimmy_reinterviewed"):
-            return "Carriage 3: ask Kimmy about the wrapper."
-        if not (_flag_on("alexander_reinterviewed") and _flag_on("pattison_reinterviewed")):
-            return "Carriage 5: question Alexander, then Pattison."
-        if not _flag_on("clue_hidden_tile"):
-            return "Back to Carriage 3: check the carpet."
-        if not (_flag_on("sebastian_reinterviewed") and _flag_on("misha_reinterviewed")):
-            return "Carriage 3: question Sebastian and Misha."
-        return "Carriage 3: decide who did it."
 
     KONAMI = ["UP", "UP", "DOWN", "DOWN", "LEFT", "RIGHT", "LEFT", "RIGHT", "b", "a"]
     _konami_buf = []
@@ -4362,7 +4325,7 @@ init python:
 
 label chapter_replay:
     $ menu_music_filter_off()
-    $ cheat_target(persistent.replay_to, CHAPTER_STAGE.get(persistent.replay_to, 0))
+    $ cheat_target(persistent.replay_to, chapter_stage(persistent.replay_to))
     $ cheat_apply()
     $ renpy.scene()
     $ renpy.show(CHAPTER_BG.get(persistent.replay_to, "black"))
