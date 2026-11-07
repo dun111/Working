@@ -54,8 +54,12 @@ init -2 python:
         return Null()
 
     def monster(tag, scale=1.0):
-        # Every monster uses the Shunyu monster art.
-        return sprite(tag, MONSTER_PNG, renpy.image_size(MONSTER_PNG)[1], scale=scale)
+        # Each monster has its own art (images/<tag>.png); the Shunyu monster
+        # stands in for any that doesn't.
+        path = "images/%s.png" % tag
+        if not renpy.loadable(path):
+            path = MONSTER_PNG
+        return sprite(tag, path, renpy.image_size(path)[1], scale=scale)
 
 define MONSTER_PNG = "images/shunyu_monster.png"
 # (path, height) read from the files, so re-exported art keeps the right size.
