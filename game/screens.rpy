@@ -348,7 +348,7 @@ transform loading_pulse:
     repeat
 
 transform notify_anim:
-    alpha 0.0 yoffset 20
+    alpha 0.0 yoffset -20
     ease 0.25 alpha 1.0 yoffset 0
     pause 2.5
     ease 0.5 alpha 0.0
@@ -771,8 +771,10 @@ image bg carriage_1 = themed(ConditionSwitch(
 image bg carriage_5 = themed(map_bg("images/newmailroom.webp", 0.186, 0.805, floor="#3d3434", lamp="#ffe2b0", lamps=5, backdrop="#150d0d"))
 
 image bg carriage_2 = themed(ConditionSwitch(
-    "in_loop", Solid("#2a2430"),
-    "True", map_bg("images/Bar_cart_part_1.png.webp", 0.186, 0.805, lamp="#ffd9a0", lamps=5)))
+    # Part 2: just Eduard and the body until it's found, then everyone who came running.
+    "in_loop and not c2_p2_found_body", map_bg("images/bg_bar_cart_part2_body.webp", 0.186, 0.805, ceiling="#755243", lamp="#ff7a66", lamps=5, eerie=True),
+    "in_loop", map_bg("images/bg_bar_cart_part2_crowd.webp", 0.186, 0.805, ceiling="#755243", lamp="#ff7a66", lamps=5, eerie=True),
+    "True", map_bg("images/bg_bar_cart.webp", 0.186, 0.805, lamp="#ffd9a0", lamps=5)))
 image bg carriage_3 = themed(map_bg("images/bg_sleeper_cart.webp", 0.185, 0.815, lamp="#ffd9a0", lamps=5, backdrop="#2a1a16", nearest=True))
 image bg carriage_4 = themed(map_bg("images/bg_staff_cart.webp", 0.185, 0.815, lamp="#ffe9c4", lamps=5, nearest=True))
 
@@ -1559,6 +1561,9 @@ screen menu_entry(caption, act, delay=0.0, bright=False):
                 yalign 0.5
 
 define MENU_TAGLINES = [
+    "Tip: Carriage 6 doesn't want the obvious answer",
+    "Tip: answer for them, not for you",
+    "Tip: the true ending needs all three right",
     "Ryan is #####",
     "Blackberries are black",
     "AWWWWHHH",
@@ -3587,9 +3592,9 @@ screen confirm(message, yes_action, no_action):
 screen notify(message):
     zorder 100
     frame:
-        xalign 0.99
-        yalign 0.93
-        xoffset -240
+        # Top right, clear of the dialogue box, the coin counter and the carriage name.
+        xalign 0.98
+        ypos 24
         background rbox("#101014cc", 14)
         padding (18, 12)
         at notify_anim

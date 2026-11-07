@@ -64,6 +64,7 @@ default sebastian_reinterviewed = False
 default misha_reinterviewed = False
 
 default c6_q1_correct = False
+default c6_right = 0
 default c6_q2_correct = False
 default c6_q3_correct = False
 
@@ -149,19 +150,19 @@ screen carriage_5_map():
 screen carriage_2_part2_map():
     add "bg carriage_2"
     use golden_ticket("c2b", 230, 900)
-    use hs((100, 150, 180, 400), Call("c2_p2_interact_window"), "Window")
-    use hs((350, 150, 180, 400), Call("c2_p2_talk_eduard"), "Eduard", "talk", 0.05)
-    use hs((600, 150, 180, 400), Call("c2_p2_overturned_table"), "Overturned table", delay=0.1)
-    use hs((850, 150, 180, 400), Call("c2_p2_broken_glass"), "Broken glass", delay=0.15)
-    use hs((1100, 150, 180, 400), Call("c2_p2_bar_counter"), "Bar counter", delay=0.2)
-    use hs((1350, 150, 180, 400), Jump("c2_p2_second_table"), "Second table", delay=0.25)
+    use hs((555, 235, 225, 165), Call("c2_p2_interact_window"), "Window")
+    use hs((1430, 355, 140, 150), Call("c2_p2_talk_eduard"), "Eduard", "talk", 0.05)
+    use hs((500, 540, 400, 230), Call("c2_p2_overturned_table"), "Overturned table", delay=0.1)
+    use hs((875, 640, 120, 80), Call("c2_p2_broken_glass"), "Broken glass", delay=0.15)
+    use hs((1600, 500, 210, 80), Call("c2_p2_bar_counter"), "Bar counter", delay=0.2)
+    use hs((980, 425, 150, 130), Jump("c2_p2_second_table"), "Second table", delay=0.25)
 
 screen carriage_2_part2_investigation_map():
     add "bg carriage_2"
     if not c2_p2_reinterviewed_eduard:
-        use hs((350, 150, 200, 400), Call("c2_p2_reinterview_eduard"), "Eduard", "talk")
+        use hs((1430, 355, 140, 150), Call("c2_p2_reinterview_eduard"), "Eduard", "talk")
     if not c2_p2_reinterviewed_agatha:
-        use hs((600, 150, 200, 400), Call("c2_p2_reinterview_agatha"), "Agatha", "talk", 0.05)
+        use hs((1085, 500, 105, 180), Call("c2_p2_reinterview_agatha"), "Agatha", "talk", 0.05)
     if c2_p2_reinterviewed_eduard and c2_p2_reinterviewed_agatha:
         use hs(DOOR_RIGHT, Jump("part2_chapter_end"), "Carriage 3", "door", 0.1)
 
@@ -194,7 +195,7 @@ screen carriage_3_part2_map():
     if kimmy_reinterviewed and not clue_alexander_alibi:
         use hs(DOOR_RIGHT, Jump("carriage_5_part2_start"), "Carriage 5", "door", 0.35)
     if sebastian_reinterviewed and misha_reinterviewed:
-        use hs((1400, 200, 150, 400), Jump("accusation_scene"), "Time to decide", "decide", 0.1)
+        use hs((860, 470, 240, 100), Jump("accusation_scene"), "Time to decide", "decide", 0.1)
 
 screen carriage_5_part2_map():
     add "bg carriage_5"
@@ -541,8 +542,7 @@ label carriage_4_hub:
     jump carriage_4_hub
 
 label c4_agatha_dialogue:
-    scene talk to agatha with talk_in
-    show agatha neutral at speaker_focus(xalign=0.9)
+    scene agatha_special with dissolve
     a "C'mon, put the bandage on."
     pas "Ouuuchhh it hurtssss oh my my poor finger, I may never play Marvel Rivals again!"
     a "I don't care. You pricked it, it's not bleeding. Put the bandaid on and stop wasting my time."
@@ -551,6 +551,7 @@ label c4_agatha_dialogue:
     a "Actual infants…"
     "{i}Agatha looks at you.{/i}"
     a "What, need help too?"
+    scene talk to agatha with dissolve
     show agatha neutral at speaker_background(xalign=0.9)
     show louis neutral at speaker_focus(xalign=0.1)
     l "No, but, what's this carriage?"
@@ -696,7 +697,33 @@ label c5_carriage6_door:
     l "Huh… it's…"
     scene black with dissolve
     u "Not yet! Try to see the truth before you see the future."
+    $ _KNOCKOUT.loaded = False
     "{i}Two pairs of eyes glint in the blackness, watching.{/i}"
+    jump part1_knockout
+
+
+# Louis is knocked out at the end of Part 1: the game saves and drops back to
+# the start screen, as if it were over. CONTINUE wakes him up in Part 2.
+init python:
+    class _KNOCKOUT(object):
+        loaded = False   # a class attribute, so it is never saved
+
+    def _knockout_after_load():
+        _KNOCKOUT.loaded = True
+
+    config.after_load_callbacks.append(_knockout_after_load)
+
+label part1_knockout:
+    scene black
+    window hide
+    pause 1.5
+    # Loading this save resumes just after the "two pairs of eyes" line, so it
+    # comes back through here; after a load, go straight on to Part 2.
+    if _KNOCKOUT.loaded:
+        $ _KNOCKOUT.loaded = False
+        jump part2_start
+    $ renpy.save("loop-1", _("Part 2: wake up"))
+    $ renpy.run(MainMenu(confirm=False, save=False))
     jump part2_start
 
 
@@ -1265,7 +1292,7 @@ label accusation_scene:
     pause 1.0
     scene black with dissolve
     "The train lurches. Every character you spoke to gathers: Eduard behind his bar, Agatha with her kit, Dorothy clutching her ticket punch, Fedora with her notepad ready, Pattison murmuring at the doorway, Alexander shaking in the corner, Kimmy and Himmel arm in arm, Sebastian standing protectively in front of Misha."
-    scene bg carriage_5 with dissolve
+    scene accusation_bg with dissolve
     show fedora neutral at speaker_focus(xalign=0.9)
     f "Well? You've had your little investigation. Who's it going to be, matchstick?"
     show fedora neutral at speaker_background(xalign=0.9)
@@ -1332,7 +1359,7 @@ label accusation_misha:
 
     show misha neutral at speaker_background(xalign=0.9)
     l "It was Misha."
-    $ evidence_setup("misha neutral", "Misha", "You found it, didn't you? Under the carpet.", "clue_hidden_tile", "bg carriage_5")
+    $ evidence_setup("misha neutral", "Misha", "You found it, didn't you? Under the carpet.", "clue_hidden_tile", "accusation_bg")
     call play_required("mg_evidence", evidence_reset) from _call_play_required_12
     l "The tile is missing from Shunyu's hand. Hidden under your carpet. The blood at the bar not matching where he was found, someone strong enough, or careless enough, to move a body without thinking twice about what that means. And you kept humming about a 'score.' About people coming back."
     l "It was you the whole time, wasn't it?"
@@ -1402,6 +1429,7 @@ label carriage_6_start:
     l "...What happens if I get it wrong?"
     "{i}The Passenger's grin stretches wider. The Gentleman's shaking speeds up, wrappers peeling further off his skin like scabs. The Conductor-thing unfolds another half-foot taller, the ceiling groaning under it.{/i}"
     u "You'll see. Three questions. Three chances. Choose carefully, Louis."
+    l "{i}(They're not asking what happened to them. They're asking what they never understood about themselves.){/i}"
     hide misha with dissolve
     jump c6_question_1
 
@@ -1486,6 +1514,7 @@ label carriage_6_aftermath:
         $ achievement.grant("total_failure")
         scene black with dissolve
         "You found the truth, and still couldn't carry it. That may be worse than never finding it at all."
+        "{i}None of the three were set free. The answer each one needed was the one it could never see for itself.{/i}"
         "{i}Louis is hit with the darkness.{/i}"
         jump ending_1_death
 
@@ -1502,6 +1531,8 @@ label ending_2_escape:
     hide screen loop_overlay
     scene black with dissolve
     "Nice, you escaped!"
+    $ c6_right = int(c6_q1_correct) + int(c6_q2_correct) + int(c6_q3_correct)
+    "{i}You set [c6_right] of the 3 free. Answer all three truly, and maybe the whole train goes free with you.{/i}"
     call screen ending_card(_("ENDING 2"), _("PARTIAL TRUTH"), _("You escaped, but not everything was resolved."))
     call ending_video from _call_ending_video_1
     $ MainMenu(confirm=False)()
