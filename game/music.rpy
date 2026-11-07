@@ -8,7 +8,7 @@ define SONGS = {
     "part2_carriage_3":     ("music/part2_carriage_3.mp3",        _("Part 2 Carriage 3"),             "Departure at 4:00"),
     "carriage_4":           ("music/carriage_4.mp3",              _("Carriage 4"),                    "Departure at 4:00"),
     "carriage_5":           ("music/carriage_5.mp3",              _("Carriage 5"),                    "Departure at 4:00"),
-    "accusation":           ("audio/pizzicato_intrigue.mp3",      _("Pizzicato Intrigue"),            "Departure at 4:00"),
+    "accusation":           ("music/pizzicato_intrigue.mp3",      _("Pizzicato Intrigue"),            "Departure at 4:00"),
     "flower_in_a_hurricane": ("music/flower_in_a_hurricane.opus", "Flower In A Hurricane", "Justice ft. Tame Impala, SZA, King Gizzard & the Lizard Wizard (GTA VI)"),
 }
 

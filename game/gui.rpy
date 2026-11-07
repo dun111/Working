@@ -44,9 +44,6 @@ define gui.notify_text_size = 24
 define gui.title_text_size = 75
 
 
-define gui.main_menu_background = "gui/main_menu.png"
-define gui.game_menu_background = "gui/game_menu.png"
-
 
 define gui.textbox_height = 278
 

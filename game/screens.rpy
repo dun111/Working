@@ -769,8 +769,8 @@ image bg carriage_1 = themed(ConditionSwitch(
     "True", map_bg("images/bg_carriage_1_passengers.webp", 0.186, 0.805, lamp="#ffcf8a")))
 
 image bg carriage_5 = themed(ConditionSwitch(
-    "in_loop", Transform(map_bg("images/newmailroom.webp", 0.186, 0.805, floor="#3d3434", lamp="#ff7a66", lamps=5, eerie=True, backdrop="#150d0d"), matrixcolor=LOOP_NIGHT),
-    "True", map_bg("images/newmailroom.webp", 0.186, 0.805, floor="#3d3434", lamp="#ffe2b0", lamps=5, backdrop="#150d0d")))
+    "in_loop", Transform(map_bg("images/bg_mail_room.webp", 0.186, 0.805, floor="#3d3434", lamp="#ff7a66", lamps=5, eerie=True, backdrop="#150d0d"), matrixcolor=LOOP_NIGHT),
+    "True", map_bg("images/bg_mail_room.webp", 0.186, 0.805, floor="#3d3434", lamp="#ffe2b0", lamps=5, backdrop="#150d0d")))
 
 image bg carriage_2 = themed(ConditionSwitch(
     # Part 2: just Eduard and the body until it's found, then everyone who came running.
