@@ -12,7 +12,6 @@ define ic  = C("Ichora",    "ichora",    "#7a5a22")
 define p   = C("Pattison",  "pattison",  "#5a3a6a")
 define al  = C("Alexander", "alexander", "#6a6a22")
 define pas = C("Passenger")
-define gam = C("Other Gambler")
 define u   = C("???", plate="#3a0a0a", creepy=True)
 
 define shunyu_monster    = C("The Passenger",  "shunyu_monster",    "#5a0a0a", creepy=True)
@@ -42,6 +41,7 @@ default swept_glass = False
 default played_blocks = False
 default sorted_mail = False
 default warned_fedora = False
+default seen_blank_carriage = False
 
 default c4_talked_agatha = False
 default c4_talked_ichora = False
@@ -72,6 +72,7 @@ default c6_q1_correct = False
 default c6_q2_correct = False
 default c6_q3_correct = False
 default c6_right = 0
+default c6_help = 0
 default persistent.loop_waiting = False
 
 default door_c2_open = False
@@ -338,6 +339,9 @@ label c1_interact_mysterious_door:
     call screen mysterious_room
     $ renpy.music.set_volume(1.0, delay=0.6, channel="music")
     scene bg carriage_1 with Dissolve(0.6)
+    if not seen_blank_carriage:
+        $ seen_blank_carriage = True
+        l "...Huh. There was nothing in there. Not even a floor."
     return
 
 label c1_interact_tea_stain:
@@ -424,7 +428,7 @@ label c2_shunyu_dialogue:
             call screen mahjong_minigame
             if _return == "win":
                 show shunyu excited at speaker_focus(xalign=0.9)
-                s "JACKKKPOTTTTTTT! You win $2! Look at that, beginner's luck!"
+                s "JACKKKPOTTTTTTT! You win 2 perkels! Look at that, beginner's luck!"
                 $ played_mahjong = "won"
             else:
                 show shunyu neutral at speaker_focus(xalign=0.9)
@@ -499,7 +503,7 @@ label c3_kimmy_dialogue:
     show kimmy neutral at speaker_background(xalign=0.5)
     l "So what is such an important lady doing on a train like this?"
     show louis neutral at speaker_background(xalign=0.1)
-    k "Oh, I have a meeting in █████████, and I wanted to make it a trip so I could spend more time with my darling, Himmel. Right, Sugar?"
+    k "Oh, I have a meeting in Grekhov, and I wanted to make it a trip so I could spend more time with my darling, Himmel. Right, Sugar?"
     show kimmy neutral at speaker_background(xalign=0.5)
     show himmel neutral at speaker_focus(xalign=0.9)
     h "Of course!"
@@ -732,6 +736,7 @@ label c5_carriage6_door:
     l "Huh… it's…"
     scene black with dissolve
     u "Not yet! Try to see the truth before you see the future."
+    u "Go back. And this time, pay attention."
     $ _KNOCKOUT.loaded = False
     "{i}Two pairs of eyes glint in the blackness, watching.{/i}"
     jump part1_knockout
@@ -767,6 +772,7 @@ label part1_knockout:
 
 label part2_start:
     $ persistent.loop_waiting = False
+    $ persistent.seen_loop = True
     $ achievement.grant("the_loop_begins")
     $ autosave_checkpoint()
     $ in_loop = True
@@ -1156,7 +1162,7 @@ label c3_p2_kimmy_reinterview:
     else:
         k "Ah, the harmless one. Good. I could use harmless right now. Go on."
     show kimmy neutral at speaker_background(xalign=0.9)
-    l "Did Himmel ever buy anything from the storage carriage? From a man named Alexander?"
+    l "Did Himmel ever buy anything in the mail room? From a man named Alexander?"
     "{i}Kimmy's smile falters, just barely.{/i}"
     show louis neutral at speaker_background(xalign=0.1)
     k "...He said it was for his nerves. Train rides make him anxious, he said. I didn't ask questions, matchstick. A wife who asks too many questions doesn't stay a wife for long."
@@ -1387,6 +1393,8 @@ label accusation_scene:
             jump accusation_alexander
         "Accuse Agatha":
             jump accusation_agatha
+        "Accuse Himmel":
+            jump accusation_himmel
         "Accuse Misha":
             jump accusation_misha
 
@@ -1412,6 +1420,16 @@ label accusation_agatha:
     l "It was you."
     show agatha neutral at speaker_focus(xalign=0.9)
     a "...You're joking. Tell me you're joking."
+    jump wrong_ending
+
+label accusation_himmel:
+    hide fedora
+    show louis neutral at speaker_focus(xalign=0.1)
+    l "It was you. You owed Alexander, same as Shunyu did."
+    show himmel neutral at speaker_focus(xalign=0.9)
+    h "M-me?! I was in our cabin all night, I- I can barely open a JAR, darling, let alone-"
+    show kimmy neutral at speaker_focus(xalign=0.5)
+    k "He was with me. Snoring. Loudly."
     jump wrong_ending
 
 label wrong_ending:
@@ -1550,7 +1568,7 @@ label c6_question_2:
         "“Peace.”":
             l "Peace, maybe?"
             "{i}The Gentleman's shaking intensifies violently, veins pulsing black beneath his waxen skin.{/i}"
-            himmel_monster "PEACE ISN'T SOMETHING YOU BUY IN A CORNER OF A STORAGE CART. WRONG."
+            himmel_monster "PEACE ISN'T SOMETHING YOU BUY IN A CORNER OF A MAIL CART. WRONG."
             $ c6_q2_correct = False
         "“Kimmy's approval.”":
             l "Maybe… maybe you wanted Kimmy to notice you more?"
@@ -1621,6 +1639,8 @@ label ending_2_escape:
     "Nice, you escaped!"
     $ c6_right = int(c6_q1_correct) + int(c6_q2_correct) + int(c6_q3_correct)
     "{i}You set [c6_right] of the 3 free. Answer all three truly, and maybe the whole train goes free with you.{/i}"
+    $ c6_help = int(bool(played_mahjong)) + int(bool(has_maple_sugar)) + int(bool(sorted_mail))
+    "{i}On the first ride, you did [c6_help] of the 3 things that would have helped you understand them.{/i}"
     call screen ending_card(_("ENDING 2"), _("PARTIAL TRUTH"), _("You escaped, but not everything was resolved."))
     call ending_video from _call_ending_video_1
     $ MainMenu(confirm=False)()
@@ -1697,7 +1717,9 @@ label c1_interact_cupboard:
 label c2_interact_broken_glass:
     show louis neutral at speaker_focus(xalign=0.5)
     l "Damn, how'd that gambler guy even break it?"
-    gam "Can yer shut up?"
+    show shunyu neutral at speaker_focus(xalign=0.9)
+    s "Can yer shut up? I'm on a STREAK here."
+    hide shunyu
     if not in_loop:
         menu:
             "Sweep up the glass?"
