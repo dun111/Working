@@ -194,7 +194,7 @@ screen carriage_3_part2_map():
     if kimmy_reinterviewed and not clue_alexander_alibi:
         use hs(DOOR_RIGHT, Jump("carriage_5_part2_start"), "Carriage 5", "door", 0.35)
     if sebastian_reinterviewed and misha_reinterviewed:
-        use hs((1400, 200, 150, 400), Jump("accusation_scene"), "Time to decide", "decide", 0.1)
+        use hs((860, 470, 240, 100), Jump("accusation_scene"), "Time to decide", "decide", 0.1)
 
 screen carriage_5_part2_map():
     add "bg carriage_5"
@@ -1358,7 +1358,7 @@ label accusation_misha:
 
     show misha neutral at speaker_background(xalign=0.9)
     l "It was Misha."
-    $ evidence_setup("misha neutral", "Misha", "You found it, didn't you? Under the carpet.", "clue_hidden_tile", "bg carriage_5")
+    $ evidence_setup("misha neutral", "Misha", "You found it, didn't you? Under the carpet.", "clue_hidden_tile", "accusation_bg")
     call play_required("mg_evidence", evidence_reset) from _call_play_required_12
     l "The tile is missing from Shunyu's hand. Hidden under your carpet. The blood at the bar not matching where he was found, someone strong enough, or careless enough, to move a body without thinking twice about what that means. And you kept humming about a 'score.' About people coming back."
     l "It was you the whole time, wasn't it?"

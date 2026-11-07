@@ -348,7 +348,7 @@ transform loading_pulse:
     repeat
 
 transform notify_anim:
-    alpha 0.0 yoffset 20
+    alpha 0.0 yoffset -20
     ease 0.25 alpha 1.0 yoffset 0
     pause 2.5
     ease 0.5 alpha 0.0
@@ -3589,9 +3589,9 @@ screen confirm(message, yes_action, no_action):
 screen notify(message):
     zorder 100
     frame:
-        xalign 0.99
-        yalign 0.93
-        xoffset -240
+        # Top right, clear of the dialogue box, the coin counter and the carriage name.
+        xalign 0.98
+        ypos 24
         background rbox("#101014cc", 14)
         padding (18, 12)
         at notify_anim
