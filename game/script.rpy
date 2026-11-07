@@ -330,7 +330,11 @@ label c1_interact_window:
 
 label c1_interact_mysterious_door:
     if has_pass("door_key"):
+        $ renpy.music.set_volume(0.0, delay=0.6, channel="music")
+        scene black with Dissolve(0.6)
         call screen mysterious_room
+        $ renpy.music.set_volume(1.0, delay=0.6, channel="music")
+        scene bg carriage_1 with Dissolve(0.6)
         return
     if in_loop:
         "{i}Something on the other side knocks. Twice. Then nothing.{/i}"
