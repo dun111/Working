@@ -1157,6 +1157,8 @@ transform pop_back:
 
 # The tile art has a lot of transparent space around it; crop to the tile itself.
 define TILE_CLOSEUP = Transform("images/clue_hidden_tile.webp", crop=(68, 304, 1317, 837))
+# The drink Eduard offers you in Carriage 2 (also the moved body clue's picture).
+image drink_offer = Transform("images/clue_drink.webp", crop=(540, 80, 1280, 2360), fit="contain", xysize=(380, 640))
 define WRONG_TILE_CLOSEUP = Transform("images/clue_wrong_tile.webp", crop=(68, 316, 1376, 872))
 
 screen fullscreen_pop(img, cover=False):

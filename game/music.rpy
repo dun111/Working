@@ -1,7 +1,7 @@
 define SONGS = {
     "main_menu":            ("music/grekhov_theme.mp3",               _("Grekhov Theme"),                 "Departure at 4:00"),
     "carriage_1":           ("music/carriage_1_clip.mp3",         _("Carriage 1"),                    "Departure at 4:00"),
-    "carriage_2":           ("music/lets_all_do_the_conga.m4a",   "Let's All Do the Conga",           "Colin Sheen"),
+    "carriage_2":           ("music/lets_all_do_the_conga.mp3",   "Let's All Do the Conga",           "Colin Sheen"),
     "carriage_3":           ("music/rendezvous.opus",             "Rendezvous (Instrumental)",        "Carriage 3"),
     "part2_carriage_1":     ("music/part2_carriage_1.mp3",        _("Part 2 Carriage 1"),             "Departure at 4:00"),
     "part2_carriage_2":     ("music/part2_carriage_2.mp3",        _("Part 2 Carriage 2"),             "Departure at 4:00"),

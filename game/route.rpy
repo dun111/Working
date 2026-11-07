@@ -31,8 +31,9 @@ init -10 python:
           (["c2_p2_reinterviewed_eduard", "c2_p2_reinterviewed_agatha"], "Carriage 2: question Eduard and Agatha.")],
          ["clue_tile_mismatch", "clue_body_moved"]),
         # Carriage 3, first visit.
-        ([(["clue_drug_wrapper"], "Carriage 3: check the luggage."),
-          (["kimmy_reinterviewed"], "Carriage 3: ask Kimmy about the wrapper.")],
+        ([(["clue_drug_wrapper"], "Carriage 3: look in Kimmy's cabin."),
+          (["kimmy_reinterviewed"], "Carriage 3: ask Kimmy about the wrapper."),
+          (["himmel_reinterviewed"], "Carriage 3: confront Himmel in the corridor.")],
          ["himmel_reinterviewed"]),
         # The mail room, then back to Carriage 3.
         ([(["alexander_reinterviewed", "pattison_reinterviewed"], "Carriage 5: question Alexander, then Pattison."),

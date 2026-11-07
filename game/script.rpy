@@ -187,25 +187,25 @@ screen carriage_3_part2_map():
     use golden_ticket("c3b", 1500, 540)
     use hs(DOOR_LEFT, Jump("carriage_2_part2_return"), "Carriage 2", "back")
 
-    # Script order: luggage and Kimmy first, then the mail room (Carriage 5), then
-    # back here for the carpet, Sebastian and Misha, then the decision.
-    if clue_drug_wrapper and not kimmy_reinterviewed:
+    # Script order: Kimmy first (Himmel's locked green bag is in her cabin), then
+    # Himmel, then the mail room (Carriage 5), then back here for the carpet,
+    # Sebastian and Misha, then the decision.
+    if not kimmy_reinterviewed:
         use hs((230, 650, 160, 200), Call("c3_p2_kimmy_reinterview"), "Kimmy", "talk")
-    if clue_drug_wrapper and not himmel_reinterviewed:
-        use hs((480, 650, 160, 200), Call("c3_p2_himmel_reinterview"), "Himmel", "talk", 0.05)
+    if kimmy_reinterviewed and not himmel_reinterviewed:
+        # In the Part 2 art Himmel stands in the corridor on the far left.
+        use hs((90, 330, 80, 175), Call("c3_p2_himmel_reinterview"), "Himmel", "talk", 0.05)
 
     if clue_hidden_tile and not sebastian_reinterviewed:
         use hs((1270, 405, 115, 170), Call("c3_p2_sebastian_reinterview"), "Sebastian", "talk", 0.1)
     if clue_hidden_tile and not misha_reinterviewed:
-        # In the Part 2 art Misha stands in the corridor on the far left.
-        use hs((90, 330, 80, 175), Call("c3_p2_misha_reinterview"), "Misha", "talk", 0.15)
+        use hs((1000, 650, 180, 200), Call("c3_p2_misha_reinterview"), "Misha", "talk", 0.15)
 
     if clue_alexander_alibi:
         use hs((420, 470, 260, 90), Call("c3_p2_interact_carpet"), "Carpet", delay=0.2)
     use hs((1210, 680, 150, 160), Call("c3_p2_interact_toys"), "Toys", delay=0.25)
-    use hs((1760, 750, 100, 90), Call("c3_p2_interact_luggage"), "Luggage", delay=0.3)
 
-    if kimmy_reinterviewed and not clue_alexander_alibi:
+    if himmel_reinterviewed and not clue_alexander_alibi:
         use hs(DOOR_RIGHT, Jump("carriage_5_part2_start"), "Carriage 5", "door", 0.35)
     if sebastian_reinterviewed and misha_reinterviewed:
         use hs((860, 470, 240, 100), Jump("accusation_scene"), "Time to decide", "decide", 0.1)
@@ -398,10 +398,12 @@ label carriage_2_hub:
 label c2_eduard_dialogue:
     scene talk to eduard with talk_in
     show eduard neutral at speaker_focus(xalign=0.9)
+    show drink_offer at Transform(xalign=0.5, yalign=0.6) with dissolve
     ed "Good evening lad, I'm Eduard, your bartender. Wouldya like some drinks?"
     menu:
         "Would you like a drink?"
         "Yes":
+            hide drink_offer with dissolve
             $ drank = True
             show eduard neutral at speaker_background(xalign=0.9)
             show louis neutral at speaker_focus(xalign=0.1)
@@ -410,6 +412,7 @@ label c2_eduard_dialogue:
             l "Wow…"
             $ remember(_("Eduard will remember that."))
         "No":
+            hide drink_offer with dissolve
             $ drank = False
             show eduard neutral at speaker_background(xalign=0.9)
             show louis neutral at speaker_focus(xalign=0.1)
@@ -1184,8 +1187,10 @@ label c3_p2_interact_toys:
     "Awh, they're so cute."
     return
 
+# Himmel's green bag, in Kimmy's cabin. Opened at the start of Kimmy's Part 2 talk.
 label c3_p2_interact_luggage:
     if not clue_drug_wrapper:
+        "{i}A green bag sits at the foot of the bed in Kimmy's cabin, a little combination lock on the clasp. It's Himmel's.{/i}"
         l "Sorry… I know this isn't really my business, but..."
         call play_required("mg_combo", combo_reset) from _call_play_required_7
         "{i}He nudges one of the bags open, just slightly. Something crinkles.{/i}"
@@ -1216,6 +1221,8 @@ label c3_p2_interact_carpet:
 
 label c3_p2_kimmy_reinterview:
     scene talk to kimmy with talk_in
+    if not clue_drug_wrapper:
+        call c3_p2_interact_luggage from _call_c3_p2_interact_luggage_kimmy
     show kimmy neutral at speaker_background(xalign=0.9)
     show louis neutral at speaker_focus(xalign=0.1)
     l "Kimmy, can I ask you something a little... sensitive?"

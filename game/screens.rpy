@@ -2640,6 +2640,7 @@ define CLUE_LIST = [
 
 define CLUE_IMAGES = {
     "clue_tile_mismatch": "images/clue_wrong_tile.webp",
+    "clue_body_moved": "images/clue_drink.webp",
     "clue_hidden_tile": "images/clue_hidden_tile.webp",
 }
 
