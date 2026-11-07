@@ -153,7 +153,7 @@ screen carriage_5_map():
     if not c5_talked_alexander:
         use hs((1080, 645, 125, 165), Call("c5_alexander_dialogue"), "Alexander", "talk", 0.05)
     use hs((120, 640, 360, 200), Call("c5_interact_mail_room"), "Mail", delay=0.1)
-    use hs((920, 470, 500, 170), Call("c5_interact_luggage_room"), "Luggage room", delay=0.15)
+    use hs((920, 450, 500, 110), Call("c5_interact_luggage_room"), "Luggage room", delay=0.15)
     use hs((1455, 344, 330, 166), Call("c5_interact_engine"), "Engine", delay=0.2)
     if c5_talked_pattison and c5_talked_alexander:
         use hs(DOOR_RIGHT, Jump("c5_carriage6_door"), "Carriage 6", "door", 0.25)
