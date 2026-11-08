@@ -36,9 +36,24 @@ transform mg_card_in:
     yoffset (0 if persistent.reduce_motion else 24)
     easein 0.3 alpha 1.0 yoffset 0
 
+init python:
+    # The music drops while a minigame is open, so its sounds can be heard over it.
+    MG_MUSIC_VOLUME = 0.35
+
+    def mg_music_duck(on):
+        try:
+            renpy.music.set_volume(MG_MUSIC_VOLUME if on else 1.0, delay=0.6, channel="music")
+        except Exception:
+            pass
+
 screen mg_scene(title, hint="", bg="black", who=None, who_x=0.86, skippable=True, reward=True):
     modal True
     zorder 300
+
+    on "show" action Function(mg_music_duck, True)
+    on "replace" action Function(mg_music_duck, True)
+    on "hide" action Function(mg_music_duck, False)
+    on "replaced" action Function(mg_music_duck, False)
 
     # Playtesters needed time to read the rules: the minigame (and its timers)
     # doesn't start until the player presses START.
