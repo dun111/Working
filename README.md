@@ -99,6 +99,6 @@ Blackberry Studios
 - Eric Zheng: direction, design, programming
 - Ryan: programming and scripting
 - Hannah: story and writing, character design, art
-- Aydin: character design, maps, art
+- Aydin: map design, art
 
 Made with [Ren'Py](https://www.renpy.org/). © Blackberry Studios. All rights reserved.

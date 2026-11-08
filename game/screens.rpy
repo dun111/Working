@@ -3502,11 +3502,11 @@ define CREW = [
     {"key": "hannah", "name": "Hannah", "roles": [
         "Game graphic design", "General graphic design", "Story writer",
         "Generalist",
-        "Lead graphic designer", "Lead designer", "Character designer", "Map designer"]},
+        "Lead graphic designer", "Lead designer", "Character designer"]},
     {"key": "aydin", "name": "Aydin", "roles": [
         "Story writer", "General graphic design", "Game graphic design",
         "Google Sites page/presentation", "Generalist",
-        "Lead designer", "Lead graphic designer", "Character designer",
+        "Lead designer", "Lead graphic designer", "Map designer",
         "Lead website developer / manager"]},
     {"key": "ryan", "name": "Ryan", "roles": [
         "Google Sites page/presentation", "Research/resource finder",
