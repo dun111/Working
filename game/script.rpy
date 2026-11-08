@@ -86,7 +86,7 @@ default door_c4_open = False
 
 screen carriage_1_map():
     add "bg carriage_1"
-    use golden_ticket("c1", 420, 800)
+    use golden_ticket("c1", 1768, 216)
     if in_loop or not c1_talked_fedora:
         use hs((1185, 625, 125, 180), Call("c1_fedora_dialogue"), "Fedora", "talk")
     use hs((860, 240, 200, 150), Call("c1_interact_window"), "Window", delay=0.05)
@@ -98,7 +98,7 @@ screen carriage_1_map():
 
 screen carriage_2_map():
     add "bg carriage_2"
-    use golden_ticket("c2", 1760, 820)
+    use golden_ticket("c2", 1768, 216)
     use hs(DOOR_LEFT, Jump("carriage_1_hub"), "Carriage 1", "back")
     if not c2_talked_eduard:
         use hs((1430, 355, 140, 150), Call("c2_eduard_dialogue"), "Eduard", "talk")
@@ -144,7 +144,7 @@ screen c3_cabin_doors():
 
 screen carriage_3_map():
     add "bg carriage_3"
-    use golden_ticket("c3", 1820, 300)
+    use golden_ticket("c3", 112, 216)
     use hs(DOOR_LEFT, Jump("carriage_2_hub"), "Carriage 2", "back")
     use c3_cabin_doors
     if not c3_talked_sebastian:
@@ -186,7 +186,7 @@ screen c3_cabin_misha_map():
 
 screen carriage_4_map():
     add "bg carriage_4"
-    use golden_ticket("c4", 420, 800)
+    use golden_ticket("c4", 1768, 842)
     use hs(DOOR_LEFT, Jump("carriage_3_hub"), "Carriage 3", "back")
     if not c4_talked_agatha:
         use hs((585, 345, 140, 230), Call("c4_agatha_dialogue"), "Agatha", "talk")
@@ -198,7 +198,7 @@ screen carriage_4_map():
 
 screen carriage_5_map():
     add "bg carriage_5"
-    use golden_ticket("c5", 1700, 560)
+    use golden_ticket("c5", 112, 216)
     use hs(DOOR_LEFT, Jump("carriage_4_hub"), "Carriage 4", "back")
     if not c5_talked_pattison:
         use hs((200, 345, 125, 205), Call("c5_pattison_dialogue"), "Pattison", "talk")
@@ -213,7 +213,7 @@ screen carriage_5_map():
 
 screen carriage_2_part2_map():
     add "bg carriage_2"
-    use golden_ticket("c2b", 230, 810)
+    use golden_ticket("c2b", 112, 832)
     use hs((555, 235, 225, 165), Call("c2_p2_interact_window"), "Window")
     use hs((1430, 355, 140, 150), Call("c2_p2_talk_eduard"), "Eduard", "talk", 0.05)
     use hs((165, 420, 280, 190), Call("c2_p2_overturned_table"), "Overturned table", delay=0.1)
@@ -236,7 +236,7 @@ screen carriage_2_part2_after_map():
 
 screen carriage_3_part2_map():
     add "bg carriage_3"
-    use golden_ticket("c3b", 1500, 540)
+    use golden_ticket("c3b", 1768, 216)
     use hs(DOOR_LEFT, Jump("carriage_2_part2_return"), "Carriage 2", "back")
 
     # Script order: Kimmy first (Himmel's locked green bag is in her cabin), then
@@ -257,7 +257,7 @@ screen carriage_3_part2_map():
 
 screen carriage_5_part2_map():
     add "bg carriage_5"
-    use golden_ticket("c5b", 90, 280)
+    use golden_ticket("c5b", 1768, 832)
     use hs(DOOR_LEFT, Jump("carriage_3_part2_return" if clue_alexander_alibi else "carriage_3_part2_hub"), "Carriage 3", "back")
     if not alexander_reinterviewed:
         use hs((1080, 645, 125, 165), Call("c5_p2_alexander_dialogue"), "Alexander", "talk")
