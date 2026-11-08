@@ -33,7 +33,7 @@ style button:
 define C3_CABINS = {
     "c3_kimmy_dialogue", "c3_himmel_dialogue", "c3_misha_dialogue", "c3_interact_empty_room",
     "c3_interact_toys", "c3_p2_kimmy_reinterview", "c3_p2_misha_reinterview",
-    "c3_p2_interact_toys",
+    "c3_p2_interact_toys", "c3_p2_interact_carpet",
 }
 define C3_HUBS = {"carriage_3_hub", "carriage_3_part2_hub"}
 

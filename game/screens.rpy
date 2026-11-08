@@ -3501,24 +3501,6 @@ init python:
             adj.change(adj.value + 0.9)
 
 
-init python:
-    def credit_roles():
-        order, who = [], {}
-        for c in CREW:
-            for r in c["roles"]:
-                if r not in who:
-                    order.append(r)
-                    who[r] = []
-                who[r].append(c)
-        blocks = []
-        for r in order:
-            keys = [c["key"] for c in who[r]]
-            if blocks and [c["key"] for c in blocks[-1][1]] == keys:
-                blocks[-1][0].append(r)
-            else:
-                blocks.append(([r], who[r]))
-        return blocks
-
 screen about():
     tag menu
     key "game_menu" action (ShowMenu("main_menu") if main_menu else Return())

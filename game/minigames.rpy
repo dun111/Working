@@ -435,13 +435,14 @@ define MJ_TW = 78
 define MJ_TH = 100
 define MJ_ZOOM = 1.25
 define MJ_X0 = 594
-define MJ_Y0 = 290
+define MJ_Y0 = 348
 define MJ_LIFT = 10
 
+# 24 tiles (12 pairs): three rows of six, with a small stack in the middle row.
 define MJ_LAYOUT = (
-    [(c, r, 0) for r in range(4) for c in range(6)] +
-    [(c, r, 1) for r in (1, 2) for c in (1, 2, 3, 4)] +
-    [(c, r, 2) for r in (1, 2) for c in (2, 3)]
+    [(c, r, 0) for r in range(3) for c in range(6)] +
+    [(c, 1, 1) for c in (1, 2, 3, 4)] +
+    [(c, 1, 2) for c in (2, 3)]
 )
 
 default mj_face = []
@@ -578,7 +579,7 @@ init python:
         store.mj_sel = None
         store.mj_result = None
         store.mj_end_msg = ""
-        store.mj_time_left = [180, 130, 95][persistent.mg_difficulty]
+        store.mj_time_left = [130, 95, 70][persistent.mg_difficulty]
 
     def mj_moves_left():
         seen = set()
@@ -651,11 +652,11 @@ screen mahjong_minigame():
         use mg_stats(stats)
 
         add rbox("#3e2412", 48):
-            pos (440, 190)
-            xysize (900, 700)
+            pos (440, 260)
+            xysize (900, 560)
         add rbox("#1d5236", 40):
-            pos (462, 212)
-            xysize (856, 656)
+            pos (462, 282)
+            xysize (856, 516)
 
         for layer in range(3):
             for i, (c, r, l) in enumerate(MJ_LAYOUT):
@@ -680,7 +681,7 @@ screen mahjong_minigame():
 
         if mj_result is None:
             fixed:
-                pos (790, 960)
+                pos (790, 856)
                 xysize (200, 50)
                 use rbtn(_("WALK AWAY"), Return("lose"), w=200, h=50, r=14, size=22)
         else:
@@ -761,7 +762,7 @@ init python:
         renpy.restart_interaction()
 
 screen mg_blocks():
-    use mg_scene(_("MISHA'S BLOCKS"), _("1. Watch which blocks light up, and in what order.\n2. Click the blocks in that same order.\n3. Get through every round to win."), "bg carriage_3", "misha neutral", 0.86):
+    use mg_scene(_("MISHA'S BLOCKS"), _("1. Watch which blocks light up, and in what order.\n2. Click the blocks in that same order.\n3. Get through every round to win."), "talk_cabin_misha", "misha neutral", 0.86):
         if ms_phase == "show" and ms_result is None:
             timer (0.6 / mg_mult()) repeat True action Function(blocks_show_step)
         if ms_phase == "input" and ms_lit_i is not None:
@@ -1296,7 +1297,7 @@ screen mg_combo():
     $ cb_hint = _("1. Press + or - to change each wheel's number.\n2. Press OPEN to try the code.\n3. RIGHT shows how many wheels are correct.")
     if found_timetable:
         $ cb_hint = cb_hint + "  \"" + _("Every departure on it is printed the same way: 4:00.") + "\""
-    use mg_scene(_("THE LUGGAGE LOCK"), cb_hint, "bg carriage_3"):
+    use mg_scene(_("THE LUGGAGE LOCK"), cb_hint, "talk_cabin_kimmy"):
         use mg_stats([_("Tries: %d / %d") % (cb_tries, combo_max()), (_("Right: %s") % cb_fb) if cb_fb else _("Right: ?")])
 
         use mg_box(700, 560):
@@ -1366,7 +1367,7 @@ init python:
         renpy.restart_interaction()
 
 screen mg_pry():
-    use mg_scene(_("PULL UP THE CARPET"), _("1. Press PULL (or SPACE) to pull the carpet up.\n2. Each pull fills the tension bar. If it fills up, the carpet tears.\n3. Wait for the tension to drop, then pull again."), "bg carriage_3", "misha stares", 0.88):
+    use mg_scene(_("PULL UP THE CARPET"), _("1. Press PULL (or SPACE) to pull the carpet up.\n2. Each pull fills the tension bar. If it fills up, the carpet tears.\n3. Wait for the tension to drop, then pull again."), "talk_cabin_misha", "misha stares", 0.88):
         if pr_result is None:
             timer 0.1 repeat True action Function(pry_tick)
             key "K_SPACE" action Function(pry_pull)

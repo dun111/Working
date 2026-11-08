@@ -505,7 +505,7 @@ define MORE_SECRET_ACHIEVEMENTS = [
     {"id": "bond_all", "title": _("All of us."), "description": _("Fill every passenger's hearts."), "hidden": False},
     {"id": "timetable", "title": _("A little something..."), "description": _("Find the gift shop on the main menu."), "hidden": True},
     {"id": "golden_tickets", "title": _("Uh… uh… yes, the ticket."), "description": _("Find every golden ticket hidden on the train."), "hidden": False},
-    {"id": "credits_all", "title": _("Anyone like who?"), "description": _("Click everyone in the credits."), "hidden": True},
+    {"id": "credits_all", "title": _("Anyone like who?"), "description": _("Click every passenger's name in the credits."), "hidden": True},
     {"id": "cast_call", "title": _("Everyone."), "description": _("Type every passenger's name on the main menu."), "hidden": True},
     {"id": "quiet", "title": _("Way too quiet."), "description": _("Type a certain rapper's name on the main menu."), "hidden": True},
     {"id": "window", "title": _("What a beautiful sight outside!"), "description": _("Look out of the Carriage 2 window five times."), "hidden": True},
@@ -592,12 +592,15 @@ init python:
         if len(persistent.cast_called) >= len(CAST_CALLS):
             secret_found("cast_call", "cast_call")
 
-    def credits_click(key):
-        persistent.credits_clicked = set(persistent.credits_clicked) | set([key])
-        if key == "eric":
-            persistent.eric_clicks = (persistent.eric_clicks or 0) + 1
-            secret_found("eric_scare")
-        if len(persistent.credits_clicked) >= len(CREW):
+    def credits_click(name):
+        # Clicking a passenger's name in the credits: they say their line, and
+        # clicking everyone unlocks "Anyone like who?".
+        persistent.credits_clicked = set(persistent.credits_clicked) | set([name])
+        quote = dict((m[1], m[2]) for m in MANIFEST).get(name)
+        if quote is None:
+            quote = "\"%s\"" % (GIFT_LINES.get(name) or ["..."])[0]
+        renpy.notify("%s: %s" % (name, quote))
+        if all(n in persistent.credits_clicked for n in credit_people()):
             secret_found("credits_all", "credits_all")
 
     class _CREDMUS(object):

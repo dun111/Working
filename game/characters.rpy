@@ -130,6 +130,18 @@ init python:
             Solid("#1a000088"))
         return ConditionSwitch("in_loop", looped, "True", normal)
 
+    def cabin_room(path, crop):
+        # A Carriage 3 cabin: the room's pixel art, big and sharp in the middle,
+        # in front of the blurred corridor. Darker and red after the loop.
+        h = 980
+        w = int(h * crop[2] / float(crop[3]))
+        room = Transform(path, crop=crop, xysize=(w, h), nearest=True, xalign=0.5, yalign=0.5)
+        back = At(Transform(full_cover("images/bg_sleeper.webp"), blur=14), talk_drift)
+        normal = Fixed(back, Solid("#0a0a0ed0"), room)
+        looped = Fixed(back, Solid("#1a0000d8"),
+                       Transform(room, matrixcolor=TintMatrix("#ff9a8a") * SaturationMatrix(0.6) * BrightnessMatrix(-0.12)))
+        return ConditionSwitch("in_loop", looped, "True", normal)
+
     def talk_map(bg):
         return Fixed(At(Transform(bg, blur=6), talk_drift), Solid("#0a0a0e70"))
 
@@ -138,6 +150,9 @@ image talk_bg = talk_backdrop("images/bg_first_class_clear.webp")
 image talk_bar = talk_backdrop("images/bg_bar.webp")
 image talk_sleeper = talk_backdrop("images/bg_sleeper.webp")
 image talk_mail = talk_backdrop("images/bg_mail_cart.webp")
+# The Carriage 3 cabins: Kimmy and Himmel's room (with Himmel's green bag), and Misha's room.
+image talk_cabin_kimmy = cabin_room("images/bg_cabin_kimmy.webp", (362, 106, 312, 362))
+image talk_cabin_misha = cabin_room("images/bg_cabin_misha.webp", (1086, 320, 938, 1086))
 # Carriages with no painted backdrop talk in front of their own map, softened.
 image talk_staff = talk_map("bg carriage_4")
 image talk_engine = talk_map("bg carriage_5")
@@ -150,10 +165,11 @@ image accusation_bg = Fixed(Transform("bg carriage_2", blur=6), Solid("#0a0a0e70
 image talk to fedora    = "talk_bg"
 image talk to eduard    = "talk_bar"
 image talk to shunyu    = "talk_bar"
-image talk to kimmy     = "talk_sleeper"
-image talk to himmel    = "talk_sleeper"
+image talk to kimmy     = "talk_cabin_kimmy"
+# In Part 2 Himmel is out in the corridor.
+image talk to himmel    = ConditionSwitch("in_loop", "talk_sleeper", "True", "talk_cabin_kimmy")
 image talk to sebastian = "talk_sleeper"
-image talk to misha     = "talk_sleeper"
+image talk to misha     = "talk_cabin_misha"
 # Agatha works in the staff cart; in Part 2 she's questioned at the crime scene.
 image talk to agatha    = ConditionSwitch("in_loop", "talk_bar", "True", "talk_staff")
 image talk to ichora    = "talk_staff"

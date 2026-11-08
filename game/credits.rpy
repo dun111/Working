@@ -144,16 +144,9 @@ define CREDIT_STYLES = [
 ]
 
 
-define CREDIT_MUSIC = [
-    ("Grekhov Theme", "Departure at 4:00"),
-    ("Carriage 1", "Departure at 4:00"),
-    ("Let's All Do the Conga", "Colin Sheen"),
-    ("Rendezvous (Instrumental)", "Carriages 2 and 3"),
-    ("Part 2 Carriage 3", "Departure at 4:00"),
-    ("Carriage 4", "Departure at 4:00"),
-    ("Carriage 5", "Departure at 4:00"),
-    ("Flower In A Hurricane", "Justice ft. Tame Impala, SZA, King Gizzard & the Lizard Wizard"),
-]
+# The music credits follow the radio's own song list.
+init 1 python:
+    CREDIT_MUSIC = [(SONGS[k][1], SONGS[k][2]) for k in SONG_ORDER if k in SONGS]
 
 init python:
     def credits_style_now():
@@ -174,8 +167,11 @@ init python:
         k = ids.index(credits_style_now())
         set_credits_style(ids[(k + d) % len(ids)])
 
+    def credit_people():
+        return [m[1] for m in MANIFEST] + ["The Passenger", "The Gentleman", "The Conductor"]
+
     def credit_sections():
-        passengers = [m[1] for m in MANIFEST] + ["The Passenger", "The Gentleman", "The Conductor"]
+        # (heading, [(line, small note)], whether the lines can be clicked)
         places = []
         for t in MAP_TITLES.values():
             line = "%s - %s" % (t[0], t[1])
@@ -183,23 +179,22 @@ init python:
                 places.append(line)
         places += ["CARRIAGE 6"]
         return [
-            (_("The passengers"), [(n, "") for n in passengers]),
-            (_("The carriages"), [(n, "") for n in places]),
-            (_("Endings"), [("Wrong Guess", "Ending 1"), ("Partial Truth", "Ending 2"), ("The True Line", "Ending 3")]),
-            (_("Clues"), [(c[1], "") for c in CLUE_LIST]),
-            (_("Minigames"), [(g[1], "") for g in MINIGAME_LIST]),
-            (_("The 4:00 Casino"), [(g[1], "") for g in CASINO_GAMES]),
-            (_("Achievements"), [(x["title"], "") for x in ACHIEVEMENTS]),
-            (_("Gamepasses"), [(g[1], "") for g in shown_passes()]),
-            (_("Radio stations"), [(n, RADIO_FREQ.get(k, "")) for k, n in RADIO_STATIONS]),
-            (_("Music"), CREDIT_MUSIC),
-            (_("Fonts"), [("Graduate", ""), ("Telegraphem", ""), ("Reggae One", ""), ("DejaVu Sans", "")]),
-            (_("Made with"), [("Ren'Py", renpy.version_only)]),
-            (_("Special thanks"), [("Mr Kromo", "")]),
+            (_("The passengers"), [(n, "") for n in credit_people()], True),
+            (_("The carriages"), [(n, "") for n in places], False),
+            (_("Endings"), [("Wrong Guess", "Ending 1"), ("Partial Truth", "Ending 2"), ("The True Line", "Ending 3")], False),
+            (_("Clues"), [(c[1], "") for c in CLUE_LIST], False),
+            (_("Minigames"), [(g[1], "") for g in MINIGAME_LIST], False),
+            (_("The 4:00 Casino"), [(g[1], "") for g in CASINO_GAMES], False),
+            (_("Achievements"), [(x["title"], "") for x in ACHIEVEMENTS], False),
+            (_("Gamepasses"), [(g[1], "") for g in shown_passes()], False),
+            (_("Radio stations"), [(n, RADIO_FREQ.get(k, "")) for k, n in RADIO_STATIONS], False),
+            (_("Music"), CREDIT_MUSIC, False),
+            (_("Fonts"), [("Graduate", ""), ("Telegraphem", ""), ("Reggae One", ""), ("DejaVu Sans", "")], False),
+            (_("Made with"), [("Ren'Py", renpy.version_only)], False),
+            (_("Special thanks"), [("Mr Kromo", "")], False),
+            (_("Special credits"), [("larp music", "")], False),
         ]
 
-
-define CREW_BADGES = {"eric": "</>", "hannah": "✎", "aydin": "www", "ryan": "☕"}
 
 define CRED_BG = "#08080c"
 define CRED_PANEL = "#121218"
@@ -207,13 +202,64 @@ define CRED_ACCENT = "#e0521f"
 define CRED_GOLD = "#e6a817"
 define CRED_TEXT = "#f2ead8"
 define CRED_MUTED = "#8888a0"
+# Ticket paper and ink.
+define CRED_PAPER = "#efe5cf"
+define CRED_STUB = "#e0d1ae"
+define CRED_INK = "#2b1d14"
+define CRED_INK_SOFT = "#8a7454"
+define CRED_RED = "#b8341a"
+
+# Behind both credit styles: a faint, blurred first-class carriage.
+image cred_backdrop = Fixed(
+    Solid(CRED_BG),
+    Transform("images/bg_first_class.webp", fit="cover", xysize=(config.screen_width, config.screen_height), blur=28, alpha=0.2),
+    Solid("#08080c55"))
 
 init python:
     def credits_roll(adj, state):
-        # Hold still for the first 3 seconds so the crew can be read, then roll.
+        # Hold still for the first 3 seconds, then roll.
         state["ticks"] += 1
         if state["ticks"] > 100:
             credits_step(adj)
+
+    def _dashes(vertical, color, dash=8, gap=7, thick=3):
+        if vertical:
+            piece = Fixed(Solid(color, xsize=thick, ysize=dash), xysize=(thick, dash + gap))
+        else:
+            piece = Fixed(Solid(color, xsize=dash, ysize=thick), xysize=(dash + gap, thick))
+        return Tile(piece)
+
+    CRED_STUB_W = 150
+    # Bar widths for the pass's barcode: positive is ink, negative is a gap.
+    CRED_BARCODE = [4, -3, 2, -2, 6, -3, 2, -4, 3, -2, 2, -3, 5, -2, 2, -2, 4, -4, 2, -3, 6, -2, 3, -3,
+                    2, -2, 4, -3, 2, -4, 5, -2, 3, -2, 2, -3, 4, -2, 6, -3, 2, -2, 3, -4, 2, -2, 5, -3,
+                    2, -3, 4, -2, 2, -4, 3, -2, 6, -3, 2, -2, 4]
+
+    def ticket_back(no):
+        # The ticket: a darker stub on the left with its number, a perforated tear line,
+        # and a notch at each end of the tear line.
+        return Fixed(
+            rbox(CRED_PAPER, 20),
+            Transform(rbox(CRED_STUB, 20), xsize=CRED_STUB_W + 20),
+            Transform(Solid(CRED_PAPER), xpos=CRED_STUB_W, xsize=22),
+            Transform(_dashes(True, CRED_INK_SOFT), xpos=CRED_STUB_W - 1, xsize=3),
+            Transform(rbox(CRED_BG, 10), xysize=(20, 20), xpos=CRED_STUB_W - 10, ypos=-10),
+            Transform(rbox(CRED_BG, 10), xysize=(20, 20), xpos=CRED_STUB_W - 10, yalign=1.0, yoffset=10),
+            Transform(Text("No.", size=16, color=CRED_INK_SOFT, font=GFONT), pos=(28, 30)),
+            Transform(Text("%02d" % no, size=54, color=CRED_INK, font=CREDIT_FONT), pos=(26, 50)),
+        )
+
+    def ticket_columns(lines):
+        n = len(lines)
+        cols = 1 if n <= 4 else (2 if n <= 14 else 3)
+        per = (n + cols - 1) // cols
+        return [lines[k:k + per] for k in range(0, n, per)]
+
+    def credit_line_text(ln, sub, sub_color):
+        t = _esc(ln)
+        if sub:
+            t += "{size=-6}{color=%s}   %s{/color}{/size}" % (sub_color, _esc(sub))
+        return t
 
 transform cred_fade(d=0.0):
     alpha 0.0
@@ -221,110 +267,126 @@ transform cred_fade(d=0.0):
     ease 0.5 alpha 1.0
 
 
-# ---------- TICKETS: a scrolling list of plain cards ----------
-
-screen crew_card(c):
-    button:
-        xfill True
-        padding (40, 28)
-        background rbox(CRED_PANEL, 22)
-        hover_background rbox("#191920", 22)
-        action Function(credits_click, c["key"])
-        vbox:
-            spacing 14
-            hbox:
-                spacing 16
-                text c["name"]:
-                    size 56
-                    color CRED_TEXT
-                    hover_color CRED_ACCENT
-                    font CREDIT_FONT
-                if c["key"] in CREW_BADGES:
-                    frame:
-                        yalign 0.5
-                        padding (10, 3)
-                        background rbox("#22222c", 8)
-                        text CREW_BADGES[c["key"]]:
-                            size 18
-                            color CRED_MUTED
-                            font "DejaVuSans.ttf"
-            add Solid(CRED_ACCENT, xsize=60, ysize=3)
-            text "\u00a0\u00a0·   ".join(c["roles"]):
-                size 20
-                color CRED_GOLD
-                font GFONT
-                line_spacing 6
-
-screen cred_section(heading, lines):
-    frame:
-        xfill True
-        padding (40, 28)
-        background rbox(CRED_PANEL, 22)
-        vbox:
-            spacing 10
-            xfill True
-            text heading.upper():
-                xalign 0.5
-                size 18
-                color CRED_GOLD
-                font GFONT
-            null height 2
-            for ln, sub in lines:
-                text _esc((ln + "   ·   " + sub) if sub else ln):
-                    xalign 0.5
-                    text_align 0.5
-                    size 26
-                    color CRED_TEXT
-                    font GFONT
+# ---------- TICKETS: every section is a train ticket, rolling up the screen ----------
 
 define CRED_TOP = 70
 define CRED_H = config.screen_height - 230
+define CRED_LIST_W = config.screen_width - 760
+
+screen cred_ticket(no, heading, lines, clickable=False):
+    $ cols = ticket_columns(lines)
+    $ col_w = (CRED_LIST_W - CRED_STUB_W - 40 - 44) // len(cols)
+    frame:
+        xfill True
+        padding (CRED_STUB_W + 40, 30, 44, 34)
+        background ticket_back(no)
+        vbox:
+            spacing 12
+            text heading.upper():
+                size 34
+                color CRED_RED
+                font CREDIT_FONT
+            add Solid(CRED_INK_SOFT, xsize=70, ysize=2)
+            null height 2
+            hbox:
+                for col in cols:
+                    vbox:
+                        xsize col_w
+                        spacing 8
+                        for ln, sub in col:
+                            if clickable:
+                                textbutton credit_line_text(ln, sub, CRED_INK_SOFT):
+                                    padding (0, 0)
+                                    background None
+                                    text_size 24
+                                    text_color CRED_INK
+                                    text_hover_color CRED_RED
+                                    text_font GFONT
+                                    action Function(credits_click, ln)
+                            else:
+                                text credit_line_text(ln, sub, CRED_INK_SOFT):
+                                    size 24
+                                    color CRED_INK
+                                    font GFONT
 
 screen credits_tickets():
     default cred_adj = ui.adjustment()
     default cred_roll = {"ticks": 0}
-    add Solid(CRED_BG)
+    add "cred_backdrop"
 
+    # The pass on the left: a paper ticket with the logo.
     frame:
         xpos 80
         ypos CRED_TOP
         xsize 520
         ysize CRED_H
-        padding (40, 48)
-        background rbox(CRED_PANEL, 30)
+        padding (44, 0, 44, 40)
+        background Fixed(rbox(CRED_PAPER, 26), Transform(rbox(CRED_RED, 26), ysize=120), Transform(Solid(CRED_RED), ypos=70, ysize=50))
         at cred_fade(0.0)
         vbox:
             xfill True
-            spacing 22
-            text _("CREDITS"):
+            spacing 0
+            null height 26
+            text _("GREKHOV EXPRESS"):
                 xalign 0.5
-                size 48
-                color "#ffffff"
+                size 36
+                color "#fff4e0"
+                font CREDIT_FONT
+            text _("ADMIT ONE  ·  CREDITS"):
+                xalign 0.5
+                size 16
+                color "#f6d2c2"
                 font GFONT
-            add Solid(CRED_ACCENT, xsize=120, ysize=3):
+            null height 46
+            add Transform("images/logo_game_red.webp", fit="contain", xysize=(400, 240)):
                 xalign 0.5
-            null height 10
-            add "game_logo_cycle":
-                xsize 420
-                ysize 250
-                fit "contain"
+            null height 28
+            add _dashes(False, CRED_INK_SOFT):
+                xsize 432
+                ysize 3
+            null height 26
+            text _("DEPARTS 4:00"):
                 xalign 0.5
-            null height 10
+                size 52
+                color CRED_RED
+                font CREDIT_FONT
+            text _("PLATFORM 4  ·  CARRIAGES 1 - 6"):
+                xalign 0.5
+                size 16
+                color CRED_INK_SOFT
+                font GFONT
+            null height 30
             text _("Version [config.version]"):
                 xalign 0.5
-                size 20
-                color CRED_GOLD
+                size 22
+                color CRED_INK
                 font GFONT
+            null height 6
             text _("Made with Ren'Py [renpy.version_only]"):
                 xalign 0.5
                 size 16
-                color CRED_MUTED
+                color CRED_INK_SOFT
+                font GFONT
+            null height 40
+            # A barcode along the bottom of the pass.
+            hbox:
+                xalign 0.5
+                spacing 0
+                for w in CRED_BARCODE:
+                    add Solid(CRED_INK if w > 0 else CRED_PAPER):
+                        xsize abs(w)
+                        ysize 70
+            null height 8
+            text "0400 · GRX · 1906":
+                xalign 0.5
+                size 16
+                color CRED_INK_SOFT
                 font GFONT
 
     viewport:
         xpos 680
         ypos CRED_TOP
-        xsize (config.screen_width - 760)
+        xsize CRED_LIST_W
         ysize CRED_H
         yadjustment cred_adj
         mousewheel True
@@ -332,30 +394,18 @@ screen credits_tickets():
         at cred_fade(0.2)
 
         vbox:
-            xsize (config.screen_width - 760)
-            spacing 18
+            xsize CRED_LIST_W
+            spacing 34
 
-            text _("THE CREW"):
-                size 18
-                color CRED_GOLD
-                font GFONT
-
-            for c in CREW:
-                use crew_card(c)
-
-            null height 20
-
-            for heading, lines in credit_sections():
-                use cred_section(heading, lines)
-
-            use cred_section(_("Special credits"), [("larp music", "")])
+            for i, (heading, lines, click) in enumerate(credit_sections()):
+                use cred_ticket(i + 1, heading, lines, click)
 
             null height 40
             text _("THANKS FOR PLAYING!"):
                 xalign 0.5
-                size 48
-                color CRED_MUTED
-                font GFONT
+                size 54
+                color CRED_GOLD
+                font CREDIT_FONT
             null height CRED_H
 
     timer 0.03 repeat True action Function(credits_roll, cred_adj, cred_roll)
@@ -382,8 +432,10 @@ define SPOT_SLIDES = [
     "kimmy neutral",
     "himmel neutral",
     "images/bg_sleeper_cart.webp",
+    "images/bg_cabin_kimmy.webp",
     "sebastian neutral",
     "misha neutral",
+    "images/bg_cabin_misha.webp",
     "images/cg_agatha_gloves.webp",
     "agatha neutral",
     "ichora neutral",
@@ -429,15 +481,15 @@ init python:
         img, person = pics[(i - 1) % len(pics)]
         if person:
             return Transform(img, fit="contain", xysize=(860, int(config.screen_height * 0.9))), True
-        return Transform(img, fit="contain", xysize=(860, 600)), False
+        # Pictures are cropped to their art (the maps have see-through bands) and framed.
+        return Transform(autocrop_image(img), fit="contain", xysize=(800, 560)), False
 
     def spot_blocks():
-        blocks = list(credit_roles())
-        for heading, lines in credit_sections():
-            for k in range(0, len(lines), 4):
-                blocks.append(([heading], [{"key": None, "name": ln + ("  ·  " + sub if sub else "")}
-                                           for ln, sub in lines[k:k + 4]]))
-        blocks.append(([_("Special credits")], [{"key": None, "name": "larp music"}]))
+        blocks = []
+        for heading, lines, click in credit_sections():
+            chunks = [lines[k:k + 4] for k in range(0, len(lines), 4)]
+            for n, chunk in enumerate(chunks):
+                blocks.append({"heading": heading, "part": n + 1, "parts": len(chunks), "lines": chunk, "click": click})
         return blocks
 
     def spot_credit(i):
@@ -452,6 +504,15 @@ transform spot_show(dur):
     pause max(0.1, dur - 1.4)
     ease 0.7 alpha 0.0
 
+transform spot_rise(dur):
+    yoffset 24
+    easein 0.9 yoffset 0
+    pause max(0.1, dur - 0.9)
+
+transform spot_progress(dur):
+    xzoom 0.0
+    linear dur xzoom 1.0
+
 screen credits_spotlight():
     default slide = 0
     $ block = spot_credit(slide)
@@ -459,15 +520,17 @@ screen credits_spotlight():
     for k index k in [slide]:
         timer SPOT_TIME action SetLocalVariable("slide", slide + 1)
 
-    add Solid("#000000")
+    add "cred_backdrop"
 
     if block is None:
         for k index k in [slide]:
             vbox:
                 align (0.5, 0.48)
-                spacing 24
+                spacing 22
                 at spot_show(SPOT_TIME)
                 add Transform("images/logo_game_yellow.webp", fit="contain", xysize=(760, 460)):
+                    xalign 0.5
+                add Solid(CRED_ACCENT, xsize=120, ysize=3):
                     xalign 0.5
                 text _("A BLACKBERRY STUDIOS GAME"):
                     xalign 0.5
@@ -476,40 +539,73 @@ screen credits_spotlight():
                     font GFONT
     else:
         $ pic, person = spot_picture(slide)
-        $ roles, people = block
+        $ longest = max(len(ln) for ln, _sub in block["lines"])
+        $ nsz = 76 if longest <= 12 else max(34, int(76 * 12 / longest))
         for k index k in [slide]:
             fixed:
                 at spot_show(SPOT_TIME)
 
                 if person:
+                    add Transform(_glow(CRED_ACCENT, 820, 820, 2.2), alpha=0.35):
+                        xcenter 0.3
+                        ycenter 0.55
                     add pic:
                         xcenter 0.3
                         yalign 1.0
                 else:
-                    add pic:
+                    frame:
                         xcenter 0.3
                         yalign 0.5
+                        padding (8, 8)
+                        background rbox(CRED_GOLD, 16)
+                        at spot_rise(SPOT_TIME)
+                        frame:
+                            padding (0, 0)
+                            background Solid("#0a0a0e")
+                            add pic
 
                 vbox:
                     xpos 0.6
                     yalign 0.5
                     xmaximum int(config.screen_width * 0.36)
                     spacing 12
-                    for role in roles:
-                        text _esc(role.upper()):
+                    at spot_rise(SPOT_TIME)
+                    hbox:
+                        spacing 18
+                        text _esc(block["heading"].upper()):
+                            yalign 1.0
                             size 24
-                            color CRED_ACCENT
+                            color CRED_GOLD
                             font GFONT
+                        if block["parts"] > 1:
+                            text ("%d / %d" % (block["part"], block["parts"])):
+                                yalign 1.0
+                                size 18
+                                color CRED_MUTED
+                                font GFONT
                     add Solid(CRED_ACCENT, xsize=80, ysize=3)
-                    null height 8
-                    $ longest = max(len(c["name"]) for c in people)
-                    $ nsz = 80 if longest <= 12 else max(34, int(80 * 12 / longest))
-                    for c in people:
-                        textbutton _esc(c["name"]):
-                            padding (0, 0)
-                            background None
-                            text_size nsz
-                            text_color CRED_TEXT
-                            text_hover_color CRED_ACCENT
-                            text_font CREDIT_FONT
-                            action (Function(credits_click, c["key"]) if c.get("key") else None)
+                    null height 10
+                    for ln, sub in block["lines"]:
+                        vbox:
+                            spacing 0
+                            textbutton _esc(ln):
+                                padding (0, 0)
+                                background None
+                                text_size nsz
+                                text_color CRED_TEXT
+                                text_hover_color (CRED_ACCENT if block["click"] else CRED_TEXT)
+                                text_font CREDIT_FONT
+                                action (Function(credits_click, ln) if block["click"] else None)
+                            if sub:
+                                text _esc(sub):
+                                    size 20
+                                    color CRED_GOLD
+                                    font GFONT
+
+            # How long until the next credit.
+            add Solid(CRED_ACCENT):
+                xpos 0
+                ypos (config.screen_height - 4)
+                xsize config.screen_width
+                ysize 4
+                at spot_progress(SPOT_TIME)

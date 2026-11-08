@@ -1191,6 +1191,7 @@ label carriage_3_part2_hub:
     jump carriage_3_part2_hub
 
 label c3_p2_interact_toys:
+    scene talk to misha with talk_in
     "Awh, they're so cute."
     return
 
@@ -1213,6 +1214,7 @@ label c3_p2_interact_luggage:
     return
 
 label c3_p2_interact_carpet:
+    scene talk to misha with talk_in
     if not clue_hidden_tile:
         l "This again... It was like this the first time too."
         "{i}He kneels, and this time, pulls at the loose edge.{/i}"
@@ -1906,6 +1908,7 @@ label c2_interact_broken_glass:
     return
 
 label c3_interact_toys:
+    scene talk to misha with talk_in
     "Awh, they're so cute."
     menu:
         "Play with the blocks?"
