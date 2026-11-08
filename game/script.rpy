@@ -126,73 +126,17 @@ define CABIN_MISHA = cabin_spot(59, 186, 59, 66)
 define CABIN_RUG = cabin_spot(27, 256, 121, 62)
 define CABIN_TOYS = cabin_spot(166, 202, 49, 38)
 
-screen c3_cabin_door(cx, title, who, act, new=False, delay=0.0):
-    $ x, y = map_xy(cx - 130, 680)
-    $ w, h = map_wh(260, 330)
-    button:
-        pos (x, y)
-        xysize (w, h)
-        padding (0, 0)
-        background None
-        hover_background rbox("#ffd76a30", 18)
-        action act
-        alt title
-        at hs_in(delay)
-        fixed:
-            xysize (260, 330)
-            at Transform(zoom=MAP_K)
-            add rbox("#1c120e", 18)
-            add rbox("#3b2419", 14):
-                pos (8, 8)
-                xysize (244, 314)
-            # The cabin door.
-            add Solid("#5c2c24"):
-                pos (70, 28)
-                xysize (120, 196)
-            add Solid("#643932"):
-                pos (78, 36)
-                xysize (104, 188)
-            add Solid("#fff6e0"):
-                pos (96, 52)
-                xysize (68, 40)
-            add Solid("#c9a24a"):
-                pos (162, 128)
-                xysize (10, 10)
-            text title:
-                xalign 0.5
-                ypos 238
-                size 24
-                color "#f2ead8"
-                font GFONT
-            text who:
-                xalign 0.5
-                ypos 276
-                size 17
-                color "#c9a24a"
-                font GFONT
-            if new:
-                add rbox("#e0521f", 8):
-                    pos (220, 20)
-                    xysize (18, 18)
-
-init python:
-    def c3_kimmy_cabin_new():
-        if store.in_loop:
-            return not store.kimmy_reinterviewed
-        return not (store.c3_talked_kimmy and store.c3_talked_himmel)
-
-    def c3_misha_cabin_new():
-        if store.in_loop:
-            return (store.clue_alexander_alibi and not store.clue_hidden_tile) or (store.clue_hidden_tile and not store.misha_reinterviewed)
-        return store.c3_talked_sebastian and not store.c3_talked_misha
+# The two cabins: a glowing hotspot each in the blank space under the corridor.
+define C3_CABIN1_SPOT = (C3_DOOR_KIMMY_X - 150, 680, 300, 300)
+define C3_CABIN2_SPOT = (C3_DOOR_MISHA_X - 150, 680, 300, 300)
 
 screen c3_cabin_doors():
-    use c3_cabin_door(C3_DOOR_KIMMY_X, _("CABIN 1"), _("Kimmy & Himmel"), Jump("c3_cabin_kimmy_room"), c3_kimmy_cabin_new(), 0.1)
+    use hs(C3_CABIN1_SPOT, Jump("c3_cabin_kimmy_room"), "Kimmy & Himmel's cabin", "enter", 0.1)
     if in_loop or c3_talked_sebastian:
-        use c3_cabin_door(C3_DOOR_MISHA_X, _("CABIN 2"), _("Misha"), Jump("c3_cabin_misha_room"), c3_misha_cabin_new(), 0.15)
+        use hs(C3_CABIN2_SPOT, Jump("c3_cabin_misha_room"), "Misha's cabin", "enter", 0.15)
     else:
         # Misha's cabin stays locked until Sebastian has spoken to Louis.
-        use c3_cabin_door(C3_DOOR_MISHA_X, _("CABIN 2"), _("Locked"), Function(renpy.notify, _("Locked. Talk to Sebastian first.")), False, 0.15)
+        use hs(C3_CABIN2_SPOT, Function(renpy.notify, _("Locked. Talk to Sebastian first.")), "Misha's cabin", "enter", 0.15)
 
 screen carriage_3_map():
     add "bg carriage_3"

@@ -322,6 +322,8 @@ define HS_STYLE = {
     "talk": ("#e0521f", _("TALK")),
     "look": ("#e6a817", _("LOOK")),
     "door": ("#7fc8a9", _("NEXT CARRIAGE")),
+    # Going into a room inside a carriage (the Carriage 3 cabins).
+    "enter": ("#7fc8a9", _("ENTER")),
     "back": ("#8888a0", _("BACK")),
     "decide": ("#a8281a", _("ACCUSE")),
 }
@@ -400,8 +402,8 @@ transform hs_tag_hover:
 screen hs(rect, act, label="", kind="look", delay=0.0):
     $ hx, hy, hw, hh = rect
     $ hcol, hkind = HS_STYLE.get(kind, HS_STYLE["look"])
-    $ checked = kind not in ("door", "back") and hs_checked(act)
-    if kind not in ("door", "back"):
+    $ checked = kind not in ("door", "back", "enter") and hs_checked(act)
+    if kind not in ("door", "back", "enter"):
         $ hs_register(act)
     if checked:
         $ hcol = HS_CHECKED
@@ -726,7 +728,7 @@ init python:
                 store.fares_paid = store.fares_paid | set([lab])
                 # Coins are persistent but fares_paid isn't, so rolling back would charge the fare twice.
                 renpy.block_rollback()
-        elif lab and lab not in store.coin_found:
+        elif kind != "enter" and lab and lab not in store.coin_found:
             store.coin_found = store.coin_found | set([lab])
             give_coins(COIN_FIND)
             renpy.show_screen("coin_toast", COIN_FIND)

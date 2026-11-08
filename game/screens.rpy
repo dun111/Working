@@ -286,10 +286,6 @@ image menu_slideshow:
     pause 8.0
     full_cover("images/bg_mail_cart.webp") with Dissolve(2.0)
     pause 8.0
-    full_cover("images/cg_agatha_gloves.webp") with Dissolve(2.0)
-    pause 8.0
-    full_cover("images/bg_carriage_6.webp") with Dissolve(2.0)
-    pause 8.0
     repeat
 
 transform menu_bg_drift:
