@@ -2,22 +2,56 @@ define SPRITE_H = 960
 
 init -2 python:
     import math
+    import time as _time
+
+    # When a character changes expression, they hop: tag -> time the new face came in.
+    EXPR_HOP = {}
+    HOP_TIME = 0.32
+    HOP_HEIGHT = 26.0
 
     class IdleAnim(object):
+        # Keeps the characters alive: they breathe, sway a touch (each on their own
+        # beat, so a room doesn't breathe in step), bob while they talk, and hop
+        # when their expression changes.
         def __init__(self, tag):
             self.tag = tag
+            self.phase = (sum(ord(c) for c in tag) % 17) / 17.0 * 2 * math.pi
 
         def __call__(self, trans, st, at):
             if persistent.reduce_motion:
                 trans.yzoom = 1.0
                 trans.yoffset = 0
+                trans.xoffset = 0
                 return None
-            trans.yzoom = 1.0 + 0.005 * math.sin(st * math.pi / 2.0)
+            t = at + self.phase
+            trans.yzoom = 1.0 + 0.009 * math.sin(t * math.pi / 2.0)
+            trans.xoffset = 1.6 * math.sin(t * 0.7)
+            y = 0.0
             if TALK.typing == self.tag:
-                trans.yoffset = -abs(math.sin(st * 6.0)) * 2.0
-            else:
-                trans.yoffset = 0
+                y -= abs(math.sin(at * 6.0)) * 3.5
+            hop = EXPR_HOP.get(self.tag)
+            if hop is not None:
+                dt = _time.time() - hop
+                if 0 <= dt < HOP_TIME:
+                    y -= HOP_HEIGHT * math.sin(math.pi * dt / HOP_TIME)
+                else:
+                    EXPR_HOP.pop(self.tag, None)
+            trans.yoffset = y
             return 1.0 / 30
+
+    def note_expression_change(name, tag=None):
+        # Called as a sprite is shown: a new face for someone already on screen hops.
+        try:
+            parts = tuple(name) if isinstance(name, (tuple, list)) else tuple(str(name).split())
+            tag = tag or parts[0]
+            if not renpy.showing(tag):
+                return
+            old = set(renpy.get_attributes(tag) or ())
+            new = set(parts[1:])
+            if new and old and new != old and not tag.endswith("_monster"):
+                EXPR_HOP[tag] = _time.time()
+        except Exception:
+            pass
 
     def _scaled(path, src_h, scale):
         return Transform(path, zoom=SPRITE_H * scale / float(src_h))
@@ -80,10 +114,12 @@ init python:
         return sprite(tag, path, renpy.image_size(path)[1], scale=EXPR_SCALE.get(tag, 1.0))
 
 image louis neutral        = sprite("louis", *LOUIS_PNG)
-image louis confused       = expr("louis", "shocked")
+image louis confused       = expr("louis", "confused")
 image louis shocked        = expr("louis", "shocked")
 image louis determined     = expr("louis", "determined")
-image louis looking_around = sprite("louis", *LOUIS_PNG)
+image louis smiling        = expr("louis", "smiling")
+image louis thinking       = expr("louis", "thinking")
+image louis looking_around = expr("louis", "thinking")
 
 image fedora neutral = sprite("fedora", *FEDORA_PNG)
 image fedora happy   = expr("fedora", "happy")

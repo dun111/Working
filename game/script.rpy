@@ -456,7 +456,7 @@ label c2_eduard_dialogue:
             hide drink_offer with dissolve
             $ drank = True
             show eduard neutral at speaker_background(xalign=0.9)
-            show louis neutral at speaker_focus(xalign=0.1)
+            show louis smiling at speaker_focus(xalign=0.1)
             l "Sure."
             ed "Awh shucks, seems we just ran out! That gambler's been drinking since he got here!"
             l "Wow…"
@@ -561,9 +561,9 @@ label c3_kimmy_dialogue:
     show kimmy neutral at speaker_focus(xalign=0.5)
     k "Yawns… Hello, are you room service?"
     show kimmy neutral at speaker_background(xalign=0.5)
-    show louis neutral at speaker_focus(xalign=0.1)
+    show louis smiling at speaker_focus(xalign=0.1)
     l "N-no, my name is Louis… Nice to meet you."
-    show louis neutral at speaker_background(xalign=0.1)
+    show louis smiling at speaker_background(xalign=0.1)
     show himmel neutral at speaker_focus(xalign=0.9)
     h "O-oh my god dear! Why is there a STRANGER here! I-I might faint!"
     show himmel neutral at speaker_background(xalign=0.9)
@@ -580,9 +580,9 @@ label c3_kimmy_dialogue:
             $ remember(_("Kimmy will remember that."))
         "I am NOT dangerous.":
             $ c3_kimmy_dangerous_choice = False
-            show louis neutral at speaker_focus(xalign=0.1)
+            show louis smiling at speaker_focus(xalign=0.1)
             l "I'm really not dangerous."
-            show louis neutral at speaker_background(xalign=0.1)
+            show louis smiling at speaker_background(xalign=0.1)
             show kimmy neutral at speaker_focus(xalign=0.5)
             k "Yeah, it's kinda obvious, matchstick."
             $ remember(_("Kimmy will remember that."))
@@ -619,7 +619,7 @@ label c3_sebastian_dialogue:
     show sebastian neutral at speaker_focus(xalign=0.9)
     seb "May I know your name, sir?"
     show sebastian neutral at speaker_background(xalign=0.9)
-    show louis neutral at speaker_focus(xalign=0.1)
+    show louis smiling at speaker_focus(xalign=0.1)
     l "Oh! It's Louis."
     seb "Good evening, Mr. Louis. My name is Sebastian, the butler for Mr. Popov, the child in this cabin. If you wish to enter, I will warn you, that if any harm or distress befalls the child, you will be prosecuted."
     l "Wow… Don't worry Sir, I won't."
@@ -630,9 +630,9 @@ label c3_misha_dialogue:
     scene talk to misha with talk_in
     show misha neutral at speaker_background(xalign=0.9)
     "{i}Misha hums, playing with blocks. He looks up. Staring.{/i}"
-    show louis neutral at speaker_focus(xalign=0.1)
+    show louis smiling at speaker_focus(xalign=0.1)
     l "Hey buddy…"
-    show louis neutral at speaker_background(xalign=0.1)
+    show louis smiling at speaker_background(xalign=0.1)
     show misha stares at speaker_focus(xalign=0.9)
     "{i}Misha stares, no response.{/i}"
     $ c3_talked_misha = True
@@ -719,9 +719,9 @@ label c4_agatha_dialogue:
     show agatha annoyed at speaker_focus(xalign=0.9)
     a "What, need help too?"
     show agatha neutral at speaker_background(xalign=0.9)
-    show louis neutral at speaker_focus(xalign=0.1)
+    show louis thinking at speaker_focus(xalign=0.1)
     l "No, but, what's this carriage?"
-    show louis neutral at speaker_background(xalign=0.1)
+    show louis thinking at speaker_background(xalign=0.1)
     show agatha annoyed at speaker_focus(xalign=0.9)
     a "If you use your eyes, you can see it's the staff cart. Now, are you injured, or can I go back to my peace?"
     show agatha neutral at speaker_background(xalign=0.9)
@@ -735,9 +735,9 @@ label c4_ichora_dialogue:
     show ichora wink at speaker_focus(xalign=0.9)
     ic "Hey! I've been waiting for ya, buddy!"
     show ichora neutral at speaker_background(xalign=0.9)
-    show louis neutral at speaker_focus(xalign=0.1)
+    show louis confused at speaker_focus(xalign=0.1)
     l "You have…?"
-    show louis neutral at speaker_background(xalign=0.1)
+    show louis confused at speaker_background(xalign=0.1)
     ic "Of course! Welcome to the train. The name's Ichora, I'm the train's engineer."
     show ichora neutral at speaker_background(xalign=0.9)
     l "My name's Louis."
@@ -752,9 +752,9 @@ label c4_ichora_dialogue:
     "{i}Ichora gives you a key.{/i}"
     ic "Here ya go!"
     show ichora neutral at speaker_background(xalign=0.9)
-    show louis neutral at speaker_focus(xalign=0.1)
+    show louis thinking at speaker_focus(xalign=0.1)
     l "But what's it for?"
-    show louis neutral at speaker_background(xalign=0.1)
+    show louis thinking at speaker_background(xalign=0.1)
     ic "Sometimes, life gets hard, and a door is presented to escape. But we're too scared to use the key. Don't hesitate."
     "{i}Ichora winks and walks off.{/i}"
     $ has_key = True
@@ -773,7 +773,7 @@ label carriage_5_start:
         $ visited_carriages.append("c5")
         $ achievement.grant("carriage_4_complete")
         $ autosave_checkpoint()
-        show louis neutral at speaker_focus(xalign=0.5)
+        show louis thinking at speaker_focus(xalign=0.5)
         l "A lot is going on here, huh."
         show screen map_stamp(_("CARRIAGE 5"), _("ENGINE & MAIL ROOM"))
     jump carriage_5_hub
@@ -788,9 +788,9 @@ label c5_pattison_dialogue:
     show pattison neutral at speaker_focus(xalign=0.9)
     p "This goes to the clock, while this goes to the end. This goes to the fake ones and this goes to the friend."
     show pattison neutral at speaker_background(xalign=0.9)
-    show louis neutral at speaker_focus(xalign=0.1)
+    show louis confused at speaker_focus(xalign=0.1)
     l "U-uhm… what?"
-    show louis neutral at speaker_background(xalign=0.1)
+    show louis confused at speaker_background(xalign=0.1)
     p "Hello Sir, you another mailworker?"
     show pattison neutral at speaker_background(xalign=0.9)
     l "No."
@@ -809,9 +809,9 @@ label c5_alexander_dialogue:
     show alexander tweaking at speaker_focus(xalign=0.9)
     al "Hahahaha… this stuff is so gooddddd…."
     show alexander neutral at speaker_background(xalign=0.9)
-    show louis neutral at speaker_focus(xalign=0.1)
+    show louis smiling at speaker_focus(xalign=0.1)
     l "What you got there, buddy?"
-    show louis neutral at speaker_background(xalign=0.1)
+    show louis smiling at speaker_background(xalign=0.1)
     show alexander craving at speaker_focus(xalign=0.9)
     al "The banned super maple sugar!!!"
     show alexander neutral at speaker_background(xalign=0.9)
@@ -828,18 +828,18 @@ label c5_alexander_dialogue:
             $ has_maple_sugar = True
             $ achievement.grant("forbidden_sweetness")
             show alexander neutral at speaker_background(xalign=0.9)
-            show louis neutral at speaker_focus(xalign=0.1)
+            show louis smiling at speaker_focus(xalign=0.1)
             l "Sure, I'll take some."
-            show louis neutral at speaker_background(xalign=0.1)
+            show louis smiling at speaker_background(xalign=0.1)
             al "Attaboy! Here ya go - one satchel of pure happiness."
             $ got_item(_("Satchel of Maple Sugar"), _("\"First one is free, next one is 2000 perkels.\""))
             $ remember(_("Alexander will remember that."))
         "No":
             $ has_maple_sugar = False
             show alexander neutral at speaker_background(xalign=0.9)
-            show louis neutral at speaker_focus(xalign=0.1)
+            show louis smiling at speaker_focus(xalign=0.1)
             l "I'm good. Thanks for the offer."
-            show louis neutral at speaker_background(xalign=0.1)
+            show louis smiling at speaker_background(xalign=0.1)
             al "Suit yourself, brother."
     show alexander neutral at speaker_background(xalign=0.9)
     l "Has anyone else bought these things?"
@@ -940,7 +940,7 @@ label part2_start:
     d "{i}(distant voice){/i} Thank you for boarding the Grekhov Express."
     "{i}Louis wakes up violently to the sound of train tracks.{/i}"
     show dorothy neutral at speaker_background(xalign=0.9)
-    show louis neutral at speaker_focus(xalign=0.1)
+    show louis thinking at speaker_focus(xalign=0.1)
     l "Man… This seems familiar…"
     "{i}He opens his eyes.{/i}"
     l "“Here again?”"
@@ -962,7 +962,7 @@ label part2_start:
     show dorothy neutral at speaker_focus(xalign=0.9)
     d "I see. Well sir, welcome aboard the Grekhov Express…"
     show dorothy neutral at speaker_background(xalign=0.9)
-    show louis neutral at speaker_focus(xalign=0.1)
+    show louis confused at speaker_focus(xalign=0.1)
     l "I'm… back at the start?"
     $ save_locked = False
     scene bg carriage_1 with dissolve
@@ -998,9 +998,9 @@ label c2_p2_talk_eduard:
     show eduard neutral at speaker_focus(xalign=0.9)
     ed "All the better for me, I reckon…"
     show eduard neutral at speaker_background(xalign=0.9)
-    show louis neutral at speaker_focus(xalign=0.1)
+    show louis confused at speaker_focus(xalign=0.1)
     l "...What?"
-    show louis neutral at speaker_background(xalign=0.1)
+    show louis confused at speaker_background(xalign=0.1)
     show eduard neutral at speaker_focus(xalign=0.9)
     ed "All the better for me, I reckon…"
     show eduard neutral at speaker_background(xalign=0.9)
@@ -1027,7 +1027,7 @@ label c2_p2_broken_glass:
         l "This is the same glass from before… why hasn't anyone cleaned this up?"
     "{i}Louis notices a piece missing from the largest shard - snapped clean off, edges sharp.{/i}"
     u "Can yer shut up?"
-    show louis confused at speaker_focus(xalign=0.5)
+    show louis shocked at speaker_focus(xalign=0.5)
     l "H-hello?? Who said that…"
     "{i}No one is there.{/i}"
     return
@@ -1078,9 +1078,9 @@ label c2_p2_fedora_arrives:
     "{i}She stops dead when she sees the body.{/i}"
     f "...Oh."
     show fedora neutral at speaker_background(xalign=0.9)
-    show louis confused at speaker_focus(xalign=0.1)
+    show louis shocked at speaker_focus(xalign=0.1)
     l "Fedora, thank god, please, you have to help me…"
-    show louis confused at speaker_background(xalign=0.1)
+    show louis shocked at speaker_background(xalign=0.1)
     if warned_fedora:
         f "{i}(quiet, unusually so){/i} ...You said someone would die. You SAID it."
         show fedora neutral at speaker_background(xalign=0.9)
@@ -1098,9 +1098,9 @@ label c2_p2_fedora_arrives:
     "{i}She kneels by the body, professional mask sliding back over her face, though her hands are shaking slightly as she jots something down.{/i}"
     f "Tile placed in the palm. No struggle, far as I can tell. And that glass - that's not from a weapon someone brought with them. That's from HERE. Whoever did this either knew him, or he never saw them as a threat at all... well, not until it was already too late."
     show fedora neutral at speaker_background(xalign=0.9)
-    show louis neutral at speaker_focus(xalign=0.1)
+    show louis confused at speaker_focus(xalign=0.1)
     l "How are you so calm about this?"
-    show louis neutral at speaker_background(xalign=0.1)
+    show louis confused at speaker_background(xalign=0.1)
     f "I'm not. I just know how to look calm. Comes with the job."
     show fedora neutral at speaker_background(xalign=0.9)
     l "I need to find out what happened. Someone on this train did this."
@@ -1110,10 +1110,10 @@ label c2_p2_investigation_menu:
     menu:
         "What should Louis do?"
         "Search the crime scene for clues":
-            show louis neutral at speaker_focus(xalign=0.1)
+            show louis thinking at speaker_focus(xalign=0.1)
             "{i}Louis crouches by the table. Aside from the tile in Shunyu's hand, everything else looks staged to look untouched - his winning hand still fanned out, his drink still full and condensating like it was poured recently.{/i}"
             l "Someone wanted this to look like he just... stopped playing. But why leave the tile in his hand at all? Why not just walk away clean?"
-            show louis neutral at speaker_background(xalign=0.1)
+            show louis thinking at speaker_background(xalign=0.1)
             show fedora neutral at speaker_focus(xalign=0.9)
             f "Careful. Killers who leave signatures aren't hiding. They're telling you something."
         "Wait for Dorothy to return with Agatha":
@@ -1125,9 +1125,9 @@ label c2_p2_investigation_menu:
             show fedora neutral at speaker_background(xalign=0.9)
             l "I… right. Sorry."
         "Ask Fedora what she knows":
-            show louis neutral at speaker_focus(xalign=0.1)
+            show louis thinking at speaker_focus(xalign=0.1)
             l "You said 'killer' back at the start. Not an 'accident.' How'd you know?"
-            show louis neutral at speaker_background(xalign=0.1)
+            show louis thinking at speaker_background(xalign=0.1)
             show fedora neutral at speaker_focus(xalign=0.9)
             f "I didn't. Not for certain. But this train doesn't reset for nothing, matchstick. Something on here needed a body to make it real."
             show fedora neutral at speaker_background(xalign=0.9)
@@ -1177,10 +1177,10 @@ label c2_p2_investigation_hub:
 label c2_p2_reinterview_eduard:
     scene talk to eduard with talk_in
     show eduard neutral at speaker_background(xalign=0.9)
-    show louis neutral at speaker_focus(xalign=0.1)
+    show louis determined at speaker_focus(xalign=0.1)
     l "Eduard. I need you to actually talk to me this time."
     "{i}Eduard blinks, and for a moment seems more present than before.{/i}"
-    show louis neutral at speaker_background(xalign=0.1)
+    show louis determined at speaker_background(xalign=0.1)
     show eduard worried at speaker_focus(xalign=0.9)
     ed "...He's dead? Shunyu's… oh, hell. Hell, hell, hell."
     show eduard neutral at speaker_background(xalign=0.9)
@@ -1245,7 +1245,7 @@ label c2_p2_reinterview_agatha:
 label part2_chapter_end:
     scene bg carriage_2
     $ achievement.grant("closer_to_the_truth")
-    show louis neutral at speaker_focus(xalign=0.5)
+    show louis thinking at speaker_focus(xalign=0.5)
     l "A tile that doesn't belong to the hand. A body moved after death. Barely anyone with a solid alibi for the last half hour."
     l "This isn't just going to be about finding who was angry at him. Someone wanted this scene in a very specific way."
     l "...I don't think I'm getting off this train until I find out why."
@@ -1354,9 +1354,9 @@ label c3_p2_kimmy_reinterview:
 label c3_p2_himmel_reinterview:
     scene talk to himmel with talk_in
     show himmel neutral at speaker_background(xalign=0.9)
-    show louis neutral at speaker_focus(xalign=0.1)
+    show louis determined at speaker_focus(xalign=0.1)
     l "Himmel, I need to ask you about Alexander."
-    show louis neutral at speaker_background(xalign=0.1)
+    show louis determined at speaker_background(xalign=0.1)
     show himmel nervous at speaker_focus(xalign=0.9)
     h "I- I don't know what you're talking about!"
     $ evidence_setup("himmel neutral", "Himmel", "I- I don't know what you're talking about!", "clue_drug_wrapper", "talk to himmel")
@@ -1382,9 +1382,9 @@ label c3_p2_sebastian_reinterview:
     scene talk to sebastian with talk_in
     "{i}Sebastian stands exactly where he always does, posture rigid, eyes forward.{/i}"
     show sebastian neutral at speaker_background(xalign=0.9)
-    show louis neutral at speaker_focus(xalign=0.1)
+    show louis determined at speaker_focus(xalign=0.1)
     l "Sebastian. I need to ask you about Misha."
-    show louis neutral at speaker_background(xalign=0.1)
+    show louis determined at speaker_background(xalign=0.1)
     seb "Mr. Popov has been in this cabin all evening, Mr. Louis. Under my supervision."
     show sebastian neutral at speaker_background(xalign=0.9)
     l "The whole evening? Never once out of your sight?"
@@ -1476,7 +1476,7 @@ label c5_p2_alexander_dialogue:
         al "Buddy! First one was free, remember? You here about the second?"
         l "Not exactly."
     show alexander neutral at speaker_background(xalign=0.9)
-    show louis neutral at speaker_focus(xalign=0.1)
+    show louis determined at speaker_focus(xalign=0.1)
     l "Alexander. I found this in Himmel's luggage."
     $ evidence_setup("alexander neutral", "Alexander", "And as for the other one… the stuff was strong so I don't remember.", "clue_drug_wrapper", "talk to alexander")
     call play_required("mg_evidence", evidence_reset) from _call_play_required_11
@@ -1503,7 +1503,7 @@ label c5_p2_alexander_dialogue:
     al "Here. Same as always. Ask the postman, he's always lurking round here too."
     $ alexander_reinterviewed = True
     scene bg carriage_5 with dissolve
-    show louis neutral at speaker_focus(xalign=0.5)
+    show louis thinking at speaker_focus(xalign=0.5)
     l "Two unpaid debts. Two people connected to him, and one of them's already dead."
     l "...Alexander had a reason. But did he have the chance?"
     l "He said the postman would vouch for him. Guess it's worth checking."
@@ -1513,9 +1513,9 @@ label c5_p2_pattison_dialogue:
     scene talk to pattison with talk_in
     "{i}Pattison is exactly where he always is, sorting the same mail, murmuring the same rhyme under his breath.{/i}"
     show pattison neutral at speaker_background(xalign=0.9)
-    show louis neutral at speaker_focus(xalign=0.1)
+    show louis determined at speaker_focus(xalign=0.1)
     l "Pattison. I need to ask you something important."
-    show louis neutral at speaker_background(xalign=0.1)
+    show louis determined at speaker_background(xalign=0.1)
     p "This goes to the clock, while this goes to the end..."
     if sorted_mail:
         p "Ah. You helped me sort, before. I told you you'd be needed before it ends."
@@ -1545,7 +1545,7 @@ label c5_p2_pattison_dialogue:
     p "This goes to the clock, while this goes to the end..."
     "{i}He returns to his sorting like the conversation never happened.{/i}"
     scene bg carriage_5 with dissolve
-    show louis neutral at speaker_focus(xalign=0.5)
+    show louis thinking at speaker_focus(xalign=0.5)
     l "No creaking door. No one saw him leave. If Pattison's telling the truth, Alexander physically couldn't have made it to Carriage 2 and back without being noticed."
     l "...He had every reason to want Shunyu gone. He just didn't have the chance to actually do it."
     $ found_clue("clue_alexander_alibi")
@@ -1609,7 +1609,7 @@ label accusation_pick:
 label accusation_dorothy:
     $ note_accused("dorothy")
     hide fedora
-    show louis neutral at speaker_focus(xalign=0.1)
+    show louis determined at speaker_focus(xalign=0.1)
     l "It was you, Dorothy."
     show dorothy surprised at speaker_focus(xalign=0.9)
     d "M-me? Sir, I punch tickets. I was at the front of the train all night, checking the same ticket over and over…"
@@ -1618,7 +1618,7 @@ label accusation_dorothy:
 label accusation_ichora:
     $ note_accused("ichora")
     hide fedora
-    show louis neutral at speaker_focus(xalign=0.1)
+    show louis determined at speaker_focus(xalign=0.1)
     l "It was you, Ichora."
     show ichora neutral at speaker_focus(xalign=0.9)
     ic "Buddy. I gave you a KEY. This is how you thank me?"
@@ -1627,7 +1627,7 @@ label accusation_ichora:
 label accusation_pattison:
     $ note_accused("pattison")
     hide fedora
-    show louis neutral at speaker_focus(xalign=0.1)
+    show louis determined at speaker_focus(xalign=0.1)
     l "It was you, Pattison."
     show pattison neutral at speaker_focus(xalign=0.9)
     p "This goes to the clock… and this goes to you, sir. Wrong pile."
@@ -1636,7 +1636,7 @@ label accusation_pattison:
 label accusation_fedora:
     $ note_accused("fedora")
     hide fedora
-    show louis neutral at speaker_focus(xalign=0.1)
+    show louis determined at speaker_focus(xalign=0.1)
     l "It was you, Fedora. You knew there'd be a killer before anyone did."
     show fedora neutral at speaker_focus(xalign=0.9)
     f "ME? Matchstick, I'd have had the scoop of the CENTURY. I wouldn't waste it on myself."
@@ -1645,7 +1645,7 @@ label accusation_fedora:
 label accusation_kimmy:
     $ note_accused("kimmy")
     hide fedora
-    show louis neutral at speaker_focus(xalign=0.1)
+    show louis determined at speaker_focus(xalign=0.1)
     l "It was you, Kimmy."
     show kimmy neutral at speaker_focus(xalign=0.9)
     k "Darling. I don't get blood on silk. Ever."
@@ -1654,7 +1654,7 @@ label accusation_kimmy:
 label accusation_sebastian:
     $ note_accused("sebastian")
     hide fedora
-    show louis neutral at speaker_focus(xalign=0.1)
+    show louis determined at speaker_focus(xalign=0.1)
     l "It was you, Sebastian."
     show sebastian neutral at speaker_focus(xalign=0.9)
     seb "I stood at that cabin door all night, sir. Guarding it. Guarding him."
@@ -1664,7 +1664,7 @@ label accusation_sebastian:
 label accusation_eduard:
     $ note_accused("eduard")
     hide fedora
-    show louis neutral at speaker_focus(xalign=0.1)
+    show louis determined at speaker_focus(xalign=0.1)
     l "It was you."
     show eduard neutral at speaker_focus(xalign=0.9)
     ed "Me?? I- I never even left the counter."
@@ -1673,7 +1673,7 @@ label accusation_eduard:
 label accusation_alexander:
     $ note_accused("alexander")
     hide fedora
-    show louis neutral at speaker_focus(xalign=0.1)
+    show louis determined at speaker_focus(xalign=0.1)
     l "It was you."
     show alexander neutral at speaker_focus(xalign=0.9)
     al "Wha? No, no no no, I didn't leave this carriage, ask the postman, ASK HIM!"
@@ -1682,7 +1682,7 @@ label accusation_alexander:
 label accusation_agatha:
     $ note_accused("agatha")
     hide fedora
-    show louis neutral at speaker_focus(xalign=0.1)
+    show louis determined at speaker_focus(xalign=0.1)
     l "It was you."
     show agatha neutral at speaker_focus(xalign=0.9)
     a "...You're joking. Tell me you're joking."
@@ -1691,7 +1691,7 @@ label accusation_agatha:
 label accusation_himmel:
     $ note_accused("himmel")
     hide fedora
-    show louis neutral at speaker_focus(xalign=0.1)
+    show louis determined at speaker_focus(xalign=0.1)
     l "It was you. You owed Alexander, same as Shunyu did."
     show himmel neutral at speaker_focus(xalign=0.9)
     h "M-me?! I was in our cabin all night, I- I can barely open a JAR, darling, let alone-"
@@ -1717,7 +1717,7 @@ label wrong_ending:
 label accusation_misha:
     $ note_accused("misha")
     hide fedora
-    show louis neutral at speaker_focus(xalign=0.1)
+    show louis determined at speaker_focus(xalign=0.1)
     if not (clue_tile_mismatch and clue_body_moved and clue_alexander_alibi and clue_hidden_tile):
         l "It was Misha."
         show misha neutral at speaker_focus(xalign=0.9)
@@ -1759,7 +1759,7 @@ label accusation_misha:
     "{i}Fedora, quietly, notepad lowering for the first time all night:{/i}"
     f "...I don't think I want to interview the killer anymore."
     show fedora neutral at speaker_background(xalign=0.9)
-    show louis neutral at speaker_focus(xalign=0.1)
+    show louis determined at speaker_focus(xalign=0.1)
     "{i}Louis looks toward Carriage 6.{/i}"
     l "...I need to see this through. All the way."
     $ achievement.grant("true_detective")

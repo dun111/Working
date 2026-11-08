@@ -637,6 +637,8 @@ init python:
             _sp_pending.clear()
         except Exception:
             pass
+        if kwargs.get("layer") in (None, "master"):
+            note_expression_change(name, kwargs.get("tag"))
         rv = _orig_show(name, at_list, *args, **kwargs)
         if kwargs.get("layer") in (None, "master"):
             # A new background may have come in: rumble only on the carriage maps.
