@@ -1315,5 +1315,7 @@ screen fullscreen_pop(img, cover=False):
         hover_sound None
         action Hide("fullscreen_pop")
         add Solid("#000000e6") at pop_back
-        add Transform(img, fit=("cover" if cover else "contain"), xysize=(sw, sh)) at pop_fill
+        # Close-ups keep a margin so the object never touches the edges of the screen.
+        add Transform(img, fit=("cover" if cover else "contain"),
+                      xysize=((sw, sh) if cover else (int(sw * 0.8), int(sh * 0.8)))) at pop_fill
     timer POP_SECS action Hide("fullscreen_pop")
