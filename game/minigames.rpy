@@ -281,8 +281,10 @@ init python:
             store.lp_pins += 1
             if store.lp_pins >= 3:
                 store.lp_result = "win"
+                sfx(SFX_LOCK_OPEN)
                 mg_record("lockpick", "tumbler_talent")
             else:
+                sfx(SFX_LOCK_PIN)
                 store.lp_w = max(0.07, store.lp_w * 0.9)
                 store.lp_speed *= 1.12
                 store.lp_zone = renpy.random.uniform(0.1, 0.9 - store.lp_w)

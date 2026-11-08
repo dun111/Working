@@ -10,6 +10,9 @@ define SFX_TILE_MATCH = "audio/mahjong_match.mp3"
 define SFX_BLOCK_PRESS = "audio/blocks_press.wav"
 define SFX_BLOCK_SHOW = "audio/blocks_show.wav"
 define SFX_BERRY = "audio/blackberry_touch.mp3"
+# Pick the lock (the Carriage 1 cupboard): a wooden click for each pin, the old lock opening on a win.
+define SFX_LOCK_PIN = "audio/lock_pin.mp3"
+define SFX_LOCK_OPEN = "audio/lock_open.mp3"
 
 init python:
     # The door and the minigame sounds get their own channels, so a button click
