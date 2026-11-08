@@ -138,10 +138,6 @@ screen mg_debug():
             use mg_end(_("BUILD FAILED"), "lose")
 
 
-define CREDIT_STYLES = [
-    ("spotlight",  _("SPOTLIGHT")),
-    ("tickets",    _("TICKETS")),
-]
 
 
 # The music credits follow the radio's own song list.
@@ -149,24 +145,6 @@ init 1 python:
     CREDIT_MUSIC = [(SONGS[k][1], SONGS[k][2]) for k in SONG_ORDER if k in SONGS]
 
 init python:
-    def credits_style_now():
-        s = persistent.credits_style
-        return s if s in dict(CREDIT_STYLES) else "spotlight"
-
-    def credits_style_name():
-        return dict(CREDIT_STYLES)[credits_style_now()]
-
-    def set_credits_style(s):
-        persistent.credits_style = s
-        if renpy.get_screen("about"):
-            credits_music_on()
-        renpy.restart_interaction()
-
-    def credits_style_step(d):
-        ids = [k for k, _n in CREDIT_STYLES]
-        k = ids.index(credits_style_now())
-        set_credits_style(ids[(k + d) % len(ids)])
-
     def credit_people():
         return [m[1] for m in MANIFEST] + ["The Passenger", "The Gentleman", "The Conductor"]
 
@@ -202,214 +180,12 @@ define CRED_ACCENT = "#e0521f"
 define CRED_GOLD = "#e6a817"
 define CRED_TEXT = "#f2ead8"
 define CRED_MUTED = "#8888a0"
-# Ticket paper and ink.
-define CRED_PAPER = "#efe5cf"
-define CRED_STUB = "#e0d1ae"
-define CRED_INK = "#2b1d14"
-define CRED_INK_SOFT = "#8a7454"
-define CRED_RED = "#b8341a"
 
-# Behind both credit styles: a faint, blurred first-class carriage.
+# Behind the credits: a faint, blurred first-class carriage.
 image cred_backdrop = Fixed(
     Solid(CRED_BG),
     Transform("images/bg_first_class.webp", fit="cover", xysize=(config.screen_width, config.screen_height), blur=28, alpha=0.2),
     Solid("#08080c55"))
-
-init python:
-    def credits_roll(adj, state):
-        # Hold still for the first 3 seconds, then roll.
-        state["ticks"] += 1
-        if state["ticks"] > 100:
-            credits_step(adj)
-
-    def _dashes(vertical, color, dash=8, gap=7, thick=3):
-        if vertical:
-            piece = Fixed(Solid(color, xsize=thick, ysize=dash), xysize=(thick, dash + gap))
-        else:
-            piece = Fixed(Solid(color, xsize=dash, ysize=thick), xysize=(dash + gap, thick))
-        return Tile(piece)
-
-    CRED_STUB_W = 150
-    # Bar widths for the pass's barcode: positive is ink, negative is a gap.
-    CRED_BARCODE = [4, -3, 2, -2, 6, -3, 2, -4, 3, -2, 2, -3, 5, -2, 2, -2, 4, -4, 2, -3, 6, -2, 3, -3,
-                    2, -2, 4, -3, 2, -4, 5, -2, 3, -2, 2, -3, 4, -2, 6, -3, 2, -2, 3, -4, 2, -2, 5, -3,
-                    2, -3, 4, -2, 2, -4, 3, -2, 6, -3, 2, -2, 4]
-
-    def ticket_back(no):
-        # The ticket: a darker stub on the left with its number, a perforated tear line,
-        # and a notch at each end of the tear line.
-        return Fixed(
-            rbox(CRED_PAPER, 20),
-            Transform(rbox(CRED_STUB, 20), xsize=CRED_STUB_W + 20),
-            Transform(Solid(CRED_PAPER), xpos=CRED_STUB_W, xsize=22),
-            Transform(_dashes(True, CRED_INK_SOFT), xpos=CRED_STUB_W - 1, xsize=3),
-            Transform(rbox(CRED_BG, 10), xysize=(20, 20), xpos=CRED_STUB_W - 10, ypos=-10),
-            Transform(rbox(CRED_BG, 10), xysize=(20, 20), xpos=CRED_STUB_W - 10, yalign=1.0, yoffset=10),
-            Transform(Text("No.", size=16, color=CRED_INK_SOFT, font=GFONT), pos=(28, 30)),
-            Transform(Text("%02d" % no, size=54, color=CRED_INK, font=CREDIT_FONT), pos=(26, 50)),
-        )
-
-    def ticket_columns(lines):
-        n = len(lines)
-        cols = 1 if n <= 4 else (2 if n <= 14 else 3)
-        per = (n + cols - 1) // cols
-        return [lines[k:k + per] for k in range(0, n, per)]
-
-    def credit_line_text(ln, sub, sub_color):
-        t = _esc(ln)
-        if sub:
-            t += "{size=-6}{color=%s}   %s{/color}{/size}" % (sub_color, _esc(sub))
-        return t
-
-transform cred_fade(d=0.0):
-    alpha 0.0
-    pause d
-    ease 0.5 alpha 1.0
-
-
-# ---------- TICKETS: every section is a train ticket, rolling up the screen ----------
-
-define CRED_TOP = 70
-define CRED_H = config.screen_height - 230
-define CRED_LIST_W = config.screen_width - 760
-
-screen cred_ticket(no, heading, lines, clickable=False):
-    $ cols = ticket_columns(lines)
-    $ col_w = (CRED_LIST_W - CRED_STUB_W - 40 - 44) // len(cols)
-    frame:
-        xfill True
-        padding (CRED_STUB_W + 40, 30, 44, 34)
-        background ticket_back(no)
-        vbox:
-            spacing 12
-            text heading.upper():
-                size 34
-                color CRED_RED
-                font CREDIT_FONT
-            add Solid(CRED_INK_SOFT, xsize=70, ysize=2)
-            null height 2
-            hbox:
-                for col in cols:
-                    vbox:
-                        xsize col_w
-                        spacing 8
-                        for ln, sub in col:
-                            if clickable:
-                                textbutton credit_line_text(ln, sub, CRED_INK_SOFT):
-                                    padding (0, 0)
-                                    background None
-                                    text_size 24
-                                    text_color CRED_INK
-                                    text_hover_color CRED_RED
-                                    text_font GFONT
-                                    action Function(credits_click, ln)
-                            else:
-                                text credit_line_text(ln, sub, CRED_INK_SOFT):
-                                    size 24
-                                    color CRED_INK
-                                    font GFONT
-
-screen credits_tickets():
-    default cred_adj = ui.adjustment()
-    default cred_roll = {"ticks": 0}
-    add "cred_backdrop"
-
-    # The pass on the left: a paper ticket with the logo.
-    frame:
-        xpos 80
-        ypos CRED_TOP
-        xsize 520
-        ysize CRED_H
-        padding (44, 0, 44, 40)
-        background Fixed(rbox(CRED_PAPER, 26), Transform(rbox(CRED_RED, 26), ysize=120), Transform(Solid(CRED_RED), ypos=70, ysize=50))
-        at cred_fade(0.0)
-        vbox:
-            xfill True
-            spacing 0
-            null height 26
-            text _("GREKHOV EXPRESS"):
-                xalign 0.5
-                size 36
-                color "#fff4e0"
-                font CREDIT_FONT
-            text _("ADMIT ONE  ·  CREDITS"):
-                xalign 0.5
-                size 16
-                color "#f6d2c2"
-                font GFONT
-            null height 46
-            add Transform("images/logo_game_red.webp", fit="contain", xysize=(400, 240)):
-                xalign 0.5
-            null height 28
-            add _dashes(False, CRED_INK_SOFT):
-                xsize 432
-                ysize 3
-            null height 26
-            text _("DEPARTS 4:00"):
-                xalign 0.5
-                size 52
-                color CRED_RED
-                font CREDIT_FONT
-            text _("PLATFORM 4  ·  CARRIAGES 1 - 6"):
-                xalign 0.5
-                size 16
-                color CRED_INK_SOFT
-                font GFONT
-            null height 30
-            text _("Version [config.version]"):
-                xalign 0.5
-                size 22
-                color CRED_INK
-                font GFONT
-            null height 6
-            text _("Made with Ren'Py [renpy.version_only]"):
-                xalign 0.5
-                size 16
-                color CRED_INK_SOFT
-                font GFONT
-            null height 40
-            # A barcode along the bottom of the pass.
-            hbox:
-                xalign 0.5
-                spacing 0
-                for w in CRED_BARCODE:
-                    add Solid(CRED_INK if w > 0 else CRED_PAPER):
-                        xsize abs(w)
-                        ysize 70
-            null height 8
-            text "0400 · GRX · 1906":
-                xalign 0.5
-                size 16
-                color CRED_INK_SOFT
-                font GFONT
-
-    viewport:
-        xpos 680
-        ypos CRED_TOP
-        xsize CRED_LIST_W
-        ysize CRED_H
-        yadjustment cred_adj
-        mousewheel True
-        draggable True
-        at cred_fade(0.2)
-
-        vbox:
-            xsize CRED_LIST_W
-            spacing 34
-
-            for i, (heading, lines, click) in enumerate(credit_sections()):
-                use cred_ticket(i + 1, heading, lines, click)
-
-            null height 40
-            text _("THANKS FOR PLAYING!"):
-                xalign 0.5
-                size 54
-                color CRED_GOLD
-                font CREDIT_FONT
-            null height CRED_H
-
-    timer 0.03 repeat True action Function(credits_roll, cred_adj, cred_roll)
-
 
 # ---------- SPOTLIGHT: one picture and one credit at a time ----------
 

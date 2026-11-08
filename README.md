@@ -22,6 +22,18 @@ The builds are on the [Releases](../../releases) page.
 - **Mac:** download the `.dmg`, open it and drag Departure at 4:00 into Applications.
 - **Windows / Linux:** download the `pc` zip, unzip it and run `Departure at 4.00.exe` (or `Departure at 4.00.sh` on Linux).
 
+## Minimum specs
+
+| | Windows | Mac | Linux |
+| --- | --- | --- | --- |
+| **System** | Windows 10 or later (64-bit) | macOS 10.10 or later | Ubuntu 20.04 or later (64-bit) |
+| **Processor** | 2.0 GHz 64-bit | 2.0 GHz 64-bit Intel, or Apple silicon (M1 or later) | 2.0 GHz 64-bit |
+| **Memory** | 4 GB RAM | 4 GB RAM | 4 GB RAM |
+| **Graphics** | OpenGL 3.0 or DirectX 11 | OpenGL 3.0 | OpenGL 3.0 |
+| **Storage** | 300 MB free | 300 MB free | 300 MB free |
+
+The game runs at 1920x1080 and scales to fit smaller screens and windows. Sound is recommended: the music, the radio and the minigame sounds are part of the game.
+
 ## How it plays
 
 The game opens with a short tutorial, and the full guide is under **HOW TO PLAY** on the main menu (or F1) any time.

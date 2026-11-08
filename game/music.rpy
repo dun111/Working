@@ -35,7 +35,6 @@ define MUSIC_FOR = {
     "menu_shuffle": ["main_menu", "carriage_3"],
     "casino": ["main_menu"],
     "credits": ["flower_in_a_hurricane"],
-    "credits_tickets": ["flower_in_a_hurricane"],
     "credits_spotlight": ["flower_in_a_hurricane"],
 }
 

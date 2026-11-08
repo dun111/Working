@@ -109,24 +109,34 @@ screen carriage_2_map():
     if c2_talked_eduard and c2_talked_shunyu:
         use hs(DOOR_RIGHT, Jump("carriage_3_start"), "Carriage 3", "door", 0.2)
 
+# Carriage 3's cabins are drawn under the corridor (see c3_rooms in screens.rpy).
+# These are the spots in them: the people, Misha's toy and rug, and the whole cabins.
+define C3_HS_KIMMY = (372, 778, 80, 135)
+define C3_HS_HIMMEL = (500, 860, 72, 125)
+define C3_HS_MISHA = (848, 828, 72, 80)
+define C3_HS_RUG = (800, 910, 150, 55)
+define C3_HS_TOYS = (962, 834, 60, 48)
+define C3_HS_MISHA_ROOM = (792, 648, 336, 390)
+define C3_HS_EMPTY_ROOM = (1268, 648, 336, 390)
+
 screen carriage_3_map():
     add "bg carriage_3"
     use golden_ticket("c3", 1820, 300)
     use hs(DOOR_LEFT, Jump("carriage_2_hub"), "Carriage 2", "back")
     if not c3_talked_kimmy:
-        use hs((230, 650, 160, 200), Call("c3_kimmy_dialogue"), "Kimmy", "talk")
+        use hs(C3_HS_KIMMY, Call("c3_kimmy_dialogue"), "Kimmy", "talk")
     if not c3_talked_himmel:
-        use hs((480, 650, 160, 200), Call("c3_himmel_dialogue"), "Himmel", "talk", 0.05)
+        use hs(C3_HS_HIMMEL, Call("c3_himmel_dialogue"), "Himmel", "talk", 0.05)
     if not c3_talked_sebastian:
         use hs((1270, 405, 115, 170), Call("c3_sebastian_dialogue"), "Sebastian", "talk", 0.1)
     # Misha's cabin stays locked until Sebastian has spoken to Louis.
     if c3_talked_sebastian:
         if not c3_talked_misha:
-            use hs((1000, 650, 180, 200), Call("c3_misha_dialogue"), "Misha", "talk", 0.15)
-        use hs((1210, 680, 150, 160), Call("c3_interact_toys"), "Toys", delay=0.3)
+            use hs(C3_HS_MISHA, Call("c3_misha_dialogue"), "Misha", "talk", 0.15)
+        use hs(C3_HS_TOYS, Call("c3_interact_toys"), "Toys", delay=0.3)
     else:
-        use hs((1000, 650, 360, 200), Function(renpy.notify, _("Locked. Talk to Sebastian first.")), "Misha's door", delay=0.15)
-    use hs((1450, 650, 180, 200), Call("c3_interact_empty_room"), "Empty room", delay=0.2)
+        use hs(C3_HS_MISHA_ROOM, Function(renpy.notify, _("Locked. Talk to Sebastian first.")), "Misha's door", delay=0.15)
+    use hs(C3_HS_EMPTY_ROOM, Call("c3_interact_empty_room"), "Empty room", delay=0.2)
     use hs((420, 470, 260, 90), Call("c3_interact_carpet"), "Carpet", delay=0.25)
     use hs((1760, 750, 100, 90), Call("c3_interact_luggage"), "Luggage", delay=0.35)
     if c3_talked_kimmy and c3_talked_himmel and c3_talked_sebastian and c3_talked_misha:
@@ -191,7 +201,7 @@ screen carriage_3_part2_map():
     # Himmel, then the mail room (Carriage 5), then back here for the carpet,
     # Sebastian and Misha, then the decision.
     if not kimmy_reinterviewed:
-        use hs((230, 650, 160, 200), Call("c3_p2_kimmy_reinterview"), "Kimmy", "talk")
+        use hs(C3_HS_KIMMY, Call("c3_p2_kimmy_reinterview"), "Kimmy", "talk")
     if kimmy_reinterviewed and not himmel_reinterviewed:
         # In the Part 2 art Himmel stands in the corridor on the far left.
         use hs((90, 330, 80, 175), Call("c3_p2_himmel_reinterview"), "Himmel", "talk", 0.05)
@@ -199,11 +209,12 @@ screen carriage_3_part2_map():
     if clue_hidden_tile and not sebastian_reinterviewed:
         use hs((1270, 405, 115, 170), Call("c3_p2_sebastian_reinterview"), "Sebastian", "talk", 0.1)
     if clue_hidden_tile and not misha_reinterviewed:
-        use hs((1000, 650, 180, 200), Call("c3_p2_misha_reinterview"), "Misha", "talk", 0.15)
+        use hs(C3_HS_MISHA, Call("c3_p2_misha_reinterview"), "Misha", "talk", 0.15)
 
     if clue_alexander_alibi:
-        use hs((420, 470, 260, 90), Call("c3_p2_interact_carpet"), "Carpet", delay=0.2)
-    use hs((1210, 680, 150, 160), Call("c3_p2_interact_toys"), "Toys", delay=0.25)
+        # Misha's carpet: the rug in his cabin.
+        use hs(C3_HS_RUG, Call("c3_p2_interact_carpet"), "Carpet", delay=0.2)
+    use hs(C3_HS_TOYS, Call("c3_p2_interact_toys"), "Toys", delay=0.25)
 
     if himmel_reinterviewed and not clue_alexander_alibi:
         use hs(DOOR_RIGHT, Jump("carriage_5_part2_start"), "Carriage 5", "door", 0.35)
@@ -1799,7 +1810,6 @@ label ending_1_death:
     hide screen loop_overlay
     scene black with dissolve
     call screen ending_card(_("ENDING 1"), _("WRONG GUESS"), _("The train doesn't forgive wrong guesses."))
-    call ending_video from _call_ending_video
     $ MainMenu(confirm=False)()
     return
 
@@ -1812,7 +1822,6 @@ label ending_2_escape:
     $ c6_help = int(bool(played_mahjong)) + int(bool(has_maple_sugar)) + int(bool(sorted_mail))
     "{i}On the first ride, you did [c6_help] of the 3 things that would have helped you understand them.{/i}"
     call screen ending_card(_("ENDING 2"), _("PARTIAL TRUTH"), _("You escaped, but not everything was resolved."))
-    call ending_video from _call_ending_video_1
     $ MainMenu(confirm=False)()
     return
 
@@ -1824,11 +1833,12 @@ label ending_3_true:
     d "Thank you for saving us. You can finally leave!"
     scene black with dissolve
     call screen ending_card(_("ENDING 3"), _("THE TRUE LINE"), _("You solved the mystery and freed everyone from the loop."))
-    call ending_video from _call_ending_video_2
     $ MainMenu(confirm=False)()
     return
 
 
+# The ending video now lives in EXTRAS (Endings and Theatre); the endings don't play it.
+# Kept so a save made just before it still loads.
 label ending_video:
     stop music fadeout 1.0
     $ renpy.movie_cutscene(ENDING_VIDEO, stop_music=True)

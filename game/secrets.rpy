@@ -607,11 +607,10 @@ init python:
         before = None
 
     def credits_music_on():
-        if _MUSIC.place not in ("credits", "credits_tickets", "credits_spotlight"):
+        if _MUSIC.place not in ("credits", "credits_spotlight"):
             _CREDMUS.before = _MUSIC.place
         menu_music_filter_off()
-        st = credits_style_now()
-        music_for({"tickets": "credits_tickets", "spotlight": "credits_spotlight"}.get(st, "credits"), fade=1.0)
+        music_for("credits_spotlight", fade=1.0)
 
     def credits_music_off():
         if main_menu:

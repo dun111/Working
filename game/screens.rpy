@@ -786,11 +786,71 @@ image bg carriage_2 = themed(ConditionSwitch(
 # so the sunny windows don't clash with "it's dark" next door.
 define LOOP_NIGHT = TintMatrix("#d08a80") * SaturationMatrix(0.55) * BrightnessMatrix(-0.16)
 
+# ---------- Carriage 3's cabins, drawn into the blank space below the corridor ----------
+# Kimmy and Himmel's room, Misha's room, and the empty cabin (made from shapes, in the
+# same colours as the room art). Positions are in the 1920x1080 design space; the
+# room art is 312x362 once cropped, scaled by C3_ROOM_K.
+init python:
+    C3_ROOM_Y = 648
+    C3_ROOM_H = 390
+    C3_ROOM_K = C3_ROOM_H / 362.0
+    C3_ROOM_W = int(312 * C3_ROOM_K)
+    C3_ROOMS_X = {"kimmy": 316, "misha": 792, "empty": 1268}
+
+    def c3_room_rect(room, cx, cy, cw, ch):
+        # A spot in a cabin's art (cropped-art pixels) as a hotspot rectangle on the map.
+        k = C3_ROOM_K
+        return (C3_ROOMS_X[room] + int(cx * k), C3_ROOM_Y + int(cy * k), int(cw * k), int(ch * k))
+
+    def empty_cabin():
+        k = C3_ROOM_K
+        def box(color, x, y, w, h):
+            return Transform(Solid(color), pos=(int(x * k), int(y * k)), xysize=(max(1, int(w * k)), max(1, int(h * k))))
+        parts = [
+            box("#8e634f", 0, 0, 312, 140),       # wall
+            box("#7c4f44", 0, 134, 312, 8),       # skirting
+            box("#835447", 0, 142, 312, 208),     # floor
+            box("#65413c", 0, 350, 312, 12),      # bottom edge
+            box("#5c2c24", 45, 31, 63, 105),      # door frame
+            box("#643932", 51, 37, 51, 99),       # door
+            box("#fff6e0", 59, 44, 35, 24),       # door window
+            box("#c9a24a", 92, 90, 6, 6),         # door knob
+            box("#5c2c24", 168, 24, 124, 64),     # window frame
+            box("#22324a", 174, 30, 112, 52),     # window
+            box("#553737", 114, 127, 45, 50),     # nightstand
+            box("#5c2c24", 162, 100, 142, 196),   # bed frame
+            box("#9b5b5f", 168, 106, 130, 184),   # made bed
+            box("#f0e1ce", 174, 112, 54, 26),     # pillows
+            box("#f0e1ce", 236, 112, 54, 26),
+            box("#b06f73", 168, 170, 130, 6),     # folded sheet
+        ]
+        for gy in range(158, 350, 24):            # floorboards
+            parts.append(box("#7a4c40", 0, gy, 312, 2))
+        return Fixed(*parts, xysize=(C3_ROOM_W, C3_ROOM_H))
+
+    def c3_rooms():
+        rooms = (
+            ("kimmy", Transform("images/bg_cabin_kimmy.webp", crop=(362, 106, 312, 362), nearest=True)),
+            ("misha", Transform("images/bg_cabin_misha.webp", crop=(1086, 320, 938, 1086), nearest=True)),
+            ("empty", empty_cabin()),
+        )
+        w, h = map_wh(C3_ROOM_W, C3_ROOM_H)
+        parts = []
+        for key, art in rooms:
+            x, y = map_xy(C3_ROOMS_X[key], C3_ROOM_Y)
+            parts.append(Transform(rbox("#1c120e", 12), pos=(x - 8, y - 8), xysize=(w + 16, h + 16)))
+            parts.append(Transform(art, pos=(x, y), xysize=(w, h)))
+        return Fixed(*parts, xysize=(GAME_W, GAME_H))
+
+    C3_ROOMS = c3_rooms()
+
 image bg carriage_3 = themed(ConditionSwitch(
-    # Part 2 has its own art (night windows, Misha out in the corridor). Its top edge
+    # Part 2 has its own art (night windows, Himmel out in the corridor). Its top edge
     # drips, so the ceiling above it is one flat colour.
-    "in_loop", map_bg("images/bg_sleeper_cart_part2.webp", 0.185, 0.815, ceiling="#7d5847", lamp="#ff7a66", lamps=5, eerie=True, backdrop="#2a1a16", nearest=True),
-    "True", map_bg("images/bg_sleeper_cart.webp", 0.185, 0.815, lamp="#ffd9a0", lamps=5, backdrop="#2a1a16", nearest=True)))
+    "in_loop", Fixed(map_bg("images/bg_sleeper_cart_part2.webp", 0.185, 0.815, ceiling="#7d5847", lamp="#ff7a66", lamps=5, eerie=True, backdrop="#2a1a16", nearest=True),
+                     Transform(C3_ROOMS, matrixcolor=LOOP_NIGHT)),
+    "True", Fixed(map_bg("images/bg_sleeper_cart.webp", 0.185, 0.815, lamp="#ffd9a0", lamps=5, backdrop="#2a1a16", nearest=True),
+                  C3_ROOMS)))
 image bg carriage_4 = themed(map_bg("images/bg_staff_cart.webp", 0.185, 0.815, lamp="#ffe9c4", lamps=5, nearest=True))
 
 
@@ -966,7 +1026,6 @@ init -10 python:
         "quick_menu_shown": True,
         "readable_font": False,
         "menu_style": "new",
-        "credits_style": "spotlight",
         "ui_theme": "default",
         "menu_fx": True,
         "ach_toasts": True,
@@ -2217,6 +2276,7 @@ screen main_menu():
         xsize 180
         ysize 90
         background None
+        activate_sound SFX_BERRY
         action Function(blackberry_secret_action)
         at fade_slide_in(0.9, xoff=70, final_xoff=30)
 
@@ -2943,10 +3003,6 @@ screen preferences():
                             font GFONT
                         use rbtn("›", Function(menu_style_step, 1), w=56, h=44, r=14, size=24)
 
-                    use pref_row(_("CREDITS STYLE"), _("The style of the credits."), 0.0):
-                        for cid, cname in CREDIT_STYLES:
-                            use pref_toggle(cname, Function(set_credits_style, cid), selected=(credits_style_now() == cid), w=160)
-
                     use pref_row(_("COLOUR THEME"), _("Tints the backgrounds and maps."), 0.0):
                         use rbtn("‹", Function(theme_step, -1), w=56, h=44, r=14, size=24)
                         text theme_name():
@@ -3493,14 +3549,6 @@ define CREW = [
         "General Helper", "Probably a researcher"]},
 ]
 
-init python:
-    def credits_step(adj):
-        if adj.value >= adj.range - 2:
-            adj.change(0)
-        else:
-            adj.change(adj.value + 0.9)
-
-
 screen about():
     tag menu
     key "game_menu" action (ShowMenu("main_menu") if main_menu else Return())
@@ -3510,7 +3558,7 @@ screen about():
     on "hide" action Function(credits_music_off)
     on "replaced" action Function(credits_music_off)
 
-    use expression ("credits_" + credits_style_now())
+    use credits_spotlight
 
     fixed:
         xpos 80
@@ -3518,24 +3566,6 @@ screen about():
         xsize 160
         ysize 50
         use rbtn(_("BACK"), (ShowMenu("main_menu") if main_menu else Return()), w=160, h=50, r=14, size=24)
-
-    hbox:
-        xalign 0.97
-        ypos 30
-        spacing 10
-        use rbtn("‹", Function(credits_style_step, -1), w=50, h=44, r=14, size=22)
-        frame:
-            ysize 44
-            padding (16, 0)
-            background rbox("#0a0a0ecc", 14)
-            text credits_style_name():
-                yalign 0.5
-                min_width 170
-                text_align 0.5
-                size 18
-                color "#e6a817"
-                font GFONT
-        use rbtn("›", Function(credits_style_step, 1), w=50, h=44, r=14, size=22)
 
 
 screen ending_card(label_text, title, subtitle):
@@ -4216,6 +4246,32 @@ screen extras_menu():
                                     color ("#c9c9d8" if er["seen"] else "#55556a")
                                     font GFONT
                                     xsize (ex_w - 160)
+
+                # The ending video, to watch any time.
+                frame:
+                    xfill True
+                    background rbox("#17150d", 22)
+                    padding (26, 18)
+                    at row_pop(0.3)
+                    hbox:
+                        spacing 24
+                        vbox:
+                            spacing 6
+                            yalign 0.5
+                            xsize (ex_w - 52 - 24 - 170)
+                            text _("VIDEO"):
+                                size 16
+                                color "#e6a817"
+                                font GFONT
+                            text _("THE ENDING"):
+                                size 30
+                                color "#ffffff"
+                                font GFONT
+                            text _("The ending video. It's also in the Theatre."):
+                                size 18
+                                color "#c9c9d8"
+                                font GFONT
+                        use rbtn(_("WATCH"), Function(play_ending_video), w=170, h=54, r=16, size=22, bg="#8a4a22", hov="#b8631f", col="#f2e6d8", hcol="#ffffff")
 
             elif xt == "chapters":
                 for idx, (lab, title, sub, loop) in enumerate(CHAPTERS):
