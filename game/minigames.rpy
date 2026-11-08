@@ -212,8 +212,11 @@ style mg_small is text:
 
 
 define LP_SWING = 70
+# The lock: a brass plate centred on the screen, the keyhole low on it, the pins
+# above the ring of ticks, and a key just short enough to point at the ticks.
 define LP_CX = 960
-define LP_CY = 520
+define LP_CY = 640
+define LP_R = 190
 
 default lp_pos = 0.0
 default lp_dir = 1
@@ -225,9 +228,10 @@ default lp_speed = 0.9
 default lp_result = None
 
 init python:
-    LP_KEY = Transform(Transform("images/key.webp", crop=KEY_CROP), zoom=0.3)
-    LP_KEY_TIP = (307.0 / KEY_CROP[2], 0.97)
-    LP_TICKS = _ring_points(LP_CX, LP_CY, 150, range(-LP_SWING, LP_SWING + 1, 7))
+    LP_KEY = Transform(Transform("images/key.webp", crop=KEY_CROP), zoom=0.15)
+    # The key turns around the tip of its shaft, which runs down the middle of the art.
+    LP_KEY_TIP = (float(KEY_RING_CX) / KEY_CROP[2], 0.97)
+    LP_TICKS = _ring_points(LP_CX, LP_CY, LP_R, range(-LP_SWING, LP_SWING + 1, 7))
 
     def lp_angle(pos):
         return (pos - 0.5) * 2 * LP_SWING
@@ -285,29 +289,27 @@ screen mg_lockpick():
 
         use mg_stats([_("Pins: %d / 3") % lp_pins, _("Slips: %d / 3") % lp_fails])
 
+        # The door, below the instructions in the top-left corner.
         add rbox("#2e1a0e", 40):
-            pos (548, 118)
-            xysize (824, 884)
-        add rbox("#4a2c18", 36):
-            pos (560, 130)
-            xysize (800, 860)
-        add rbox("#55331d", 24):
-            pos (600, 170)
-            xysize (720, 300)
-        add rbox("#55331d", 24):
-            pos (600, 690)
-            xysize (720, 260)
+            pos (LP_CX - 350, 236)
+            xysize (700, 800)
+        add rbox("#4a2c18", 34):
+            pos (LP_CX - 338, 248)
+            xysize (676, 776)
 
+        # The brass plate.
         add rbox("#7a5518", 50):
-            pos (LP_CX - 180, 330)
-            xysize (360, 460)
-        add rbox("#c08f34", 46):
-            pos (LP_CX - 170, 340)
-            xysize (340, 440)
+            pos (LP_CX - 260, 290)
+            xysize (520, 540)
+        add rbox("#c08f34", 44):
+            pos (LP_CX - 250, 300)
+            xysize (500, 520)
+
+        # The three pins: raised once they're set.
         for i in range(3):
             add rbox("#ffd76a" if i < lp_pins else "#6a5228", 10):
-                pos (LP_CX - 70 + i * 60 - 13, (382 if i < lp_pins else 400))
-                xysize (26, 60)
+                pos (LP_CX - 80 + i * 80 - 14, (334 if i < lp_pins else 354))
+                xysize (28, 60)
         $ z0 = lp_angle(lp_zone)
         $ z1 = lp_angle(lp_zone + lp_w)
         for a, tx, ty in LP_TICKS:
@@ -340,7 +342,7 @@ screen mg_lockpick():
 
         if lp_result is None:
             fixed:
-                pos (LP_CX - 130, 860)
+                pos (LP_CX - 130, 892)
                 xysize (260, 64)
                 use rbtn(_("TURN"), Function(lockpick_turn), w=260, h=64, r=22, size=28, bg="#8a4a22", hov="#b8631f", col="#f2e6d8", hcol="#ffffff")
         elif lp_result == "win":

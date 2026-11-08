@@ -604,6 +604,10 @@ define FAVOURITE_PRESENT = {
     "Ichora": "sweets",
     "Pattison": "stamps",
     "Alexander": "maple",
+    # The Carriage 6 monsters.
+    "The Passenger": "charm",
+    "The Gentleman": "maple",
+    "The Conductor": "watch",
 }
 
 define FAVOURITE_LINES = {
@@ -619,6 +623,9 @@ define FAVOURITE_LINES = {
     "Ichora": "Sweets! Hey, you're alright, buddy!",
     "Pattison": "Stamps! Every mailworker's dream.",
     "Alexander": "THE MAPLE SUGAR!!! You absolute legend!!!",
+    "The Passenger": "(tiles clatter, almost happy) Lucky... lucky... I can't stop winning...",
+    "The Gentleman": "(the wrappers stop peeling, just for a moment) ...Sweet. So sweet. Next stop...",
+    "The Conductor": "...Four o'clock. Right on time. Thank you... for boarding.",
 }
 
 # After a present that isn't their favourite, they let slip a hint about it.
@@ -635,6 +642,9 @@ define FAVOURITE_HINTS = {
     "Ichora": "Ichora's stomach rumbles. \"Got anything sweet on ya?\"",
     "Pattison": "He sorts a pile of envelopes. None of them have stamps.",
     "Alexander": "He sniffs the air. \"Is that... maple?\"",
+    "The Passenger": "Tiles click in its throat. It rubs its long hands together, like it's hoping for luck.",
+    "The Gentleman": "Wrappers peel off its skin. It sniffs at them, hungry.",
+    "The Conductor": "It keeps looking up, as if checking a clock that isn't there.",
 }
 
 # Hearts that pay out tickets when you reach them (full hearts also give the achievements).
@@ -671,6 +681,9 @@ define GIFT_LINES = {
     "Ichora": ["Here ya go!", "Hey! I've been waiting for ya, buddy!", "Oh, I know."],
     "Pattison": ["Hello Sir, you another mailworker?", "It's okay, you will before the end.", "That's what I said, isn't it?"],
     "Alexander": ["The banned super maple sugar!!!", "Hahahaha… this stuff is so gooddddd….", "Depends? Are you a narc?"],
+    "The Passenger": ["(wet, clicking) Wanna play...", "You can only lose 100[pct]...", "...what did I actually lose?"],
+    "The Gentleman": ["Next stop, next stop, next stop...", "There's no next stop, there's no next stop, there's-", "(it doesn't seem to notice you)"],
+    "The Conductor": ["Thank you for boarding….", "...Thank you...", "(it unfolds another half-foot taller)"],
 }
 
 init python:
@@ -941,8 +954,18 @@ screen manifest():
 # ---------- GIFT SHOP: opened by clicking the big 4:00 on the main menu four times ----------
 
 init python:
+    # The Carriage 6 monsters can get presents too, once you've been to Carriage 6.
+    GIFT_MONSTERS = [
+        ("shunyu_monster neutral", "The Passenger"),
+        ("himmel_monster neutral", "The Gentleman"),
+        ("conductor_monster neutral", "The Conductor"),
+    ]
+
     def gift_shop_people():
-        return [{"img": m[0], "name": m[1], "known": met_ever(m[3])} for m in MANIFEST[1:]]
+        people = [{"img": m[0], "name": m[1], "known": met_ever(m[3]), "monster": False} for m in MANIFEST[1:]]
+        seen_c6 = renpy.seen_label("carriage_6_start")
+        people += [{"img": img, "name": name, "known": seen_c6, "monster": True} for img, name in GIFT_MONSTERS]
+        return people
 
     def gift_shop_first():
         for i, p in enumerate(gift_shop_people()):
@@ -996,13 +1019,13 @@ screen gift_shop():
 
                 # passengers
                 vbox:
-                    spacing 6
+                    spacing 4
                     xsize 380
                     for i, p in enumerate(people):
                         $ h = bond(p["name"]) if p["known"] else 0
                         button:
                             xsize 380
-                            ysize 50
+                            ysize 44
                             padding (18, 0)
                             background rbox(("#2a2312" if i == sel else "#14141a"), 14)
                             hover_background rbox("#3a3018", 14)
@@ -1013,7 +1036,7 @@ screen gift_shop():
                                 text (p["name"] if p["known"] else "???"):
                                     yalign 0.5
                                     size 20
-                                    color (("#ffd700" if i == sel else "#e8e4dc") if p["known"] else "#4a4a58")
+                                    color (("#ffd700" if i == sel else ("#e0645a" if p["monster"] else "#e8e4dc")) if p["known"] else "#4a4a58")
                                     font GFONT
                                 if p["known"]:
                                     text (("★  " if h >= BOND_MAX else "") + "♥" * h + "♡" * (BOND_MAX - h)):
