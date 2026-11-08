@@ -923,6 +923,8 @@ init python:
 
     config.save_json_callbacks.append(_save_tag)
 
+    # Saving is switched off from the Part 1 knockout until Louis is back on the
+    # Carriage 1 map in Part 2 (the game makes its own save for CONTINUE there).
     def save_ok(slot):
         return (renpy.slot_json(slot) or {}).get("save_version") == SAVE_VERSION
 
@@ -3203,7 +3205,7 @@ screen file_slots(title):
                             yfill True
                             background rbox("#101014", 22)
                             hover_background rbox("#1c1c26", 22)
-                            action (FileAction(slot) if (title == _("SAVE") or save_ok(slot) or not FileLoadable(slot)) else None)
+                            action ((Notify(_("You can't save right now.")) if save_locked else FileAction(slot)) if title == _("SAVE") else (FileAction(slot) if (save_ok(slot) or not FileLoadable(slot)) else None))
                             key "save_delete" action FileDelete(slot)
 
                             hbox:
@@ -4413,7 +4415,7 @@ init python:
 
 screen quick_keys():
     if not main_menu and not renpy.get_screen("menu"):
-        key "K_F5" action QuickSave()
+        key "K_F5" action (Notify(_("You can't save right now.")) if save_locked else QuickSave())
         key "K_F8" action Function(quick_load)
 
 

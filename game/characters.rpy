@@ -71,23 +71,37 @@ define SHUNYU_PNG      = art_file("images/shunyu_neutral.png")
 define ICHORA_PNG      = art_file("images/ichora_neutral.png")
 
 
+init python:
+    # An expression sprite: images/<tag>_<name>.png, sized like that character's neutral one.
+    EXPR_SCALE = {"misha": 0.72}
+
+    def expr(tag, name):
+        path = "images/%s_%s.png" % (tag, name)
+        return sprite(tag, path, renpy.image_size(path)[1], scale=EXPR_SCALE.get(tag, 1.0))
+
 image louis neutral        = sprite("louis", *LOUIS_PNG)
-image louis confused       = sprite("louis", *LOUIS_PNG)
+image louis confused       = expr("louis", "shocked")
+image louis shocked        = expr("louis", "shocked")
+image louis determined     = expr("louis", "determined")
 image louis looking_around = sprite("louis", *LOUIS_PNG)
 
 image fedora neutral = sprite("fedora", *FEDORA_PNG)
+image fedora happy   = expr("fedora", "happy")
+image fedora grim    = expr("fedora", "grim")
 
 image dorothy neutral   = sprite("dorothy", *DOROTHY_PNG)
 image dorothy happy     = sprite("dorothy", *DOROTHY_PNG)
 image dorothy confused  = sprite("dorothy", *DOROTHY_PNG)
-image dorothy surprised = sprite("dorothy", *DOROTHY_PNG)
+image dorothy surprised = expr("dorothy", "shocked")
+image dorothy shocked   = expr("dorothy", "shocked")
 image dorothy sad       = sprite("dorothy", *DOROTHY_SAD_PNG)
 
 
 image shunyu neutral = sprite("shunyu", *SHUNYU_PNG)
-image shunyu excited = sprite("shunyu", *SHUNYU_PNG)
+image shunyu excited = expr("shunyu", "excited")
 
 image ichora neutral = sprite("ichora", *ICHORA_PNG)
+image ichora wink    = expr("ichora", "wink")
 
 
 image eduard neutral    = portrait("eduard")
@@ -96,6 +110,19 @@ image himmel neutral    = portrait("himmel")
 image sebastian neutral = portrait("sebastian")
 image misha neutral     = portrait("misha", scale=0.72)
 image misha stares      = portrait("misha", scale=0.72)
+image misha evil        = expr("misha", "evil")
+image misha sad         = expr("misha", "sad")
+image eduard wary       = expr("eduard", "wary")
+image eduard worried    = expr("eduard", "worried")
+image kimmy amiable     = expr("kimmy", "amiable")
+image himmel nervous    = expr("himmel", "nervous")
+image sebastian shocked = expr("sebastian", "shocked")
+image sebastian threatening = expr("sebastian", "threatening")
+image agatha annoyed    = expr("agatha", "annoyed")
+image agatha judgemental = expr("agatha", "judgemental")
+image pattison gloomy   = expr("pattison", "gloomy")
+image alexander tweaking = expr("alexander", "tweaking")
+image alexander craving = expr("alexander", "craving")
 image agatha neutral    = portrait("agatha")
 image pattison neutral  = portrait("pattison")
 image alexander neutral = portrait("alexander")
@@ -130,7 +157,7 @@ init python:
             Solid("#1a000088"))
         return ConditionSwitch("in_loop", looped, "True", normal)
 
-    def cabin_room(path, crop):
+    def cabin_room(path, crop, loop_path=None, loop_crop=None):
         # A Carriage 3 cabin: the room's pixel art, big and sharp in the middle,
         # in front of the blurred corridor. Darker and red after the loop.
         h = 900  # keep in step with CABIN_H in screens.rpy
@@ -138,8 +165,13 @@ init python:
         room = Transform(path, crop=crop, xysize=(w, h), nearest=True, xalign=0.5, yalign=0.5)
         back = At(Transform(full_cover("images/bg_sleeper.webp"), blur=14), talk_drift)
         normal = Fixed(back, Solid("#0a0a0ed0"), room)
-        looped = Fixed(back, Solid("#1a0000d8"),
-                       Transform(room, matrixcolor=TintMatrix("#ff9a8a") * SaturationMatrix(0.6) * BrightnessMatrix(-0.12)))
+        if loop_path:
+            # Part 2 has its own art for the room.
+            room_p2 = Transform(loop_path, crop=loop_crop, xysize=(w, h), nearest=True, xalign=0.5, yalign=0.5)
+            looped = Fixed(back, Solid("#1a0000d8"), room_p2)
+        else:
+            looped = Fixed(back, Solid("#1a0000d8"),
+                           Transform(room, matrixcolor=TintMatrix("#ff9a8a") * SaturationMatrix(0.6) * BrightnessMatrix(-0.12)))
         return ConditionSwitch("in_loop", looped, "True", normal)
 
     def talk_map(bg):
@@ -151,8 +183,10 @@ image talk_bar = talk_backdrop("images/bg_bar.webp")
 image talk_sleeper = talk_backdrop("images/bg_sleeper.webp")
 image talk_mail = talk_backdrop("images/bg_mail_cart.webp")
 # The Carriage 3 cabins: Kimmy and Himmel's room (with Himmel's green bag), and Misha's room.
-image talk_cabin_kimmy = cabin_room("images/bg_cabin_kimmy.webp", (362, 106, 312, 362))
-image talk_cabin_misha = cabin_room("images/bg_cabin_misha.webp", (1086, 320, 938, 1086))
+image talk_cabin_kimmy = cabin_room("images/bg_cabin_kimmy.webp", (362, 106, 312, 362),
+                                   "images/bg_cabin_kimmy_part2.webp", (58, 0, 50, 58))
+image talk_cabin_misha = cabin_room("images/bg_cabin_misha.webp", (1086, 320, 938, 1086),
+                                   "images/bg_cabin_misha_part2.webp", (58, 0, 50, 58))
 # Carriages with no painted backdrop talk in front of their own map, softened.
 image talk_staff = talk_map("bg carriage_4")
 image talk_engine = talk_map("bg carriage_5")
