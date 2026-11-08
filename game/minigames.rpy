@@ -212,8 +212,11 @@ style mg_small is text:
 
 
 define LP_SWING = 70
+# The lock: a brass plate centred on the screen, the keyhole low on it, the pins
+# above the ring of ticks, and a key just short enough to point at the ticks.
 define LP_CX = 960
-define LP_CY = 520
+define LP_CY = 640
+define LP_R = 190
 
 default lp_pos = 0.0
 default lp_dir = 1
@@ -225,9 +228,10 @@ default lp_speed = 0.9
 default lp_result = None
 
 init python:
-    LP_KEY = Transform(Transform("images/key.webp", crop=KEY_CROP), zoom=0.3)
-    LP_KEY_TIP = (307.0 / KEY_CROP[2], 0.97)
-    LP_TICKS = _ring_points(LP_CX, LP_CY, 150, range(-LP_SWING, LP_SWING + 1, 7))
+    LP_KEY = Transform(Transform("images/key.webp", crop=KEY_CROP), zoom=0.15)
+    # The key turns around the tip of its shaft, which runs down the middle of the art.
+    LP_KEY_TIP = (float(KEY_RING_CX) / KEY_CROP[2], 0.97)
+    LP_TICKS = _ring_points(LP_CX, LP_CY, LP_R, range(-LP_SWING, LP_SWING + 1, 7))
 
     def lp_angle(pos):
         return (pos - 0.5) * 2 * LP_SWING
@@ -285,29 +289,27 @@ screen mg_lockpick():
 
         use mg_stats([_("Pins: %d / 3") % lp_pins, _("Slips: %d / 3") % lp_fails])
 
+        # The door, below the instructions in the top-left corner.
         add rbox("#2e1a0e", 40):
-            pos (548, 118)
-            xysize (824, 884)
-        add rbox("#4a2c18", 36):
-            pos (560, 130)
-            xysize (800, 860)
-        add rbox("#55331d", 24):
-            pos (600, 170)
-            xysize (720, 300)
-        add rbox("#55331d", 24):
-            pos (600, 690)
-            xysize (720, 260)
+            pos (LP_CX - 350, 236)
+            xysize (700, 800)
+        add rbox("#4a2c18", 34):
+            pos (LP_CX - 338, 248)
+            xysize (676, 776)
 
+        # The brass plate.
         add rbox("#7a5518", 50):
-            pos (LP_CX - 180, 330)
-            xysize (360, 460)
-        add rbox("#c08f34", 46):
-            pos (LP_CX - 170, 340)
-            xysize (340, 440)
+            pos (LP_CX - 260, 290)
+            xysize (520, 540)
+        add rbox("#c08f34", 44):
+            pos (LP_CX - 250, 300)
+            xysize (500, 520)
+
+        # The three pins: raised once they're set.
         for i in range(3):
             add rbox("#ffd76a" if i < lp_pins else "#6a5228", 10):
-                pos (LP_CX - 70 + i * 60 - 13, (382 if i < lp_pins else 400))
-                xysize (26, 60)
+                pos (LP_CX - 80 + i * 80 - 14, (334 if i < lp_pins else 354))
+                xysize (28, 60)
         $ z0 = lp_angle(lp_zone)
         $ z1 = lp_angle(lp_zone + lp_w)
         for a, tx, ty in LP_TICKS:
@@ -340,7 +342,7 @@ screen mg_lockpick():
 
         if lp_result is None:
             fixed:
-                pos (LP_CX - 130, 860)
+                pos (LP_CX - 130, 892)
                 xysize (260, 64)
                 use rbtn(_("TURN"), Function(lockpick_turn), w=260, h=64, r=22, size=28, bg="#8a4a22", hov="#b8631f", col="#f2e6d8", hcol="#ffffff")
         elif lp_result == "win":
@@ -433,13 +435,14 @@ define MJ_TW = 78
 define MJ_TH = 100
 define MJ_ZOOM = 1.25
 define MJ_X0 = 594
-define MJ_Y0 = 290
+define MJ_Y0 = 348
 define MJ_LIFT = 10
 
+# 24 tiles (12 pairs): three rows of six, with a small stack in the middle row.
 define MJ_LAYOUT = (
-    [(c, r, 0) for r in range(4) for c in range(6)] +
-    [(c, r, 1) for r in (1, 2) for c in (1, 2, 3, 4)] +
-    [(c, r, 2) for r in (1, 2) for c in (2, 3)]
+    [(c, r, 0) for r in range(3) for c in range(6)] +
+    [(c, 1, 1) for c in (1, 2, 3, 4)] +
+    [(c, 1, 2) for c in (2, 3)]
 )
 
 default mj_face = []
@@ -576,7 +579,7 @@ init python:
         store.mj_sel = None
         store.mj_result = None
         store.mj_end_msg = ""
-        store.mj_time_left = [180, 130, 95][persistent.mg_difficulty]
+        store.mj_time_left = [130, 95, 70][persistent.mg_difficulty]
 
     def mj_moves_left():
         seen = set()
@@ -593,7 +596,9 @@ init python:
         s = store.mj_sel
         if s is None or s == i:
             store.mj_sel = None if s == i else i
+            sfx(SFX_TILE_CLICK)
         elif store.mj_face[s] == store.mj_face[i]:
+            sfx(SFX_TILE_MATCH)
             store.mj_gone[s] = store.mj_gone[i] = True
             store.mj_sel = None
             if all(store.mj_gone):
@@ -606,6 +611,7 @@ init python:
                 store.mj_result = "lose"
                 store.mj_end_msg = _("No more matches.")
         else:
+            sfx(SFX_TILE_CLICK)
             store.mj_sel = i
         renpy.restart_interaction()
 
@@ -628,6 +634,7 @@ screen mahjong_jackpot():
         xysize (config.screen_width, config.screen_height)
         padding (0, 0)
         background None
+        hover_sound None
         action Hide("mahjong_jackpot")
         add full_cover(JACKPOT_ART) at pop_fill
     timer POP_SECS action Hide("mahjong_jackpot")
@@ -645,11 +652,11 @@ screen mahjong_minigame():
         use mg_stats(stats)
 
         add rbox("#3e2412", 48):
-            pos (440, 190)
-            xysize (900, 700)
+            pos (440, 260)
+            xysize (900, 560)
         add rbox("#1d5236", 40):
-            pos (462, 212)
-            xysize (856, 656)
+            pos (462, 282)
+            xysize (856, 516)
 
         for layer in range(3):
             for i, (c, r, l) in enumerate(MJ_LAYOUT):
@@ -661,6 +668,8 @@ screen mahjong_minigame():
                         xysize (MJ_W + 8, MJ_H + 9)
                         padding (0, 0)
                         background None
+                        hover_sound None
+                        activate_sound None
                         action (Function(mahjong_pick, i) if free else None)
                         add MJ_TILE[mj_face[i]]
                         if mj_sel == i:
@@ -672,7 +681,7 @@ screen mahjong_minigame():
 
         if mj_result is None:
             fixed:
-                pos (790, 960)
+                pos (790, 856)
                 xysize (200, 50)
                 use rbtn(_("WALK AWAY"), Return("lose"), w=200, h=50, r=14, size=22)
         else:
@@ -717,6 +726,7 @@ init python:
                 store.ms_lit_i = None
             else:
                 store.ms_lit_i = store.ms_seq[i]
+                sfx(SFX_BLOCK_SHOW)
         else:
             store.ms_lit_i = None
         store.ms_step += 1
@@ -729,6 +739,7 @@ init python:
     def blocks_pick(i):
         if store.ms_phase != "input" or store.ms_result is not None:
             return
+        sfx(SFX_BLOCK_PRESS)
         store.ms_lit_i = i
         n = store.ms_round + 1
         if store.ms_seq[store.ms_idx] == i:
@@ -751,7 +762,7 @@ init python:
         renpy.restart_interaction()
 
 screen mg_blocks():
-    use mg_scene(_("MISHA'S BLOCKS"), _("1. Watch which blocks light up, and in what order.\n2. Click the blocks in that same order.\n3. Get through every round to win."), "bg carriage_3", "misha neutral", 0.86):
+    use mg_scene(_("MISHA'S BLOCKS"), _("1. Watch which blocks light up, and in what order.\n2. Click the blocks in that same order.\n3. Get through every round to win."), "talk_cabin_misha", "misha neutral", 0.86):
         if ms_phase == "show" and ms_result is None:
             timer (0.6 / mg_mult()) repeat True action Function(blocks_show_step)
         if ms_phase == "input" and ms_lit_i is not None:
@@ -781,6 +792,8 @@ screen mg_blocks():
                 xysize (180, 220)
                 padding (0, 0)
                 background None
+                hover_sound None
+                activate_sound None
                 action Function(blocks_pick, i)
                 add rbox(MS_LIT[i] if lit else MS_LIT[i] + "aa", 14):
                     xysize (180, 60)
@@ -1284,7 +1297,7 @@ screen mg_combo():
     $ cb_hint = _("1. Press + or - to change each wheel's number.\n2. Press OPEN to try the code.\n3. RIGHT shows how many wheels are correct.")
     if found_timetable:
         $ cb_hint = cb_hint + "  \"" + _("Every departure on it is printed the same way: 4:00.") + "\""
-    use mg_scene(_("THE LUGGAGE LOCK"), cb_hint, "bg carriage_3"):
+    use mg_scene(_("THE LUGGAGE LOCK"), cb_hint, "talk_cabin_kimmy"):
         use mg_stats([_("Tries: %d / %d") % (cb_tries, combo_max()), (_("Right: %s") % cb_fb) if cb_fb else _("Right: ?")])
 
         use mg_box(700, 560):
@@ -1354,7 +1367,7 @@ init python:
         renpy.restart_interaction()
 
 screen mg_pry():
-    use mg_scene(_("PULL UP THE CARPET"), _("1. Press PULL (or SPACE) to pull the carpet up.\n2. Each pull fills the tension bar. If it fills up, the carpet tears.\n3. Wait for the tension to drop, then pull again."), "bg carriage_3", "misha stares", 0.88):
+    use mg_scene(_("PULL UP THE CARPET"), _("1. Press PULL (or SPACE) to pull the carpet up.\n2. Each pull fills the tension bar. If it fills up, the carpet tears.\n3. Wait for the tension to drop, then pull again."), "talk_cabin_misha", "misha stares", 0.88):
         if pr_result is None:
             timer 0.1 repeat True action Function(pry_tick)
             key "K_SPACE" action Function(pry_pull)

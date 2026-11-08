@@ -4,7 +4,7 @@ define config.name = _("Departure at 4:00")
 define gui.show_name = True
 
 
-define config.version = "3.4 Beta"
+define config.version = "3.5 Beta"
 
 
 define gui.about = _p("""
@@ -15,7 +15,7 @@ define build.name = "DepartureAt4"
 
 define build.executable_name = "Departure at 4.00"
 
-define build.version = "3.4-beta"
+define build.version = "3.5-beta"
 
 
 define config.has_sound = True
@@ -52,14 +52,8 @@ init python:
     build.classify('tools/**', None)
     build.classify('*.png', None)
 
-    # Files kept in the folder but not used by the game: left out of every build.
-    build.classify('game/movies/studio_intro_old.webm', None)
-    build.classify('game/music/studio_jingle.mp3', None)
-    build.classify('game/music/Carriage 5.mp3', None)
-    build.classify('game/music/Part_2_Carriage_3.mp3', None)
-    build.classify('game/music/audiomass-output.mp3', None)
-    build.classify('game/images/bg_carriage_5.webp', None)
-    build.classify('game/gui/TaskBar_icon_Departureat4.webp', None)
+    # Local release folders never go into a build.
+    build.classify('release-*/**', None)
 
     build.classify('game/cheats.flag', 'cheats')
     build.package("pc-cheats", "zip", "windows linux renpy all cheats", "PC with cheats")

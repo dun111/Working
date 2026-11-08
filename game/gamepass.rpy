@@ -11,7 +11,6 @@ define GAMEPASSES = [
     ("cheats",       _("CHEAT MENU"),     _("Press F9 to open the cheat menu."), 15),
     ("revealer",     _("CHOICE REVEALER"), _("Choices show where they lead."), 18),
     ("high_roller",  _("HIGH ROLLER"),    _("Bigger casino bets and double daily coins."), 10),
-    ("door_key",     _("MYSTERIOUS KEY"), _("Opens the mysterious door in Carriage 1."), 12),
 ]
 
 init python:
@@ -159,20 +158,27 @@ screen gamepass_list(w):
                         use rbtn(_("BUY"), (Function(buy_pass, pid, price) if afford else None), w=140, h=50, r=16, size=22, bg="#8a4a22", hov="#b8631f", col="#f2e6d8", hcol="#ffffff")
 
 
+# The carriage behind the mysterious door: nothing at all, and a door back.
 screen mysterious_room():
     modal True
-    add Solid("#0b0b0f")
-    text _("MYSTERIOUS ROOM"):
-        xalign 0.5
-        ypos 40
-        size 22
-        color "#55556a"
-        font GFONT
-    hbox:
-        xalign 0.5
-        yalign 1.0
-        yoffset -60
-        use rbtn(_("LEAVE"), Return(), w=200, h=50)
+    zorder 500
+    add Solid("#000000")
+    key "game_menu" action Return()
+
+    # The way back, on the right: Carriage 1 is that way.
+    button:
+        pos map_xy(*DOOR_RIGHT[:2])
+        xysize map_wh(*DOOR_RIGHT[2:])
+        background None
+        action Return()
+        alt _("Back to Carriage 1")
+        text "›":
+            xalign 0.5
+            yalign 0.5
+            size 84
+            font "DejaVuSans.ttf"
+            idle_color "#2a2a30"
+            hover_color "#8888a0"
 
 
 default persistent.dev_coords = False
@@ -300,6 +306,7 @@ screen gallery_view(img, name):
     button:
         xysize (config.screen_width, config.screen_height)
         background None
+        hover_sound None
         action Hide("gallery_view")
     key "game_menu" action Hide("gallery_view")
 

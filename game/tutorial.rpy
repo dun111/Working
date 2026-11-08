@@ -3,14 +3,15 @@
 # (main menu, the in-game menu bar, or F1). Edit the pages freely.
 
 default persistent.tutorial_seen = False
+default persistent.seen_loop = False
 
 init python:
-    def tutorial_pages():
-        return [
+    def tutorial_pages(first=False):
+        pages = [
             (_("WELCOME ABOARD"), [
                 _("You're Louis. You wake up on the Grekhov Express with no idea how you got here."),
                 _("Walk the train carriage by carriage, talk to the passengers and staff, and piece together what's going on."),
-                _("Reach the end of Carriage 5 and the journey starts over. This time, someone has been murdered."),
+                _("Something about this train isn't right. Pay attention to everyone you meet."),
             ]),
             (_("READING THE STORY"), [
                 _("Click, or press Space or Enter, for the next line."),
@@ -21,7 +22,7 @@ init python:
                 _("Each carriage is a map. The glowing diamonds are things you can click: LOOK at objects, TALK to people."),
                 _("The line at the bottom of the map tells you what to do next."),
                 _("The arrows at the left and right edges are the doors to the next and previous carriage."),
-            ]),
+            ] + ([_("That's all you need to start. The full guide is under HOW TO PLAY on the menu, or press F1, any time.")] if first else [])),
             (_("COINS AND DOORS"), [
                 _("The first time you look at something, you find %d coins.") % COIN_FIND,
                 _("Each door to the next carriage costs %d coins. If you can't pay, look around more. A door is free once you've checked everything in the carriage.") % FARE,
@@ -59,6 +60,13 @@ init python:
                 _("The RADIO tab plays the soundtrack. And the main menu rewards curiosity: try clicking things, especially the big 4:00."),
             ]),
         ]
+        # The first time, just the basics; the rest is in HOW TO PLAY.
+        if first:
+            return pages[:3]
+        # The pages about the loop and the killer only appear once the player has seen the loop.
+        if not persistent.seen_loop:
+            pages = [p for p in pages if p[0] not in (_("THE LOOP"), _("NAMING THE KILLER"))]
+        return pages
 
     def tutorial_done():
         persistent.tutorial_seen = True
@@ -74,7 +82,7 @@ transform tutorial_page_in:
 # The guide itself; `closing` is what CLOSE / SKIP / Esc does.
 screen tutorial_book(closing, first=False):
     default page = 0
-    $ pages = tutorial_pages()
+    $ pages = tutorial_pages(first)
     $ title, lines = pages[page]
     $ last = page == len(pages) - 1
 

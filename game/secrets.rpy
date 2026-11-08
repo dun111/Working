@@ -32,21 +32,9 @@ init python:
         toggle_pass("cheats")
         renpy.notify(_("Cheats ON (F9)") if has_pass("cheats") else _("Cheats OFF"))
 
-    P1_TALKS = [
-        ["c1_talked_fedora", "door_c2_open"],
-        ["c2_talked_eduard", "c2_talked_shunyu"],
-        ["c3_talked_kimmy", "c3_talked_himmel", "c3_talked_sebastian", "c3_talked_misha", "door_c4_open"],
-        ["c4_talked_agatha", "c4_talked_ichora", "has_key"],
-        ["c5_talked_pattison", "c5_talked_alexander"],
-    ]
-    P2_STEPS = [
-        ["door_c2_open_loop"],
-        ["c2_p2_found_body", "c2_p2_reinterviewed_eduard", "c2_p2_reinterviewed_agatha",
-         "clue_tile_mismatch", "clue_body_moved"],
-        ["clue_drug_wrapper", "kimmy_reinterviewed", "himmel_reinterviewed"],
-        ["alexander_reinterviewed", "pattison_reinterviewed", "clue_alexander_alibi", "c3_p2_returned",
-         "clue_hidden_tile", "sebastian_reinterviewed", "misha_reinterviewed"],
-    ]
+    # Built from the story route in route.rpy.
+    P1_TALKS = route_flags(ROUTE_PART1)
+    P2_STEPS = route_flags(ROUTE_PART2)
 
     CHEAT_CHAPTERS = [
         (_("Start: the ticket"), "start", 0),
@@ -137,6 +125,7 @@ init python:
         renpy.notify(_("Endings, secrets and minigames reset."))
 
 label cheat_warp:
+    $ menu_music_filter_off()
     $ cheat_apply()
     $ renpy.jump(CHEAT.target)
 
@@ -239,7 +228,8 @@ screen cheat_menu():
                                 for fl in ["in_loop", "has_key", "has_maple_sugar", "found_timetable",
                                            "clue_tile_mismatch", "clue_body_moved", "clue_drug_wrapper",
                                            "clue_hidden_tile", "clue_alexander_alibi", "c2_p2_found_body",
-                                           "door_c2_open", "door_c4_open"]:
+                                           "door_c2_open", "door_c4_open", "drank", "c3_kimmy_dangerous_choice",
+                                           "swept_glass", "played_blocks", "sorted_mail", "warned_fedora"]:
                                     use cheat_btn(fl, ToggleVariable(fl), sel=bool(getattr(store, fl, False)))
 
                 elif ct == "games":
@@ -516,7 +506,7 @@ define MORE_SECRET_ACHIEVEMENTS = [
     {"id": "bond_all", "title": _("All of us."), "description": _("Fill every passenger's hearts."), "hidden": False},
     {"id": "timetable", "title": _("A little something..."), "description": _("Find the gift shop on the main menu."), "hidden": True},
     {"id": "golden_tickets", "title": _("Uh… uh… yes, the ticket."), "description": _("Find every golden ticket hidden on the train."), "hidden": False},
-    {"id": "credits_all", "title": _("Anyone like who?"), "description": _("Click everyone in the credits."), "hidden": True},
+    {"id": "credits_all", "title": _("Anyone like who?"), "description": _("Click every passenger's name in the credits."), "hidden": True},
     {"id": "cast_call", "title": _("Everyone."), "description": _("Type every passenger's name on the main menu."), "hidden": True},
     {"id": "quiet", "title": _("Way too quiet."), "description": _("Type a certain rapper's name on the main menu."), "hidden": True},
     {"id": "window", "title": _("What a beautiful sight outside!"), "description": _("Look out of the Carriage 2 window five times."), "hidden": True},
@@ -603,23 +593,25 @@ init python:
         if len(persistent.cast_called) >= len(CAST_CALLS):
             secret_found("cast_call", "cast_call")
 
-    def credits_click(key):
-        persistent.credits_clicked = set(persistent.credits_clicked) | set([key])
-        if key == "eric":
-            persistent.eric_clicks = (persistent.eric_clicks or 0) + 1
-            secret_found("eric_scare")
-        if len(persistent.credits_clicked) >= len(CREW):
+    def credits_click(name):
+        # Clicking a passenger's name in the credits: they say their line, and
+        # clicking everyone unlocks "Anyone like who?".
+        persistent.credits_clicked = set(persistent.credits_clicked) | set([name])
+        quote = dict((m[1], m[2]) for m in MANIFEST).get(name)
+        if quote is None:
+            quote = "\"%s\"" % (GIFT_LINES.get(name) or ["..."])[0]
+        renpy.notify("%s: %s" % (name, quote))
+        if all(n in persistent.credits_clicked for n in credit_people()):
             secret_found("credits_all", "credits_all")
 
     class _CREDMUS(object):
         before = None
 
     def credits_music_on():
-        if _MUSIC.place not in ("credits", "credits_tickets", "credits_spotlight"):
+        if _MUSIC.place not in ("credits", "credits_spotlight"):
             _CREDMUS.before = _MUSIC.place
         menu_music_filter_off()
-        st = credits_style_now()
-        music_for({"tickets": "credits_tickets", "spotlight": "credits_spotlight"}.get(st, "credits"), fade=1.0)
+        music_for("credits_spotlight", fade=1.0)
 
     def credits_music_off():
         if main_menu:

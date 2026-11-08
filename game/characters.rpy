@@ -22,6 +22,9 @@ init -2 python:
     def _scaled(path, src_h, scale):
         return Transform(path, zoom=SPRITE_H * scale / float(src_h))
 
+    def art_file(path):
+        return (path, renpy.image_size(path)[1])
+
     def sprite(tag, path, src_h, scale=1.0):
         return Transform(_scaled(path, src_h, scale), function=IdleAnim(tag))
 
@@ -51,16 +54,21 @@ init -2 python:
         return Null()
 
     def monster(tag, scale=1.0):
-        # Every monster uses the Shunyu monster art.
-        return sprite(tag, MONSTER_PNG, renpy.image_size(MONSTER_PNG)[1], scale=scale)
+        # Each monster has its own art (images/<tag>.png); the Shunyu monster
+        # stands in for any that doesn't.
+        path = "images/%s.png" % tag
+        if not renpy.loadable(path):
+            path = MONSTER_PNG
+        return sprite(tag, path, renpy.image_size(path)[1], scale=scale)
 
 define MONSTER_PNG = "images/shunyu_monster.png"
-define LOUIS_PNG       = ("images/louis_neutral.png", 1323)
-define FEDORA_PNG      = ("images/fedora_neutral.png", 1314)
-define DOROTHY_PNG     = ("images/dorothy_neutral.png", 1305)
-define DOROTHY_SAD_PNG = ("images/dorothy_sad.png", 1298)
-define SHUNYU_PNG      = ("images/shunyu_neutral.png", 1341)
-define ICHORA_PNG      = ("images/ichora_neutral.png", 1288)
+# (path, height) read from the files, so re-exported art keeps the right size.
+define LOUIS_PNG       = art_file("images/louis_neutral.png")
+define FEDORA_PNG      = art_file("images/fedora_neutral.png")
+define DOROTHY_PNG     = art_file("images/dorothy_neutral.png")
+define DOROTHY_SAD_PNG = art_file("images/dorothy_sad.png")
+define SHUNYU_PNG      = art_file("images/shunyu_neutral.png")
+define ICHORA_PNG      = art_file("images/ichora_neutral.png")
 
 
 image louis neutral        = sprite("louis", *LOUIS_PNG)
@@ -122,11 +130,32 @@ init python:
             Solid("#1a000088"))
         return ConditionSwitch("in_loop", looped, "True", normal)
 
+    def cabin_room(path, crop):
+        # A Carriage 3 cabin: the room's pixel art, big and sharp in the middle,
+        # in front of the blurred corridor. Darker and red after the loop.
+        h = 980
+        w = int(h * crop[2] / float(crop[3]))
+        room = Transform(path, crop=crop, xysize=(w, h), nearest=True, xalign=0.5, yalign=0.5)
+        back = At(Transform(full_cover("images/bg_sleeper.webp"), blur=14), talk_drift)
+        normal = Fixed(back, Solid("#0a0a0ed0"), room)
+        looped = Fixed(back, Solid("#1a0000d8"),
+                       Transform(room, matrixcolor=TintMatrix("#ff9a8a") * SaturationMatrix(0.6) * BrightnessMatrix(-0.12)))
+        return ConditionSwitch("in_loop", looped, "True", normal)
+
+    def talk_map(bg):
+        return Fixed(At(Transform(bg, blur=6), talk_drift), Solid("#0a0a0e70"))
+
 # Conversations use the clear first-class picture; the main menu slideshow keeps the mosaic one.
 image talk_bg = talk_backdrop("images/bg_first_class_clear.webp")
 image talk_bar = talk_backdrop("images/bg_bar.webp")
 image talk_sleeper = talk_backdrop("images/bg_sleeper.webp")
 image talk_mail = talk_backdrop("images/bg_mail_cart.webp")
+# The Carriage 3 cabins: Kimmy and Himmel's room (with Himmel's green bag), and Misha's room.
+image talk_cabin_kimmy = cabin_room("images/bg_cabin_kimmy.webp", (362, 106, 312, 362))
+image talk_cabin_misha = cabin_room("images/bg_cabin_misha.webp", (1086, 320, 938, 1086))
+# Carriages with no painted backdrop talk in front of their own map, softened.
+image talk_staff = talk_map("bg carriage_4")
+image talk_engine = talk_map("bg carriage_5")
 image shunyu_dead = full_cover("images/shunyu_dead.webp")
 # Agatha's first appearance, in the staff cart.
 image agatha_special = full_cover("images/cg_agatha_gloves.webp")
@@ -136,15 +165,17 @@ image accusation_bg = Fixed(Transform("bg carriage_2", blur=6), Solid("#0a0a0e70
 image talk to fedora    = "talk_bg"
 image talk to eduard    = "talk_bar"
 image talk to shunyu    = "talk_bar"
-image talk to kimmy     = "talk_sleeper"
-image talk to himmel    = "talk_sleeper"
+image talk to kimmy     = "talk_cabin_kimmy"
+# In Part 2 Himmel is out in the corridor.
+image talk to himmel    = ConditionSwitch("in_loop", "talk_sleeper", "True", "talk_cabin_kimmy")
 image talk to sebastian = "talk_sleeper"
-image talk to misha     = "talk_sleeper"
-image talk to agatha    = "talk_bg"
-image talk to ichora    = "talk_bg"
+image talk to misha     = "talk_cabin_misha"
+# Agatha works in the staff cart; in Part 2 she's questioned at the crime scene.
+image talk to agatha    = ConditionSwitch("in_loop", "talk_bar", "True", "talk_staff")
+image talk to ichora    = "talk_staff"
 image talk to pattison  = "talk_mail"
 image talk to alexander = "talk_mail"
-image engine room       = "bg carriage_5"
+image engine room       = "talk_engine"
 
 
 image lights_dying:
@@ -224,6 +255,43 @@ init python:
             return
         title, text = _clue_text(var)
         renpy.show_screen("clue_popup", _("NEW CLUE  (press J)"), title or var, text)
+
+    def first_ride_recap():
+        # What the first-ride choices led to, for the ending card. Only choices the player made.
+        st = store
+        out = []
+        if st.drank:
+            out.append(_("You asked Eduard for a drink, so he noticed the glass that shouldn't have been full."))
+        if st.played_mahjong:
+            out.append(_("You sat at Shunyu's table. It helped you understand what he lost."))
+        if st.swept_glass:
+            out.append(_("You swept the broken glass, and noticed the big shard was gone before anyone died."))
+        if st.c3_kimmy_dangerous_choice:
+            out.append(_("You told Kimmy you were dangerous. She didn't forget."))
+        if st.played_blocks:
+            out.append(_("You played Misha's blocks. He said you knew 'the order'."))
+        if st.has_maple_sugar:
+            out.append(_("You took Alexander's maple sugar. It helped you understand Himmel."))
+        if st.sorted_mail:
+            out.append(_("You sorted Pattison's mail. It helped you understand the Conductor."))
+        if st.found_timetable:
+            out.append(_("You opened the cupboard. The timetable was waiting for you again."))
+        if st.warned_fedora:
+            out.append(_("You warned Fedora. She trusted you over the body."))
+        return out
+
+    ACCUSABLE = ["dorothy", "eduard", "agatha", "ichora", "pattison",
+                 "fedora", "alexander", "kimmy", "himmel", "sebastian", "misha"]
+
+    def note_accused(who):
+        # Remembered across playthroughs, for The Usual Suspects.
+        persistent.accused = set(persistent.accused or ()) | set([who])
+        if all(w in persistent.accused for w in ACCUSABLE):
+            achievement.grant("usual_suspects")
+
+    def remember(text):
+        # Tells the player a choice will come back later.
+        renpy.notify(text)
 
     def got_item(name, desc=""):
         renpy.show_screen("clue_popup", _("GOT ITEM"), name, desc)
@@ -552,6 +620,10 @@ define FAVOURITE_PRESENT = {
     "Ichora": "sweets",
     "Pattison": "stamps",
     "Alexander": "maple",
+    # The Carriage 6 monsters.
+    "The Passenger": "charm",
+    "The Gentleman": "maple",
+    "The Conductor": "watch",
 }
 
 define FAVOURITE_LINES = {
@@ -567,6 +639,9 @@ define FAVOURITE_LINES = {
     "Ichora": "Sweets! Hey, you're alright, buddy!",
     "Pattison": "Stamps! Every mailworker's dream.",
     "Alexander": "THE MAPLE SUGAR!!! You absolute legend!!!",
+    "The Passenger": "(tiles clatter, almost happy) Lucky... lucky... I can't stop winning...",
+    "The Gentleman": "(the wrappers stop peeling, just for a moment) ...Sweet. So sweet. Next stop...",
+    "The Conductor": "...Four o'clock. Right on time. Thank you... for boarding.",
 }
 
 # After a present that isn't their favourite, they let slip a hint about it.
@@ -583,6 +658,9 @@ define FAVOURITE_HINTS = {
     "Ichora": "Ichora's stomach rumbles. \"Got anything sweet on ya?\"",
     "Pattison": "He sorts a pile of envelopes. None of them have stamps.",
     "Alexander": "He sniffs the air. \"Is that... maple?\"",
+    "The Passenger": "Tiles click in its throat. It rubs its long hands together, like it's hoping for luck.",
+    "The Gentleman": "Wrappers peel off its skin. It sniffs at them, hungry.",
+    "The Conductor": "It keeps looking up, as if checking a clock that isn't there.",
 }
 
 # Hearts that pay out tickets when you reach them (full hearts also give the achievements).
@@ -619,6 +697,9 @@ define GIFT_LINES = {
     "Ichora": ["Here ya go!", "Hey! I've been waiting for ya, buddy!", "Oh, I know."],
     "Pattison": ["Hello Sir, you another mailworker?", "It's okay, you will before the end.", "That's what I said, isn't it?"],
     "Alexander": ["The banned super maple sugar!!!", "Hahahaha… this stuff is so gooddddd….", "Depends? Are you a narc?"],
+    "The Passenger": ["(wet, clicking) Wanna play...", "You can only lose 100[pct]...", "...what did I actually lose?"],
+    "The Gentleman": ["Next stop, next stop, next stop...", "There's no next stop, there's no next stop, there's-", "(it doesn't seem to notice you)"],
+    "The Conductor": ["Thank you for boarding….", "...Thank you...", "(it unfolds another half-foot taller)"],
 }
 
 init python:
@@ -889,8 +970,18 @@ screen manifest():
 # ---------- GIFT SHOP: opened by clicking the big 4:00 on the main menu four times ----------
 
 init python:
+    # The Carriage 6 monsters can get presents too, once you've been to Carriage 6.
+    GIFT_MONSTERS = [
+        ("shunyu_monster neutral", "The Passenger"),
+        ("himmel_monster neutral", "The Gentleman"),
+        ("conductor_monster neutral", "The Conductor"),
+    ]
+
     def gift_shop_people():
-        return [{"img": m[0], "name": m[1], "known": met_ever(m[3])} for m in MANIFEST[1:]]
+        people = [{"img": m[0], "name": m[1], "known": met_ever(m[3]), "monster": False} for m in MANIFEST[1:]]
+        seen_c6 = renpy.seen_label("carriage_6_start")
+        people += [{"img": img, "name": name, "known": seen_c6, "monster": True} for img, name in GIFT_MONSTERS]
+        return people
 
     def gift_shop_first():
         for i, p in enumerate(gift_shop_people()):
@@ -944,13 +1035,13 @@ screen gift_shop():
 
                 # passengers
                 vbox:
-                    spacing 6
+                    spacing 4
                     xsize 380
                     for i, p in enumerate(people):
                         $ h = bond(p["name"]) if p["known"] else 0
                         button:
                             xsize 380
-                            ysize 50
+                            ysize 44
                             padding (18, 0)
                             background rbox(("#2a2312" if i == sel else "#14141a"), 14)
                             hover_background rbox("#3a3018", 14)
@@ -961,7 +1052,7 @@ screen gift_shop():
                                 text (p["name"] if p["known"] else "???"):
                                     yalign 0.5
                                     size 20
-                                    color (("#ffd700" if i == sel else "#e8e4dc") if p["known"] else "#4a4a58")
+                                    color (("#ffd700" if i == sel else ("#e0645a" if p["monster"] else "#e8e4dc")) if p["known"] else "#4a4a58")
                                     font GFONT
                                 if p["known"]:
                                     text (("★  " if h >= BOND_MAX else "") + "♥" * h + "♡" * (BOND_MAX - h)):
@@ -1063,10 +1154,12 @@ screen gift_shop():
 # ---------- LOOK OUTSIDE: a zoomed view of one of Carriage 1's windows ----------
 
 # One window of the Carriage 1 art, frame included (pixel art, so it's scaled with sharp pixels).
-define WINDOW_VIEW_CROP = (830, 225, 260, 190)
+# The crop is in the full-size art (4096 wide); no passenger stands in front of this window.
+define WINDOW_VIEW_ART = "images/bg_carriage_1_passengers.webp"
+define WINDOW_VIEW_CROP = (1771, 480, 555, 405)
 
-image window_view_day = Transform("images/bg_carriage_1.webp", crop=WINDOW_VIEW_CROP, zoom=4.0, nearest=True)
-image window_view_night = Transform("images/bg_carriage_1.webp", crop=WINDOW_VIEW_CROP, zoom=4.0, nearest=True,
+image window_view_day = Transform(WINDOW_VIEW_ART, crop=WINDOW_VIEW_CROP, zoom=1.875, nearest=True)
+image window_view_night = Transform(WINDOW_VIEW_ART, crop=WINDOW_VIEW_CROP, zoom=1.875, nearest=True,
                                     matrixcolor=TintMatrix("#3a4a8a") * SaturationMatrix(0.25) * BrightnessMatrix(-0.45))
 
 transform window_zoom_in:
@@ -1103,6 +1196,9 @@ transform pop_back:
 
 # The tile art has a lot of transparent space around it; crop to the tile itself.
 define TILE_CLOSEUP = Transform("images/clue_hidden_tile.webp", crop=(68, 304, 1317, 837))
+# The drink Eduard offers you in Carriage 2 (also the moved body clue's picture).
+image drink_offer = Transform("images/clue_drink.webp", crop=(540, 80, 1280, 2360), fit="contain", xysize=(380, 640))
+define WRONG_TILE_CLOSEUP = Transform("images/clue_wrong_tile.webp", crop=(68, 316, 1376, 872))
 
 screen fullscreen_pop(img, cover=False):
     zorder 350
@@ -1111,6 +1207,7 @@ screen fullscreen_pop(img, cover=False):
         xysize (sw, sh)
         padding (0, 0)
         background None
+        hover_sound None
         action Hide("fullscreen_pop")
         add Solid("#000000e6") at pop_back
         add Transform(img, fit=("cover" if cover else "contain"), xysize=(sw, sh)) at pop_fill

@@ -286,6 +286,10 @@ image menu_slideshow:
     pause 8.0
     full_cover("images/bg_mail_cart.webp") with Dissolve(2.0)
     pause 8.0
+    full_cover("images/cg_agatha_gloves.webp") with Dissolve(2.0)
+    pause 8.0
+    full_cover("images/bg_carriage_6.webp") with Dissolve(2.0)
+    pause 8.0
     repeat
 
 transform menu_bg_drift:
@@ -759,7 +763,8 @@ transform toast_timer:
     linear 4.3 xzoom 0.0
 
 
-image carriage_6 = Solid("#0a0a0e")
+# The caboose: the carriage with the monsters in it.
+image carriage_6 = full_cover("images/bg_carriage_6.webp")
 image carriage_6_fog = At(Solid("#4a0a0a"), carriage_6_ambient)
 
 image black = Solid("#000000")
@@ -768,14 +773,57 @@ image bg carriage_1 = themed(ConditionSwitch(
     "in_loop", map_bg("images/bg_carriage_1_passengers_part2.webp", 0.186, 0.805, ceiling="#8e634f", lamp="#ff7a66", eerie=True),
     "True", map_bg("images/bg_carriage_1_passengers.webp", 0.186, 0.805, lamp="#ffcf8a")))
 
-image bg carriage_5 = themed(map_bg("images/newmailroom.webp", 0.186, 0.805, floor="#3d3434", lamp="#ffe2b0", lamps=5, backdrop="#150d0d"))
+image bg carriage_5 = themed(ConditionSwitch(
+    "in_loop", Transform(map_bg("images/bg_mail_room.webp", 0.186, 0.805, floor="#3d3434", lamp="#ff7a66", lamps=5, eerie=True, backdrop="#150d0d"), matrixcolor=LOOP_NIGHT),
+    "True", map_bg("images/bg_mail_room.webp", 0.186, 0.805, floor="#3d3434", lamp="#ffe2b0", lamps=5, backdrop="#150d0d")))
 
 image bg carriage_2 = themed(ConditionSwitch(
     # Part 2: just Eduard and the body until it's found, then everyone who came running.
     "in_loop and not c2_p2_found_body", map_bg("images/bg_bar_cart_part2_body.webp", 0.186, 0.805, ceiling="#755243", lamp="#ff7a66", lamps=5, eerie=True),
     "in_loop", map_bg("images/bg_bar_cart_part2_crowd.webp", 0.186, 0.805, ceiling="#755243", lamp="#ff7a66", lamps=5, eerie=True),
     "True", map_bg("images/bg_bar_cart.webp", 0.186, 0.805, lamp="#ffd9a0", lamps=5)))
-image bg carriage_3 = themed(map_bg("images/bg_sleeper_cart.webp", 0.185, 0.815, lamp="#ffd9a0", lamps=5, backdrop="#2a1a16", nearest=True))
+# Carriage 5 has no Part 2 art yet: after the loop it goes dark and red,
+# so the sunny windows don't clash with "it's dark" next door.
+define LOOP_NIGHT = TintMatrix("#d08a80") * SaturationMatrix(0.55) * BrightnessMatrix(-0.16)
+
+# ---------- Carriage 3's cabins, drawn into the blank space below the corridor ----------
+# Kimmy and Himmel's room and Misha's room, spread evenly across the space.
+# Positions are in the 1920x1080 design space; the room art is 312x362 once cropped.
+init python:
+    C3_ROOM_Y = 648
+    C3_ROOM_H = 390
+    C3_ROOM_K = C3_ROOM_H / 362.0
+    C3_ROOM_W = int(312 * C3_ROOM_K)
+    # The blank space runs from x 176 to 1744.
+    C3_ROOMS_X = {"kimmy": 176 + (1568 - 2 * C3_ROOM_W) // 3,
+                  "misha": 176 + 2 * (1568 - 2 * C3_ROOM_W) // 3 + C3_ROOM_W}
+
+    def c3_spot(room, dx, dy, w, h):
+        # A hotspot inside a cabin, from its offset from the cabin's top-left corner.
+        return (C3_ROOMS_X[room] + dx, C3_ROOM_Y + dy, w, h)
+
+    def c3_rooms():
+        rooms = (
+            ("kimmy", Transform("images/bg_cabin_kimmy.webp", crop=(362, 106, 312, 362), nearest=True)),
+            ("misha", Transform("images/bg_cabin_misha.webp", crop=(1086, 320, 938, 1086), nearest=True)),
+        )
+        w, h = map_wh(C3_ROOM_W, C3_ROOM_H)
+        parts = []
+        for key, art in rooms:
+            x, y = map_xy(C3_ROOMS_X[key], C3_ROOM_Y)
+            parts.append(Transform(rbox("#1c120e", 12), pos=(x - 8, y - 8), xysize=(w + 16, h + 16)))
+            parts.append(Transform(art, pos=(x, y), xysize=(w, h)))
+        return Fixed(*parts, xysize=(GAME_W, GAME_H))
+
+    C3_ROOMS = c3_rooms()
+
+image bg carriage_3 = themed(ConditionSwitch(
+    # Part 2 has its own art (night windows, Himmel out in the corridor). Its top edge
+    # drips, so the ceiling above it is one flat colour.
+    "in_loop", Fixed(map_bg("images/bg_sleeper_cart_part2.webp", 0.185, 0.815, ceiling="#7d5847", lamp="#ff7a66", lamps=5, eerie=True, backdrop="#2a1a16", nearest=True),
+                     Transform(C3_ROOMS, matrixcolor=LOOP_NIGHT)),
+    "True", Fixed(map_bg("images/bg_sleeper_cart.webp", 0.185, 0.815, lamp="#ffd9a0", lamps=5, backdrop="#2a1a16", nearest=True),
+                  C3_ROOMS)))
 image bg carriage_4 = themed(map_bg("images/bg_staff_cart.webp", 0.185, 0.815, lamp="#ffe9c4", lamps=5, nearest=True))
 
 
@@ -817,10 +865,15 @@ init python:
             pass
 
     def menu_music_filter_off():
+        # replace=True takes the echo off the song that's already playing, not just the next one.
         try:
-            renpy.music.set_audio_filter("music", None)
+            renpy.music.set_audio_filter("music", None, replace=True, duration=0.3)
         except Exception:
             pass
+
+    # Continue and Load go straight from the main menu into the game, so the menu's
+    # echo has to come off there too (it used to stay on until the next song).
+    config.after_load_callbacks.append(menu_music_filter_off)
 
 label before_main_menu:
     $ menu_music_filter_on()
@@ -951,7 +1004,6 @@ init -10 python:
         "quick_menu_shown": True,
         "readable_font": False,
         "menu_style": "new",
-        "credits_style": "spotlight",
         "ui_theme": "default",
         "menu_fx": True,
         "ach_toasts": True,
@@ -1004,6 +1056,7 @@ init python:
             Preference("text speed", 0),
             Preference("auto-forward time", 15),
             Preference("music volume", 1.0),
+            Preference("sound volume", 1.0),
             Preference("skip", "seen"),
             Preference("after choices", "stop"),
             Preference("all mute", "disable"),
@@ -1058,17 +1111,17 @@ define ACHIEVEMENTS = [
     {"id": "carriage_4_complete", "title": _("The Mail Car"), "description": _("Reach the fifth carriage."), "hidden": False},
     {"id": "forbidden_sweetness", "title": _("Forbidden Sweetness"), "description": _("Accept Alexander's maple sugar."), "hidden": False},
     {"id": "carriage_5_complete", "title": _("Beyond the Fifth"), "description": _("Reach the door beyond the fifth carriage."), "hidden": False},
-    {"id": "the_loop_begins", "title": _("Here Again?"), "description": _("The train reset. Louis remembers."), "hidden": False},
+    {"id": "the_loop_begins", "title": _("Here Again?"), "description": _("The train reset. Louis remembers."), "hidden": True},
     {"id": "eyes_in_the_dark", "title": _("???"), "description": _("Something was watching from beyond the sixth carriage."), "hidden": True},
-    {"id": "closer_to_the_truth", "title": _("Closer to the Truth"), "description": _("Investigated Shunyu's murder."), "hidden": False},
-    {"id": "suspicious_luggage", "title": _("Suspicious Luggage"), "description": _("Found the drug wrapper in Himmel's luggage."), "hidden": False},
-    {"id": "alibi_confirmed", "title": _("Alibi Confirmed"), "description": _("Pattison confirmed Alexander's alibi."), "hidden": False},
-    {"id": "hidden_evidence", "title": _("Hidden Evidence"), "description": _("Found the missing mahjong tile."), "hidden": False},
-    {"id": "true_detective", "title": _("True Detective"), "description": _("Accused the killer with full evidence."), "hidden": False},
+    {"id": "closer_to_the_truth", "title": _("Closer to the Truth"), "description": _("Investigated Shunyu's murder."), "hidden": True},
+    {"id": "suspicious_luggage", "title": _("Suspicious Luggage"), "description": _("Found the drug wrapper in Himmel's luggage."), "hidden": True},
+    {"id": "alibi_confirmed", "title": _("Alibi Confirmed"), "description": _("Pattison confirmed Alexander's alibi."), "hidden": True},
+    {"id": "hidden_evidence", "title": _("Hidden Evidence"), "description": _("Found the missing mahjong tile."), "hidden": True},
+    {"id": "true_detective", "title": _("True Detective"), "description": _("Accused the killer with full evidence."), "hidden": True},
     {"id": "wrong_guess", "title": _("Wrong Guess"), "description": _("Accused the wrong person."), "hidden": False},
-    {"id": "perfect_understanding", "title": _("Perfect Understanding"), "description": _("Answered all three questions correctly in Carriage 6."), "hidden": False},
-    {"id": "partial_truth", "title": _("Partial Truth"), "description": _("Answered some questions correctly in Carriage 6."), "hidden": False},
-    {"id": "total_failure", "title": _("Total Failure"), "description": _("Failed all questions in Carriage 6."), "hidden": False},
+    {"id": "perfect_understanding", "title": _("Perfect Understanding"), "description": _("Answered all three questions correctly in Carriage 6."), "hidden": True},
+    {"id": "partial_truth", "title": _("Partial Truth"), "description": _("Answered some questions correctly in Carriage 6."), "hidden": True},
+    {"id": "total_failure", "title": _("Total Failure"), "description": _("Failed all questions in Carriage 6."), "hidden": True},
     {"id": "tumbler_talent", "title": _("Tumbler Talent"), "description": _("Pick the lock of the Carriage 1 cupboard."), "hidden": False},
     {"id": "sharp_eyes", "title": _("Sharp Eyes"), "description": _("Sweep up the broken glass in Carriage 2."), "hidden": False},
     {"id": "high_roller_win", "title": _("Beginner's Luck"), "description": _("Win a game of mahjong against Shunyu."), "hidden": False},
@@ -1076,6 +1129,11 @@ define ACHIEVEMENTS = [
     {"id": "full_steam", "title": _("Full Steam Ahead"), "description": _("Keep the engine pressure stable."), "hidden": False},
     {"id": "sorted", "title": _("Return to Sender"), "description": _("Help Pattison sort the mail."), "hidden": False},
     {"id": "game_night", "title": _("Game Night"), "description": _("Win every minigame on the train."), "hidden": False, "stat_max": 11},
+    {"id": "clockwork", "title": _("Clockwork"), "description": _("Open the clock lock on the first try."), "hidden": False},
+    {"id": "not_a_narc", "title": _("Not a Narc"), "description": _("Guess who owes Alexander on the first try."), "hidden": False},
+    {"id": "total_recall", "title": _("Total Recall"), "description": _("Make every first-ride choice that comes back later."), "hidden": False},
+    {"id": "usual_suspects", "title": _("The Usual Suspects"), "description": _("Point the finger at everyone. Eventually."), "hidden": False},
+    {"id": "nothing_there", "title": _("Nothing"), "description": _("Step into the carriage behind the mysterious door."), "hidden": True},
 ]
 
 init python:
@@ -1564,6 +1622,7 @@ define MENU_TAGLINES = [
     "Tip: Carriage 6 doesn't want the obvious answer",
     "Tip: answer for them, not for you",
     "Tip: the true ending needs all three right",
+    "Tip: what you do on the first ride comes back",
     "Ryan is #####",
     "Blackberries are black",
     "AWWWWHHH",
@@ -1622,8 +1681,17 @@ transform tagline_swap:
 
 screen menu_tagline(xa=0.5, size=16):
     default tag_i = renpy.random.randint(0, len(MENU_TAGLINES) - 1)
-    timer 4.0 repeat True action SetLocalVariable("tag_i", next_tagline(tag_i))
-    for ti, tline in enumerate(MENU_TAGLINES):
+    # After the knockout at the end of Part 1, the menu holds one line until the player goes back.
+    if persistent.loop_waiting:
+        text _("Louis is still on the train. Press CONTINUE."):
+            xalign xa
+            size size
+            color "#e0521f"
+            font GFONT
+            at loading_pulse
+    else:
+        timer 4.0 repeat True action SetLocalVariable("tag_i", next_tagline(tag_i))
+    for ti, tline in enumerate(MENU_TAGLINES if not persistent.loop_waiting else []):
         showif ti == tag_i:
             text tline:
                 xalign xa
@@ -2186,6 +2254,7 @@ screen main_menu():
         xsize 180
         ysize 90
         background None
+        activate_sound SFX_BERRY
         action Function(blackberry_secret_action)
         at fade_slide_in(0.9, xoff=70, final_xoff=30)
 
@@ -2612,7 +2681,10 @@ define CLUE_LIST = [
 ]
 
 define CLUE_IMAGES = {
+    "clue_tile_mismatch": "images/clue_wrong_tile.webp",
+    "clue_body_moved": "images/clue_drink.webp",
     "clue_hidden_tile": "images/clue_hidden_tile.webp",
+    "clue_alexander_alibi": "images/clue_alibi.webp",
 }
 
 init python:
@@ -2909,10 +2981,6 @@ screen preferences():
                             font GFONT
                         use rbtn("›", Function(menu_style_step, 1), w=56, h=44, r=14, size=24)
 
-                    use pref_row(_("CREDITS STYLE"), _("The style of the credits."), 0.0):
-                        for cid, cname in CREDIT_STYLES:
-                            use pref_toggle(cname, Function(set_credits_style, cid), selected=(credits_style_now() == cid), w=160)
-
                     use pref_row(_("COLOUR THEME"), _("Tints the backgrounds and maps."), 0.0):
                         use rbtn("‹", Function(theme_step, -1), w=56, h=44, r=14, size=24)
                         text theme_name():
@@ -2978,6 +3046,9 @@ screen preferences():
 
                     use pref_row(_("MUSIC VOLUME"), _("Music volume."), 0.0):
                         use pref_slider(Preference("music volume"), vol_pct("music"))
+
+                    use pref_row(_("SOUND VOLUME"), _("Buttons, doors and minigame sounds."), 0.03):
+                        use pref_slider(Preference("sound volume"), vol_pct("sfx"))
 
                     use pref_row(_("MUTE ALL AUDIO"), _("Mute all sound."), 0.06):
                         use pref_toggle(_("MUTED"), Preference("all mute", "enable"))
@@ -3456,39 +3527,6 @@ define CREW = [
         "General Helper", "Probably a researcher"]},
 ]
 
-init python:
-    def credits_step(adj):
-        if adj.value >= adj.range - 2:
-            adj.change(0)
-        else:
-            adj.change(adj.value + 0.9)
-
-
-init python:
-    def credit_roles():
-        order, who = [], {}
-        for c in CREW:
-            for r in c["roles"]:
-                if r not in who:
-                    order.append(r)
-                    who[r] = []
-                who[r].append(c)
-        blocks = []
-        for r in order:
-            keys = [c["key"] for c in who[r]]
-            if blocks and [c["key"] for c in blocks[-1][1]] == keys:
-                blocks[-1][0].append(r)
-            else:
-                blocks.append(([r], who[r]))
-        return blocks
-
-transform logo_float:
-    yoffset 0
-    block:
-        ease 2.4 yoffset -10
-        ease 2.4 yoffset 0
-        repeat
-
 screen about():
     tag menu
     key "game_menu" action (ShowMenu("main_menu") if main_menu else Return())
@@ -3498,7 +3536,7 @@ screen about():
     on "hide" action Function(credits_music_off)
     on "replaced" action Function(credits_music_off)
 
-    use expression ("credits_" + credits_style_now())
+    use credits_spotlight
 
     fixed:
         xpos 80
@@ -3506,24 +3544,6 @@ screen about():
         xsize 160
         ysize 50
         use rbtn(_("BACK"), (ShowMenu("main_menu") if main_menu else Return()), w=160, h=50, r=14, size=24)
-
-    hbox:
-        xalign 0.97
-        ypos 30
-        spacing 10
-        use rbtn("‹", Function(credits_style_step, -1), w=50, h=44, r=14, size=22)
-        frame:
-            ysize 44
-            padding (16, 0)
-            background rbox("#0a0a0ecc", 14)
-            text credits_style_name():
-                yalign 0.5
-                min_width 170
-                text_align 0.5
-                size 18
-                color "#e6a817"
-                font GFONT
-        use rbtn("›", Function(credits_style_step, 1), w=50, h=44, r=14, size=22)
 
 
 screen ending_card(label_text, title, subtitle):
@@ -3547,11 +3567,49 @@ screen ending_card(label_text, title, subtitle):
             color "#8a8478"
             font CREDIT_FONT
             at fade_in(1.6)
+        null height 30
+        $ found = len(persistent.endings_seen or ())
+        text (_("Endings found: %d of %d") % (found, len(ENDINGS))):
+            size 20
+            color "#c9a24a"
+            font GFONT
+            at fade_in(2.4)
+        # Only once Part 2 has been reached (the true ending switches the loop off first).
+        $ recap = first_ride_recap() if store.c2_p2_found_body else []
+        if recap:
+            null height 14
+            text _("YOUR FIRST RIDE"):
+                size 16
+                color "#8a8478"
+                font GFONT
+                at fade_in(2.8)
+            for line in recap:
+                text ("• " + line):
+                    size 17
+                    color "#a8a090"
+                    font GFONT
+                    xmaximum 1300
+                    at fade_in(2.8)
+            if len(recap) < 9:
+                text (_("%d other choices on the first ride went untried.") % (9 - len(recap))):
+                    size 16
+                    color "#6a6458"
+                    font GFONT
+                    at fade_in(2.8)
+            null height 14
+        if found < len(ENDINGS):
+            text _("CONTINUE on the main menu takes you back to your last save. Hints for the other endings are in EXTRAS > ENDINGS."):
+                size 18
+                color "#6a6458"
+                font GFONT
+                xmaximum 1200
+                at fade_in(2.4)
 
     button:
         xfill True
         yfill True
         background None
+        hover_sound None
         action Return()
     key "dismiss" action Return()
 
@@ -3891,11 +3949,6 @@ define CHAPTERS = [
     ("carriage_5_part2_start", _("CARRIAGE 5"), _("ENGINE & MAIL ROOM"),   True),
 ]
 
-define CHAPTER_STAGE = {
-    "carriage_1_start": 0, "carriage_2_start": 1, "carriage_3_start": 2,
-    "carriage_4_start": 3, "carriage_5_start": 4, "part2_start": 5,
-    "carriage_2_part2_start": 6, "carriage_3_part2_start": 7, "carriage_5_part2_start": 8,
-}
 
 define CHAPTER_BG = {
     "carriage_1_start": "bg carriage_1",
@@ -4035,38 +4088,6 @@ init python:
             ("TICKETS / COINS", "%d / %d" % (persistent.tickets or 0, persistent.coins or 0)),
         ]
 
-    def _flag_on(n):
-        return bool(getattr(store, n, False))
-
-    def current_objective():
-        if not _flag_on("in_loop"):
-            if not _flag_on("c1_talked_fedora"):
-                return "Carriage 1: talk to Fedora."
-            if not (_flag_on("c2_talked_eduard") and _flag_on("c2_talked_shunyu")):
-                return "Carriage 2: talk to Eduard and Shunyu."
-            if not (_flag_on("c3_talked_kimmy") and _flag_on("c3_talked_himmel") and _flag_on("c3_talked_sebastian") and _flag_on("c3_talked_misha")):
-                return "Carriage 3: talk to everyone in the cabins."
-            if not (_flag_on("c4_talked_agatha") and _flag_on("c4_talked_ichora")):
-                return "Carriage 4: meet the staff."
-            if not (_flag_on("c5_talked_pattison") and _flag_on("c5_talked_alexander")):
-                return "Carriage 5: talk to Pattison and Alexander."
-            return "Go through the door at the end of Carriage 5."
-        if not _flag_on("c2_p2_found_body"):
-            return "Carriage 2: look at the second table."
-        if not (_flag_on("c2_p2_reinterviewed_eduard") and _flag_on("c2_p2_reinterviewed_agatha")):
-            return "Carriage 2: question Eduard and Agatha."
-        if not _flag_on("clue_drug_wrapper"):
-            return "Carriage 3: check the luggage."
-        if not _flag_on("kimmy_reinterviewed"):
-            return "Carriage 3: ask Kimmy about the wrapper."
-        if not (_flag_on("alexander_reinterviewed") and _flag_on("pattison_reinterviewed")):
-            return "Carriage 5: question Alexander, then Pattison."
-        if not _flag_on("clue_hidden_tile"):
-            return "Back to Carriage 3: check the carpet."
-        if not (_flag_on("sebastian_reinterviewed") and _flag_on("misha_reinterviewed")):
-            return "Carriage 3: question Sebastian and Misha."
-        return "Carriage 3: decide who did it."
-
     KONAMI = ["UP", "UP", "DOWN", "DOWN", "LEFT", "RIGHT", "LEFT", "RIGHT", "b", "a"]
     _konami_buf = []
 
@@ -4203,6 +4224,32 @@ screen extras_menu():
                                     color ("#c9c9d8" if er["seen"] else "#55556a")
                                     font GFONT
                                     xsize (ex_w - 160)
+
+                # The ending video, to watch any time.
+                frame:
+                    xfill True
+                    background rbox("#17150d", 22)
+                    padding (26, 18)
+                    at row_pop(0.3)
+                    hbox:
+                        spacing 24
+                        vbox:
+                            spacing 6
+                            yalign 0.5
+                            xsize (ex_w - 52 - 24 - 170)
+                            text _("VIDEO"):
+                                size 16
+                                color "#e6a817"
+                                font GFONT
+                            text _("THE ENDING"):
+                                size 30
+                                color "#ffffff"
+                                font GFONT
+                            text _("The ending video. It's also in the Theatre."):
+                                size 18
+                                color "#c9c9d8"
+                                font GFONT
+                        use rbtn(_("WATCH"), Function(play_ending_video), w=170, h=54, r=16, size=22, bg="#8a4a22", hov="#b8631f", col="#f2e6d8", hcol="#ffffff")
 
             elif xt == "chapters":
                 for idx, (lab, title, sub, loop) in enumerate(CHAPTERS):
@@ -4362,7 +4409,7 @@ init python:
 
 label chapter_replay:
     $ menu_music_filter_off()
-    $ cheat_target(persistent.replay_to, CHAPTER_STAGE.get(persistent.replay_to, 0))
+    $ cheat_target(persistent.replay_to, chapter_stage(persistent.replay_to))
     $ cheat_apply()
     $ renpy.scene()
     $ renpy.show(CHAPTER_BG.get(persistent.replay_to, "black"))

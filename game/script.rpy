@@ -12,7 +12,6 @@ define ic  = C("Ichora",    "ichora",    "#7a5a22")
 define p   = C("Pattison",  "pattison",  "#5a3a6a")
 define al  = C("Alexander", "alexander", "#6a6a22")
 define pas = C("Passenger")
-define gam = C("Other Gambler")
 define u   = C("???", plate="#3a0a0a", creepy=True)
 
 define shunyu_monster    = C("The Passenger",  "shunyu_monster",    "#5a0a0a", creepy=True)
@@ -37,6 +36,17 @@ default c3_talked_himmel = False
 default c3_talked_sebastian = False
 default c3_talked_misha = False
 default c3_kimmy_dangerous_choice = False
+# Part 1 choices that come back in Part 2.
+default swept_glass = False
+default played_blocks = False
+default sorted_mail = False
+default warned_fedora = False
+default clock_tries = 0
+default clock_open = False
+default owe_guessed = False
+default owe_tries = 0
+default persistent.accused = set()
+default seen_blank_carriage = False
 
 default c4_talked_agatha = False
 default c4_talked_ichora = False
@@ -64,9 +74,11 @@ default sebastian_reinterviewed = False
 default misha_reinterviewed = False
 
 default c6_q1_correct = False
-default c6_right = 0
 default c6_q2_correct = False
 default c6_q3_correct = False
+default c6_right = 0
+default c6_help = 0
+default persistent.loop_waiting = False
 
 default door_c2_open = False
 default door_c4_open = False
@@ -74,7 +86,7 @@ default door_c4_open = False
 
 screen carriage_1_map():
     add "bg carriage_1"
-    use golden_ticket("c1", 420, 840)
+    use golden_ticket("c1", 420, 800)
     if in_loop or not c1_talked_fedora:
         use hs((1185, 625, 125, 180), Call("c1_fedora_dialogue"), "Fedora", "talk")
     use hs((860, 240, 200, 150), Call("c1_interact_window"), "Window", delay=0.05)
@@ -86,7 +98,7 @@ screen carriage_1_map():
 
 screen carriage_2_map():
     add "bg carriage_2"
-    use golden_ticket("c2", 1760, 880)
+    use golden_ticket("c2", 1760, 820)
     use hs(DOOR_LEFT, Jump("carriage_1_hub"), "Carriage 1", "back")
     if not c2_talked_eduard:
         use hs((1430, 355, 140, 150), Call("c2_eduard_dialogue"), "Eduard", "talk")
@@ -97,24 +109,32 @@ screen carriage_2_map():
     if c2_talked_eduard and c2_talked_shunyu:
         use hs(DOOR_RIGHT, Jump("carriage_3_start"), "Carriage 3", "door", 0.2)
 
+# Carriage 3's cabins are drawn under the corridor (see c3_rooms in screens.rpy).
+# These are the spots in them: the people, Misha's toy and rug, and the whole cabins.
+define C3_HS_KIMMY = c3_spot("kimmy", 56, 130, 80, 135)
+define C3_HS_HIMMEL = c3_spot("kimmy", 184, 212, 72, 125)
+define C3_HS_MISHA = c3_spot("misha", 56, 180, 72, 80)
+define C3_HS_RUG = c3_spot("misha", 8, 262, 150, 55)
+define C3_HS_TOYS = c3_spot("misha", 170, 186, 60, 48)
+define C3_HS_MISHA_ROOM = c3_spot("misha", 0, 0, C3_ROOM_W, C3_ROOM_H)
+
 screen carriage_3_map():
     add "bg carriage_3"
     use golden_ticket("c3", 1820, 300)
     use hs(DOOR_LEFT, Jump("carriage_2_hub"), "Carriage 2", "back")
     if not c3_talked_kimmy:
-        use hs((230, 650, 160, 200), Call("c3_kimmy_dialogue"), "Kimmy", "talk")
+        use hs(C3_HS_KIMMY, Call("c3_kimmy_dialogue"), "Kimmy", "talk")
     if not c3_talked_himmel:
-        use hs((480, 650, 160, 200), Call("c3_himmel_dialogue"), "Himmel", "talk", 0.05)
+        use hs(C3_HS_HIMMEL, Call("c3_himmel_dialogue"), "Himmel", "talk", 0.05)
     if not c3_talked_sebastian:
         use hs((1270, 405, 115, 170), Call("c3_sebastian_dialogue"), "Sebastian", "talk", 0.1)
     # Misha's cabin stays locked until Sebastian has spoken to Louis.
     if c3_talked_sebastian:
         if not c3_talked_misha:
-            use hs((1000, 650, 180, 200), Call("c3_misha_dialogue"), "Misha", "talk", 0.15)
-        use hs((1210, 680, 150, 160), Call("c3_interact_toys"), "Toys", delay=0.3)
+            use hs(C3_HS_MISHA, Call("c3_misha_dialogue"), "Misha", "talk", 0.15)
+        use hs(C3_HS_TOYS, Call("c3_interact_toys"), "Toys", delay=0.3)
     else:
-        use hs((1000, 650, 360, 200), Function(renpy.notify, _("Locked. Talk to Sebastian first.")), "Misha's door", delay=0.15)
-    use hs((1450, 650, 180, 200), Call("c3_interact_empty_room"), "Empty room", delay=0.2)
+        use hs(C3_HS_MISHA_ROOM, Function(renpy.notify, _("Locked. Talk to Sebastian first.")), "Misha's door", delay=0.15)
     use hs((420, 470, 260, 90), Call("c3_interact_carpet"), "Carpet", delay=0.25)
     use hs((1760, 750, 100, 90), Call("c3_interact_luggage"), "Luggage", delay=0.35)
     if c3_talked_kimmy and c3_talked_himmel and c3_talked_sebastian and c3_talked_misha:
@@ -122,7 +142,7 @@ screen carriage_3_map():
 
 screen carriage_4_map():
     add "bg carriage_4"
-    use golden_ticket("c4", 420, 860)
+    use golden_ticket("c4", 420, 800)
     use hs(DOOR_LEFT, Jump("carriage_3_hub"), "Carriage 3", "back")
     if not c4_talked_agatha:
         use hs((585, 345, 140, 230), Call("c4_agatha_dialogue"), "Agatha", "talk")
@@ -141,7 +161,7 @@ screen carriage_5_map():
     if not c5_talked_alexander:
         use hs((1080, 645, 125, 165), Call("c5_alexander_dialogue"), "Alexander", "talk", 0.05)
     use hs((120, 640, 360, 200), Call("c5_interact_mail_room"), "Mail", delay=0.1)
-    use hs((920, 470, 500, 170), Call("c5_interact_luggage_room"), "Luggage room", delay=0.15)
+    use hs((920, 450, 500, 110), Call("c5_interact_luggage_room"), "Luggage room", delay=0.15)
     use hs((1455, 344, 330, 166), Call("c5_interact_engine"), "Engine", delay=0.2)
     if c5_talked_pattison and c5_talked_alexander:
         use hs(DOOR_RIGHT, Jump("c5_carriage6_door"), "Carriage 6", "door", 0.25)
@@ -149,13 +169,13 @@ screen carriage_5_map():
 
 screen carriage_2_part2_map():
     add "bg carriage_2"
-    use golden_ticket("c2b", 230, 900)
+    use golden_ticket("c2b", 230, 810)
     use hs((555, 235, 225, 165), Call("c2_p2_interact_window"), "Window")
     use hs((1430, 355, 140, 150), Call("c2_p2_talk_eduard"), "Eduard", "talk", 0.05)
-    use hs((500, 540, 400, 230), Call("c2_p2_overturned_table"), "Overturned table", delay=0.1)
+    use hs((165, 420, 280, 190), Call("c2_p2_overturned_table"), "Overturned table", delay=0.1)
     use hs((875, 640, 120, 80), Call("c2_p2_broken_glass"), "Broken glass", delay=0.15)
     use hs((1600, 500, 210, 80), Call("c2_p2_bar_counter"), "Bar counter", delay=0.2)
-    use hs((980, 425, 150, 130), Jump("c2_p2_second_table"), "Second table", delay=0.25)
+    use hs((500, 540, 400, 230), Jump("c2_p2_second_table"), "Second table", delay=0.25)
 
 screen carriage_2_part2_investigation_map():
     add "bg carriage_2"
@@ -172,34 +192,36 @@ screen carriage_2_part2_after_map():
 
 screen carriage_3_part2_map():
     add "bg carriage_3"
-    use golden_ticket("c3b", 1500, 120)
+    use golden_ticket("c3b", 1500, 540)
     use hs(DOOR_LEFT, Jump("carriage_2_part2_return"), "Carriage 2", "back")
 
-    # Script order: luggage and Kimmy first, then the mail room (Carriage 5), then
-    # back here for the carpet, Sebastian and Misha, then the decision.
-    if clue_drug_wrapper and not kimmy_reinterviewed:
-        use hs((230, 650, 160, 200), Call("c3_p2_kimmy_reinterview"), "Kimmy", "talk")
-    if clue_drug_wrapper and not himmel_reinterviewed:
-        use hs((480, 650, 160, 200), Call("c3_p2_himmel_reinterview"), "Himmel", "talk", 0.05)
+    # Script order: Kimmy first (Himmel's locked green bag is in her cabin), then
+    # Himmel, then the mail room (Carriage 5), then back here for the carpet,
+    # Sebastian and Misha, then the decision.
+    if not kimmy_reinterviewed:
+        use hs(C3_HS_KIMMY, Call("c3_p2_kimmy_reinterview"), "Kimmy", "talk")
+    if kimmy_reinterviewed and not himmel_reinterviewed:
+        # In the Part 2 art Himmel stands in the corridor on the far left.
+        use hs((90, 330, 80, 175), Call("c3_p2_himmel_reinterview"), "Himmel", "talk", 0.05)
 
     if clue_hidden_tile and not sebastian_reinterviewed:
         use hs((1270, 405, 115, 170), Call("c3_p2_sebastian_reinterview"), "Sebastian", "talk", 0.1)
     if clue_hidden_tile and not misha_reinterviewed:
-        use hs((1000, 650, 180, 200), Call("c3_p2_misha_reinterview"), "Misha", "talk", 0.15)
+        use hs(C3_HS_MISHA, Call("c3_p2_misha_reinterview"), "Misha", "talk", 0.15)
 
     if clue_alexander_alibi:
-        use hs((420, 470, 260, 90), Call("c3_p2_interact_carpet"), "Carpet", delay=0.2)
-    use hs((1210, 680, 150, 160), Call("c3_p2_interact_toys"), "Toys", delay=0.25)
-    use hs((1760, 750, 100, 90), Call("c3_p2_interact_luggage"), "Luggage", delay=0.3)
+        # Misha's carpet: the rug in his cabin.
+        use hs(C3_HS_RUG, Call("c3_p2_interact_carpet"), "Carpet", delay=0.2)
+    use hs(C3_HS_TOYS, Call("c3_p2_interact_toys"), "Toys", delay=0.25)
 
-    if kimmy_reinterviewed and not clue_alexander_alibi:
+    if himmel_reinterviewed and not clue_alexander_alibi:
         use hs(DOOR_RIGHT, Jump("carriage_5_part2_start"), "Carriage 5", "door", 0.35)
     if sebastian_reinterviewed and misha_reinterviewed:
         use hs((860, 470, 240, 100), Jump("accusation_scene"), "Time to decide", "decide", 0.1)
 
 screen carriage_5_part2_map():
     add "bg carriage_5"
-    use golden_ticket("c5b", 90, 200)
+    use golden_ticket("c5b", 90, 280)
     use hs(DOOR_LEFT, Jump("carriage_3_part2_return" if clue_alexander_alibi else "carriage_3_part2_hub"), "Carriage 3", "back")
     if not alexander_reinterviewed:
         use hs((1080, 645, 125, 165), Call("c5_p2_alexander_dialogue"), "Alexander", "talk")
@@ -209,6 +231,7 @@ screen carriage_5_part2_map():
 
 label start:
     $ menu_music_filter_off()
+    $ persistent.loop_waiting = False
     if not persistent.tutorial_seen:
         scene black
         call screen tutorial_first
@@ -281,8 +304,19 @@ label c1_fedora_dialogue:
         l "Calamity?"
         f "I boarded this train to speak to the conductor after we arrived in Grekhov, I heard CALAMITY will open up once we reach there. It'll rack NUMBERS for the steamboat. I CAN'T WAIT to interview the KILLER."
         l "Killer?"
-        f "Well, it's been LOVELY talking to you, but my editor Twinkles is calling me. WATCH OUT."
-        l "OKAY…. or what?"
+        menu:
+            "Tell her what's coming?"
+            "“Someone's going to die tonight.”":
+                $ warned_fedora = True
+                l "...Someone on this train is going to die tonight."
+                "{i}Fedora's pen stops.{/i}"
+                f "You say that like you've READ it somewhere. Where'd you hear that, matchstick?"
+                l "I… I don't know. I just know."
+                f "Hm. Then I'll keep my notepad ready. And my eye on YOU."
+                $ remember(_("Fedora will remember that."))
+            "Keep it to yourself":
+                f "Well, it's been LOVELY talking to you, but my editor Twinkles is calling me. WATCH OUT."
+                l "OKAY…. or what?"
     else:
         show louis neutral at speaker_focus(xalign=0.1)
         l "Uh, excuse me miss?"
@@ -298,6 +332,12 @@ label c1_fedora_dialogue:
     return
 
 label c1_interact_window:
+    if in_loop:
+        show screen window_view(dark=True)
+        "{i}The same hills. The same cloud, in the same place.{/i}"
+        l "...It hasn't moved. Not one inch since last time."
+        hide screen window_view with dissolve
+        return
     show screen window_view
     "What a beautiful sight outside! You can see everything from this train!"
     hide screen window_view with dissolve
@@ -305,10 +345,28 @@ label c1_interact_window:
 
 
 label c1_interact_mysterious_door:
-    if has_pass("door_key"):
-        call screen mysterious_room
-        return
-    "I'm not supposed to enter this carriage, am I…"
+    if in_loop:
+        "{i}Something on the other side knocks. Twice. Then the door swings open by itself.{/i}"
+    else:
+        "I'm not supposed to enter this carriage, am I… Eh. Just a peek."
+    $ renpy.music.set_volume(0.0, delay=0.6, channel="music")
+    scene black with Dissolve(0.6)
+    $ achievement.grant("nothing_there")
+    if not seen_blank_carriage:
+        l "...Hello?"
+        l "{i}(No walls. No floor. Not even the sound of the tracks.){/i}"
+        l "It's not dark in here. It's just… nothing."
+    elif in_loop:
+        l "{i}(Still nothing. Somehow that's worse the second time.){/i}"
+    else:
+        l "{i}(Still nothing.){/i}"
+    window hide
+    call screen mysterious_room
+    $ renpy.music.set_volume(1.0, delay=0.6, channel="music")
+    scene bg carriage_1 with Dissolve(0.6)
+    if not seen_blank_carriage:
+        $ seen_blank_carriage = True
+        l "...I'm not telling anyone about that."
     return
 
 label c1_interact_tea_stain:
@@ -349,22 +407,27 @@ label carriage_2_hub:
 label c2_eduard_dialogue:
     scene talk to eduard with talk_in
     show eduard neutral at speaker_focus(xalign=0.9)
+    show drink_offer at Transform(xalign=0.5, yalign=0.6) with dissolve
     ed "Good evening lad, I'm Eduard, your bartender. Wouldya like some drinks?"
     menu:
         "Would you like a drink?"
         "Yes":
+            hide drink_offer with dissolve
             $ drank = True
             show eduard neutral at speaker_background(xalign=0.9)
             show louis neutral at speaker_focus(xalign=0.1)
             l "Sure."
             ed "Awh shucks, seems we just ran out! That gambler's been drinking since he got here!"
             l "Wow…"
+            $ remember(_("Eduard will remember that."))
         "No":
+            hide drink_offer with dissolve
             $ drank = False
             show eduard neutral at speaker_background(xalign=0.9)
             show louis neutral at speaker_focus(xalign=0.1)
             l "Uh, it's okay… I'm not really thirsty right now."
             ed "All the better for me, I reckon. That mahjong monster almost got me out of whiskey! He better win quick, before his tab gets as large as his confidence."
+            $ remember(_("Eduard will remember that."))
     $ c2_talked_eduard = True
     return
 
@@ -393,12 +456,13 @@ label c2_shunyu_dialogue:
             call screen mahjong_minigame
             if _return == "win":
                 show shunyu excited at speaker_focus(xalign=0.9)
-                s "JACKKKPOTTTTTTT! You win $2! Look at that, beginner's luck!"
+                s "JACKKKPOTTTTTTT! You win 2 perkels! Look at that, beginner's luck!"
                 $ played_mahjong = "won"
             else:
                 show shunyu neutral at speaker_focus(xalign=0.9)
                 s "Aw, shoot. Unlucky draw! Better luck next time, alright?"
                 $ played_mahjong = "lost"
+            $ remember(_("Shunyu will remember that."))
         "No":
             $ played_mahjong = False
             show louis neutral at speaker_focus(xalign=0.1)
@@ -451,6 +515,7 @@ label c3_kimmy_dialogue:
             show louis neutral at speaker_background(xalign=0.1)
             show kimmy neutral at speaker_focus(xalign=0.5)
             k "With THAT frame… I don't think so, sweetie."
+            $ remember(_("Kimmy will remember that."))
         "I am NOT dangerous.":
             $ c3_kimmy_dangerous_choice = False
             show louis neutral at speaker_focus(xalign=0.1)
@@ -458,6 +523,7 @@ label c3_kimmy_dialogue:
             show louis neutral at speaker_background(xalign=0.1)
             show kimmy neutral at speaker_focus(xalign=0.5)
             k "Yeah, it's kinda obvious, matchstick."
+            $ remember(_("Kimmy will remember that."))
     show kimmy neutral at speaker_background(xalign=0.5)
     l "Wow damn… So… Expensive cabin, huh?"
     show louis neutral at speaker_background(xalign=0.1)
@@ -465,7 +531,7 @@ label c3_kimmy_dialogue:
     show kimmy neutral at speaker_background(xalign=0.5)
     l "So what is such an important lady doing on a train like this?"
     show louis neutral at speaker_background(xalign=0.1)
-    k "Oh, I have a meeting in █████████, and I wanted to make it a trip so I could spend more time with my darling, Himmel. Right, Sugar?"
+    k "Oh, I have a meeting in Grekhov, and I wanted to make it a trip so I could spend more time with my darling, Himmel. Right, Sugar?"
     show kimmy neutral at speaker_background(xalign=0.5)
     show himmel neutral at speaker_focus(xalign=0.9)
     h "Of course!"
@@ -526,8 +592,7 @@ label c3_interact_luggage:
 
 label carriage_4_start:
     if not door_c4_open:
-        $ dr_bg = "bg carriage_3"
-        call play_required("mg_door", door_reset) from _call_play_required_3
+        call c3_clock_lock
         $ door_c4_open = True
     if "c4" not in visited_carriages:
         $ visited_carriages.append("c4")
@@ -536,22 +601,59 @@ label carriage_4_start:
         show screen map_stamp(_("CARRIAGE 4"), _("STAFF CART"))
     jump carriage_4_hub
 
+# A puzzle: the staff cart door is locked by a clock. Everything on this train says 4:00.
+label c3_clock_lock:
+    "{i}The door to the next carriage won't budge. Where the handle should be, there's a small brass clock face with loose hands.{/i}"
+    l "A clock lock? What am I meant to set it to?"
+    $ clock_tries = 0
+    $ clock_open = False
+    while not clock_open:
+        menu:
+            "Set the clock to…"
+            "12:00":
+                $ clock_tries += 1
+            "3:45":
+                $ clock_tries += 1
+            "4:00":
+                $ clock_open = True
+            "7:15":
+                $ clock_tries += 1
+        if not clock_open:
+            "{i}The hands spring back to where they started.{/i}"
+            if clock_tries == 1:
+                l "{i}(Think. What time does everything on this train say?){/i}"
+            elif clock_tries >= 2:
+                "{i}From a cabin behind him, Kimmy calls out sleepily:{/i}"
+                k "Sugar, every clock on this train says the same thing. Departure at four."
+    "{i}Click. The hands lock at 4:00, and the door swings open.{/i}"
+    if clock_tries == 0:
+        $ achievement.grant("clockwork")
+    l "Departure at 4:00… Of course it is."
+    return
+
 label carriage_4_hub:
     scene bg carriage_4
     call screen carriage_4_map
     jump carriage_4_hub
 
 label c4_agatha_dialogue:
-    scene agatha_special with dissolve
+    # Her picture just flashes up, then the talk carries on in front of the staff cart.
+    scene agatha_special with Dissolve(0.15)
+    pause 1.2
+    scene talk to agatha with Dissolve(0.4)
+    show agatha neutral at speaker_focus(xalign=0.9)
     a "C'mon, put the bandage on."
+    show agatha neutral at speaker_background(xalign=0.9)
     pas "Ouuuchhh it hurtssss oh my my poor finger, I may never play Marvel Rivals again!"
+    show agatha neutral at speaker_focus(xalign=0.9)
     a "I don't care. You pricked it, it's not bleeding. Put the bandaid on and stop wasting my time."
+    show agatha neutral at speaker_background(xalign=0.9)
     pas "Fine."
     "{i}The passenger pouts for a second and storms off.{/i}"
+    show agatha neutral at speaker_focus(xalign=0.9)
     a "Actual infants…"
     "{i}Agatha looks at you.{/i}"
     a "What, need help too?"
-    scene talk to agatha with dissolve
     show agatha neutral at speaker_background(xalign=0.9)
     show louis neutral at speaker_focus(xalign=0.1)
     l "No, but, what's this carriage?"
@@ -663,6 +765,7 @@ label c5_alexander_dialogue:
             show louis neutral at speaker_background(xalign=0.1)
             al "Attaboy! Here ya go - one satchel of pure happiness."
             $ got_item(_("Satchel of Maple Sugar"), _("\"First one is free, next one is 2000 perkels.\""))
+            $ remember(_("Alexander will remember that."))
         "No":
             $ has_maple_sugar = False
             show alexander neutral at speaker_background(xalign=0.9)
@@ -677,7 +780,28 @@ label c5_alexander_dialogue:
     show alexander neutral at speaker_background(xalign=0.9)
     l "No."
     show louis neutral at speaker_background(xalign=0.1)
-    al "Well, there's this guy that keeps winning money from gambling, yet still hasn't paid for his last portion. Don't worry, I'll make him suffer."
+    al "Tell ya what. You've been walkin' the train. Guess who owes me, and maybe I'll believe you're not a narc."
+    $ owe_guessed = False
+    $ owe_tries = 0
+    while not owe_guessed:
+        menu:
+            "Who owes Alexander money?"
+            "Eduard, the bartender":
+                $ owe_tries += 1
+                al "The bartender? He couldn't afford me if he sold the bar."
+                l "{i}(Who did Eduard say was running up a tab?){/i}"
+            "Shunyu, the gambler":
+                $ owe_guessed = True
+                if owe_tries == 0:
+                    $ achievement.grant("not_a_narc")
+                al "Ding ding ding! Mister Jackpot himself. Keeps winnin', keeps forgettin' to pay me for his last portion. Don't worry, I'll make him suffer."
+            "Kimmy, the rich lady":
+                $ owe_tries += 1
+                al "That lady's richer than the train. She pays. ...Her husband, though. Eh. Never mind."
+                l "{i}(Her husband?){/i}"
+            "Fedora, the reporter":
+                $ owe_tries += 1
+                al "The reporter? She'd write me up, not pay me."
     al "And as for the other one… the stuff was strong so I don't remember."
     show alexander neutral at speaker_background(xalign=0.9)
     l "Why did I expect that? But who's the other person?"
@@ -697,6 +821,7 @@ label c5_carriage6_door:
     l "Huh… it's…"
     scene black with dissolve
     u "Not yet! Try to see the truth before you see the future."
+    u "Go back. And this time, pay attention."
     $ _KNOCKOUT.loaded = False
     "{i}Two pairs of eyes glint in the blackness, watching.{/i}"
     jump part1_knockout
@@ -710,6 +835,8 @@ init python:
 
     def _knockout_after_load():
         _KNOCKOUT.loaded = True
+        # Any load means the player has gone back in, so the menu stops asking.
+        persistent.loop_waiting = False
 
     config.after_load_callbacks.append(_knockout_after_load)
 
@@ -722,12 +849,15 @@ label part1_knockout:
     if _KNOCKOUT.loaded:
         $ _KNOCKOUT.loaded = False
         jump part2_start
+    $ persistent.loop_waiting = True
     $ renpy.save("loop-1", _("Part 2: wake up"))
     $ renpy.run(MainMenu(confirm=False, save=False))
     jump part2_start
 
 
 label part2_start:
+    $ persistent.loop_waiting = False
+    $ persistent.seen_loop = True
     $ achievement.grant("the_loop_begins")
     $ autosave_checkpoint()
     $ in_loop = True
@@ -817,7 +947,11 @@ label c2_p2_overturned_table:
 
 label c2_p2_broken_glass:
     show louis neutral at speaker_focus(xalign=0.5)
-    l "This is the same glass from before… why hasn't anyone cleaned this up?"
+    if swept_glass:
+        l "I swept this up. I know I did. Six shards… and the big one was already missing."
+        l "...Before anyone was hurt. Someone took it before."
+    else:
+        l "This is the same glass from before… why hasn't anyone cleaned this up?"
     "{i}Louis notices a piece missing from the largest shard - snapped clean off, edges sharp.{/i}"
     u "Can yer shut up?"
     show louis confused at speaker_focus(xalign=0.5)
@@ -871,11 +1005,20 @@ label c2_p2_fedora_arrives:
     show louis confused at speaker_focus(xalign=0.1)
     l "Fedora, thank god, please, you have to help me…"
     show louis confused at speaker_background(xalign=0.1)
-    f "{i}(quiet, unusually so){/i} I told you to watch out."
-    show fedora neutral at speaker_background(xalign=0.9)
-    l "What?? You knew this would-"
-    show louis confused at speaker_background(xalign=0.1)
-    f "I said I CAN'T WAIT to interview the killer. I didn't say I knew who they were."
+    if warned_fedora:
+        f "{i}(quiet, unusually so){/i} ...You said someone would die. You SAID it."
+        show fedora neutral at speaker_background(xalign=0.9)
+        l "I didn't know it'd be him! I didn't know anything!"
+        show louis confused at speaker_background(xalign=0.1)
+        f "Then how did you know at all?"
+        "{i}She studies him for a long moment, then lowers her pen.{/i}"
+        f "...No. If you'd done this, you wouldn't have told a reporter. Fine. We find who did, together."
+    else:
+        f "{i}(quiet, unusually so){/i} I told you to watch out."
+        show fedora neutral at speaker_background(xalign=0.9)
+        l "What?? You knew this would-"
+        show louis confused at speaker_background(xalign=0.1)
+        f "I said I CAN'T WAIT to interview the killer. I didn't say I knew who they were."
     "{i}She kneels by the body, professional mask sliding back over her face, though her hands are shaking slightly as she jots something down.{/i}"
     f "Tile placed in the palm. No struggle, far as I can tell. And that glass - that's not from a weapon someone brought with them. That's from HERE. Whoever did this either knew him, or he never saw them as a threat at all... well, not until it was already too late."
     show fedora neutral at speaker_background(xalign=0.9)
@@ -973,12 +1116,25 @@ label c2_p2_reinterview_eduard:
     show eduard neutral at speaker_background(xalign=0.9)
     l "Did you see the tile in his hand before? While he was playing?"
     show louis neutral at speaker_background(xalign=0.1)
+    $ renpy.show_screen("fullscreen_pop", WRONG_TILE_CLOSEUP)
     ed "No, no way. That's not even from his hand. He had three of the dragon tiles laid out, not that one. Someone put that there after."
     $ found_clue("clue_tile_mismatch")
     show eduard neutral at speaker_background(xalign=0.9)
     l "How do you know his hand that well?"
     show louis neutral at speaker_background(xalign=0.1)
     ed "Man complained about his own wins loud enough for the whole carriage to hear, all night, every night. Hard NOT to know it."
+    if played_mahjong:
+        l "He's right. I played him. Three dragons, every single time."
+    if drank:
+        show eduard neutral at speaker_focus(xalign=0.9)
+        ed "You. You wanted a drink, before. I didn't have a drop left. He'd had the lot."
+        ed "...So who poured the full glass sitting in front of him?"
+        show eduard neutral at speaker_background(xalign=0.9)
+        l "Someone set the whole table. Like a stage."
+    else:
+        show eduard neutral at speaker_focus(xalign=0.9)
+        ed "You turned down a drink, earlier. Smart lad. Last man who drank everything I had is over there."
+        show eduard neutral at speaker_background(xalign=0.9)
     $ c2_p2_reinterviewed_eduard = True
     return
 
@@ -1044,16 +1200,21 @@ label carriage_3_part2_hub:
     jump carriage_3_part2_hub
 
 label c3_p2_interact_toys:
+    scene talk to misha with talk_in
     "Awh, they're so cute."
     return
 
+# Himmel's green bag, in Kimmy's cabin. Opened at the start of Kimmy's Part 2 talk.
 label c3_p2_interact_luggage:
     if not clue_drug_wrapper:
+        "{i}A green bag sits at the foot of the bed in Kimmy's cabin, a little combination lock on the clasp. It's Himmel's.{/i}"
         l "Sorry… I know this isn't really my business, but..."
         call play_required("mg_combo", combo_reset) from _call_play_required_7
         "{i}He nudges one of the bags open, just slightly. Something crinkles.{/i}"
         "{i}Louis finds a small, crumpled wrapper wedged between the folds of a coat. Printed on it, half torn: “...APLE SUGAR… BANNED SUBSTANCE, RESTRICTED USE ONLY.”{/i}"
         l "...This is the same stuff Alexander was selling."
+        if has_maple_sugar:
+            l "Same wrapper as the satchel he gave me. I've still got mine."
         l "Why would Himmel have this?"
         $ found_clue("clue_drug_wrapper")
         $ achievement.grant("suspicious_luggage")
@@ -1062,6 +1223,7 @@ label c3_p2_interact_luggage:
     return
 
 label c3_p2_interact_carpet:
+    scene talk to misha with talk_in
     if not clue_hidden_tile:
         l "This again... It was like this the first time too."
         "{i}He kneels, and this time, pulls at the loose edge.{/i}"
@@ -1077,13 +1239,22 @@ label c3_p2_interact_carpet:
 
 label c3_p2_kimmy_reinterview:
     scene talk to kimmy with talk_in
+    if not clue_drug_wrapper:
+        call c3_p2_interact_luggage from _call_c3_p2_interact_luggage_kimmy
     show kimmy neutral at speaker_background(xalign=0.9)
     show louis neutral at speaker_focus(xalign=0.1)
     l "Kimmy, can I ask you something a little... sensitive?"
     show louis neutral at speaker_background(xalign=0.1)
-    k "Sensitive is my favorite kind of question, sugar. Go on."
+    if c3_kimmy_dangerous_choice:
+        k "Well, well. The 'dangerous' one. Did your little joke come true, matchstick?"
+        show kimmy neutral at speaker_background(xalign=0.9)
+        l "That's not funny."
+        show louis neutral at speaker_background(xalign=0.1)
+        k "No. It isn't. ...Go on, then. Ask."
+    else:
+        k "Ah, the harmless one. Good. I could use harmless right now. Go on."
     show kimmy neutral at speaker_background(xalign=0.9)
-    l "Did Himmel ever buy anything from the storage carriage? From a man named Alexander?"
+    l "Did Himmel ever buy anything in the mail room? From a man named Alexander?"
     "{i}Kimmy's smile falters, just barely.{/i}"
     show louis neutral at speaker_background(xalign=0.1)
     k "...He said it was for his nerves. Train rides make him anxious, he said. I didn't ask questions, matchstick. A wife who asks too many questions doesn't stay a wife for long."
@@ -1168,6 +1339,9 @@ label c3_p2_misha_reinterview:
     "{i}Misha doesn't look up.{/i}"
     show louis neutral at speaker_background(xalign=0.1)
     mi "{i}(humming, quiet){/i} Tuck it in his hand… tuck it in his hand… that's how you keep the score..."
+    if played_blocks:
+        mi "You know the order. You played it right, before. Not like the others."
+        l "{i}(The order. Back then I thought he meant the blocks.){/i}"
     show misha neutral at speaker_background(xalign=0.9)
     l "What score? Misha, what are you talking about?"
     "{i}Misha finally looks up, and smiles calmly.{/i}"
@@ -1209,6 +1383,10 @@ label carriage_5_part2_hub:
 label c5_p2_alexander_dialogue:
     scene talk to alexander with talk_in
     "{i}Alexander is slumped in his corner, twitchier than before, sweat on his brow despite the cold.{/i}"
+    if has_maple_sugar:
+        show alexander neutral at speaker_focus(xalign=0.9)
+        al "Buddy! First one was free, remember? You here about the second?"
+        l "Not exactly."
     show alexander neutral at speaker_background(xalign=0.9)
     show louis neutral at speaker_focus(xalign=0.1)
     l "Alexander. I found this in Himmel's luggage."
@@ -1251,6 +1429,8 @@ label c5_p2_pattison_dialogue:
     l "Pattison. I need to ask you something important."
     show louis neutral at speaker_background(xalign=0.1)
     p "This goes to the clock, while this goes to the end..."
+    if sorted_mail:
+        p "Ah. You helped me sort, before. I told you you'd be needed before it ends."
     show pattison neutral at speaker_background(xalign=0.9)
     l "Pattison, please. Was Alexander here the whole night? In this carriage?"
     "{i}Pattison stops sorting. Looks at Louis properly for the first time.{/i}"
@@ -1287,6 +1467,8 @@ label c5_p2_pattison_dialogue:
 
 label accusation_scene:
     $ autosave_checkpoint()
+    if len(first_ride_recap()) == 9:
+        $ achievement.grant("total_recall")
     scene bg carriage_3
     $ renpy.notify("COMPLETED CLUES!")
     pause 1.0
@@ -1298,17 +1480,100 @@ label accusation_scene:
     show fedora neutral at speaker_background(xalign=0.9)
     show louis neutral at speaker_focus(xalign=0.5)
     l "..."
+    jump accusation_pick
+
+# Everyone who gathered can be accused: staff on one list, passengers on the other.
+label accusation_pick:
     menu:
-        "Accuse Eduard":
-            jump accusation_eduard
-        "Accuse Alexander":
-            jump accusation_alexander
-        "Accuse Agatha":
-            jump accusation_agatha
-        "Accuse Misha":
-            jump accusation_misha
+        "Who did it?"
+        "Someone on the staff":
+            menu:
+                "Accuse Dorothy":
+                    jump accusation_dorothy
+                "Accuse Eduard":
+                    jump accusation_eduard
+                "Accuse Agatha":
+                    jump accusation_agatha
+                "Accuse Ichora":
+                    jump accusation_ichora
+                "Accuse Pattison":
+                    jump accusation_pattison
+                "Go back":
+                    jump accusation_pick
+        "One of the passengers":
+            menu:
+                "Accuse Fedora":
+                    jump accusation_fedora
+                "Accuse Alexander":
+                    jump accusation_alexander
+                "Accuse Kimmy":
+                    jump accusation_kimmy
+                "Accuse Himmel":
+                    jump accusation_himmel
+                "Accuse Sebastian":
+                    jump accusation_sebastian
+                "Accuse Misha":
+                    jump accusation_misha
+                "Go back":
+                    jump accusation_pick
+
+label accusation_dorothy:
+    $ note_accused("dorothy")
+    hide fedora
+    show louis neutral at speaker_focus(xalign=0.1)
+    l "It was you, Dorothy."
+    show dorothy surprised at speaker_focus(xalign=0.9)
+    d "M-me? Sir, I punch tickets. I was at the front of the train all night, checking the same ticket over and over…"
+    jump wrong_ending
+
+label accusation_ichora:
+    $ note_accused("ichora")
+    hide fedora
+    show louis neutral at speaker_focus(xalign=0.1)
+    l "It was you, Ichora."
+    show ichora neutral at speaker_focus(xalign=0.9)
+    ic "Buddy. I gave you a KEY. This is how you thank me?"
+    jump wrong_ending
+
+label accusation_pattison:
+    $ note_accused("pattison")
+    hide fedora
+    show louis neutral at speaker_focus(xalign=0.1)
+    l "It was you, Pattison."
+    show pattison neutral at speaker_focus(xalign=0.9)
+    p "This goes to the clock… and this goes to you, sir. Wrong pile."
+    jump wrong_ending
+
+label accusation_fedora:
+    $ note_accused("fedora")
+    hide fedora
+    show louis neutral at speaker_focus(xalign=0.1)
+    l "It was you, Fedora. You knew there'd be a killer before anyone did."
+    show fedora neutral at speaker_focus(xalign=0.9)
+    f "ME? Matchstick, I'd have had the scoop of the CENTURY. I wouldn't waste it on myself."
+    jump wrong_ending
+
+label accusation_kimmy:
+    $ note_accused("kimmy")
+    hide fedora
+    show louis neutral at speaker_focus(xalign=0.1)
+    l "It was you, Kimmy."
+    show kimmy neutral at speaker_focus(xalign=0.9)
+    k "Darling. I don't get blood on silk. Ever."
+    jump wrong_ending
+
+label accusation_sebastian:
+    $ note_accused("sebastian")
+    hide fedora
+    show louis neutral at speaker_focus(xalign=0.1)
+    l "It was you, Sebastian."
+    show sebastian neutral at speaker_focus(xalign=0.9)
+    seb "I stood at that cabin door all night, sir. Guarding it. Guarding him."
+    "{i}His eyes flick, just once, to the boy behind him.{/i}"
+    jump wrong_ending
 
 label accusation_eduard:
+    $ note_accused("eduard")
     hide fedora
     show louis neutral at speaker_focus(xalign=0.1)
     l "It was you."
@@ -1317,6 +1582,7 @@ label accusation_eduard:
     jump wrong_ending
 
 label accusation_alexander:
+    $ note_accused("alexander")
     hide fedora
     show louis neutral at speaker_focus(xalign=0.1)
     l "It was you."
@@ -1325,11 +1591,23 @@ label accusation_alexander:
     jump wrong_ending
 
 label accusation_agatha:
+    $ note_accused("agatha")
     hide fedora
     show louis neutral at speaker_focus(xalign=0.1)
     l "It was you."
     show agatha neutral at speaker_focus(xalign=0.9)
     a "...You're joking. Tell me you're joking."
+    jump wrong_ending
+
+label accusation_himmel:
+    $ note_accused("himmel")
+    hide fedora
+    show louis neutral at speaker_focus(xalign=0.1)
+    l "It was you. You owed Alexander, same as Shunyu did."
+    show himmel neutral at speaker_focus(xalign=0.9)
+    h "M-me?! I was in our cabin all night, I- I can barely open a JAR, darling, let alone-"
+    show kimmy neutral at speaker_focus(xalign=0.5)
+    k "He was with me. Snoring. Loudly."
     jump wrong_ending
 
 label wrong_ending:
@@ -1348,6 +1626,7 @@ label wrong_ending:
     jump ending_1_death
 
 label accusation_misha:
+    $ note_accused("misha")
     hide fedora
     show louis neutral at speaker_focus(xalign=0.1)
     if not (clue_tile_mismatch and clue_body_moved and clue_alexander_alibi and clue_hidden_tile):
@@ -1437,6 +1716,8 @@ label c6_question_1:
     "{i}The Passenger lurches forward, tiles clicking and clattering out of his throat, arranging themselves on the floor into a crude, shifting sentence only Louis can read.{/i}"
     show shunyu_monster neutral at speaker_focus(xalign=0.2)
     shunyu_monster "{i}(wet, clicking){/i} You can only lose one hundred percent... but you can win one hundred thousand percent... So tell me, matchstick... what did I actually lose?"
+    if played_mahjong:
+        l "{i}(I sat at his table. He told me I could only lose 100 percent. He never once said what that 100 percent was.){/i}"
     menu:
         "“Your life.”":
             l "Your life. You lost your life."
@@ -1460,11 +1741,13 @@ label c6_question_2:
     "{i}The Gentleman vibrates closer, wrappers crinkling with every juddering step, hands still clawing at his own chest.{/i}"
     show himmel_monster neutral at speaker_focus(xalign=0.8)
     himmel_monster "{i}(rapid, overlapping){/i} Tell me, tell me, WHAT was I actually running toward? Every time. Every single time. WHAT WAS IT."
+    if has_maple_sugar:
+        l "{i}(I remember how that maple sugar felt. It didn't take me anywhere. It just made everything else go quiet.){/i}"
     menu:
         "“Peace.”":
             l "Peace, maybe?"
             "{i}The Gentleman's shaking intensifies violently, veins pulsing black beneath his waxen skin.{/i}"
-            himmel_monster "PEACE ISN'T SOMETHING YOU BUY IN A CORNER OF A STORAGE CART. WRONG."
+            himmel_monster "PEACE ISN'T SOMETHING YOU BUY IN A CORNER OF A MAIL CART. WRONG."
             $ c6_q2_correct = False
         "“Kimmy's approval.”":
             l "Maybe… maybe you wanted Kimmy to notice you more?"
@@ -1484,6 +1767,8 @@ label c6_question_3:
     "{i}The Conductor-thing unfolds to its full, impossible height, the faceless expanse of fabric-skin tilting down toward Louis. The mouth-hole opens, and Dorothy's stolen voice pours out, layered and wrong.{/i}"
     show conductor_monster neutral at speaker_focus(xalign=0.5)
     conductor_monster "Thank you for boarding... the Grekhov Express... Tell me, passenger... what is a conductor FOR... if none of you ever truly get off?"
+    if sorted_mail:
+        l "{i}(Pattison sorted letters 'to the end'. Nobody ever writes back from the end. Someone has to tell them it's already arrived.){/i}"
     menu:
         "“To keep the train running forever.”":
             l "Maybe… maybe just to keep it moving?"
@@ -1523,7 +1808,6 @@ label ending_1_death:
     hide screen loop_overlay
     scene black with dissolve
     call screen ending_card(_("ENDING 1"), _("WRONG GUESS"), _("The train doesn't forgive wrong guesses."))
-    call ending_video from _call_ending_video
     $ MainMenu(confirm=False)()
     return
 
@@ -1533,8 +1817,9 @@ label ending_2_escape:
     "Nice, you escaped!"
     $ c6_right = int(c6_q1_correct) + int(c6_q2_correct) + int(c6_q3_correct)
     "{i}You set [c6_right] of the 3 free. Answer all three truly, and maybe the whole train goes free with you.{/i}"
+    $ c6_help = int(bool(played_mahjong)) + int(bool(has_maple_sugar)) + int(bool(sorted_mail))
+    "{i}On the first ride, you did [c6_help] of the 3 things that would have helped you understand them.{/i}"
     call screen ending_card(_("ENDING 2"), _("PARTIAL TRUTH"), _("You escaped, but not everything was resolved."))
-    call ending_video from _call_ending_video_1
     $ MainMenu(confirm=False)()
     return
 
@@ -1546,11 +1831,12 @@ label ending_3_true:
     d "Thank you for saving us. You can finally leave!"
     scene black with dissolve
     call screen ending_card(_("ENDING 3"), _("THE TRUE LINE"), _("You solved the mystery and freed everyone from the loop."))
-    call ending_video from _call_ending_video_2
     $ MainMenu(confirm=False)()
     return
 
 
+# The ending video now lives in EXTRAS (Endings and Theatre); the endings don't play it.
+# Kept so a save made just before it still loads.
 label ending_video:
     stop music fadeout 1.0
     $ renpy.movie_cutscene(ENDING_VIDEO, stop_music=True)
@@ -1579,7 +1865,13 @@ label old_film_to_map:
 
 label c1_interact_cupboard:
     if in_loop:
-        u "Be careful, young one. Do you really wanna do that?"
+        if found_timetable:
+            "{i}The cupboard isn't locked any more. The timetable is still inside.{/i}"
+            "{i}Under every single 4:00, someone has written in pencil: AGAIN.{/i}"
+            l "...Was that there before? Who's been writing in this?"
+            u "Be careful, young one. Do you really wanna know?"
+        else:
+            u "Be careful, young one. Do you really wanna do that?"
         return
 
     "Hmm… It seems to be locked. What would be in there?"
@@ -1593,6 +1885,7 @@ label c1_interact_cupboard:
                 $ found_timetable = True
                 "{i}The lock clicks open. Inside is a dusty timetable. Every departure on it is printed the same way: 4:00.{/i}"
                 l "…Every single one? Even the ones from years ago?"
+                $ remember(_("Louis will remember that."))
             elif _return == "lose":
                 "{i}The pick snaps. The lock stays shut.{/i}"
         "Leave it":
@@ -1602,7 +1895,9 @@ label c1_interact_cupboard:
 label c2_interact_broken_glass:
     show louis neutral at speaker_focus(xalign=0.5)
     l "Damn, how'd that gambler guy even break it?"
-    gam "Can yer shut up?"
+    show shunyu neutral at speaker_focus(xalign=0.9)
+    s "Can yer shut up? I'm on a STREAK here."
+    hide shunyu
     if not in_loop:
         menu:
             "Sweep up the glass?"
@@ -1611,7 +1906,9 @@ label c2_interact_broken_glass:
                 $ renpy.block_rollback()
                 call screen mg_shards
                 if _return == "win":
+                    $ swept_glass = True
                     l "Got it all… huh. I only counted six shards. Wasn't there a bigger one?"
+                    $ remember(_("Louis will remember that."))
                 elif _return == "lose":
                     "{i}You give up and leave the glass where it is.{/i}"
             "Leave it":
@@ -1619,6 +1916,7 @@ label c2_interact_broken_glass:
     return
 
 label c3_interact_toys:
+    scene talk to misha with talk_in
     "Awh, they're so cute."
     menu:
         "Play with the blocks?"
@@ -1631,6 +1929,8 @@ label c3_interact_toys:
                 mi "You play nice. Not like the others. They always forget the order."
                 l "…The order of what?"
                 "{i}Misha goes back to his blocks.{/i}"
+                $ played_blocks = True
+                $ remember(_("Misha will remember that."))
             elif _return == "lose":
                 "{i}Misha stares at the fallen blocks, then at you. Sebastian clears his throat from the doorway.{/i}"
         "Leave them":
@@ -1663,6 +1963,8 @@ label c5_interact_mail_room:
             call screen mg_mail
             if _return == "win":
                 p "This goes to the clock, while this goes to the end… thank you, Sir. You'll be needed before it ends."
+                $ sorted_mail = True
+                $ remember(_("Pattison will remember that."))
             elif _return == "lose":
                 p "No, no, no. That goes to the fake ones. Never mind. I'll do it."
         "Leave it":

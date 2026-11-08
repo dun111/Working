@@ -1,20 +1,34 @@
-game/movies/REDACTED.mp4
-game/movies/main_menu_bg.webm
-game/movies/ending_video.mp4
-video_source/
+# Ren'Py compiled and generated files
 *.rpyc
 *.rpymc
 *.rpyb
 game/cache/
-
+game/saves/
+*.save
+game/tl/None/
 errors.txt
 files.txt
 log.txt
 traceback.txt
 
-.DS_Store
-**/.DS_Store
+# Source material kept outside the game
 music_source/
+video_source/
 
-# Local saves and editor data; rewritten on every run
-game/saves/
+# Old local copies of the videos (the game uses the .webm files)
+game/movies/REDACTED.mp4
+game/movies/main_menu_bg.webm
+game/movies/ending_video.mp4
+
+# Local release folders
+release-*/
+
+# Editor and tool files
+.vscode/
+.idea/
+game/libs/*.rpe.py
+
+# System files
+.DS_Store
+Thumbs.db
+Desktop.ini

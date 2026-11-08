@@ -1,19 +1,22 @@
 define SONGS = {
     "main_menu":            ("music/grekhov_theme.mp3",               _("Grekhov Theme"),                 "Departure at 4:00"),
     "carriage_1":           ("music/carriage_1_clip.mp3",         _("Carriage 1"),                    "Departure at 4:00"),
-    "carriage_2":           ("music/lets_all_do_the_conga.m4a",   "Let's All Do the Conga",           "Colin Sheen"),
-    "carriage_3":           ("music/rendezvous.opus",             "Rendezvous (Instrumental)",        "Carriages 2 and 3"),
+    "carriage_2":           ("music/lets_all_do_the_conga.mp3",   "Let's All Do the Conga",           "Colin Sheen"),
+    "carriage_3":           ("music/rendezvous.opus",             "Rendezvous (Instrumental)",        "Carriage 3"),
+    "part2_carriage_1":     ("music/part2_carriage_1.mp3",        _("Part 2 Carriage 1"),             "Departure at 4:00"),
+    "part2_carriage_2":     ("music/part2_carriage_2.mp3",        _("Part 2 Carriage 2"),             "Departure at 4:00"),
     "part2_carriage_3":     ("music/part2_carriage_3.mp3",        _("Part 2 Carriage 3"),             "Departure at 4:00"),
     "carriage_4":           ("music/carriage_4.mp3",              _("Carriage 4"),                    "Departure at 4:00"),
     "carriage_5":           ("music/carriage_5.mp3",              _("Carriage 5"),                    "Departure at 4:00"),
-    "accusation":           ("audio/pizzicato_intrigue.mp3",      _("Pizzicato Intrigue"),            "Departure at 4:00"),
+    "accusation":           ("music/pizzicato_intrigue.mp3",      _("Pizzicato Intrigue"),            "Departure at 4:00"),
     "flower_in_a_hurricane": ("music/flower_in_a_hurricane.opus", "Flower In A Hurricane", "Justice ft. Tame Impala, SZA, King Gizzard & the Lizard Wizard (GTA VI)"),
 }
 
 define config.main_menu_music_fadein = 2.0
 
-define SONG_ORDER = ["main_menu", "carriage_1", "carriage_2", "carriage_3", "part2_carriage_3",
-                     "carriage_4", "carriage_5", "accusation", "flower_in_a_hurricane"]
+define SONG_ORDER = ["main_menu", "carriage_1", "carriage_2", "carriage_3", "carriage_4", "carriage_5",
+                     "part2_carriage_1", "part2_carriage_2", "part2_carriage_3",
+                     "accusation", "flower_in_a_hurricane"]
 
 define MUSIC_FOR = {
     "c1": ["carriage_1"],
@@ -21,8 +24,8 @@ define MUSIC_FOR = {
     "c3": ["carriage_3"],
     "c4": ["carriage_4"],
     "c5": ["carriage_5"],
-    "part2": ["main_menu"],
-    "part2_c2": ["carriage_3"],
+    "part2": ["part2_carriage_1"],
+    "part2_c2": ["part2_carriage_2"],
     "part2_c3": ["part2_carriage_3"],
     "part2_c5": ["carriage_5"],
     "accusation": ["accusation"],
@@ -32,7 +35,6 @@ define MUSIC_FOR = {
     "menu_shuffle": ["main_menu", "carriage_3"],
     "casino": ["main_menu"],
     "credits": ["flower_in_a_hurricane"],
-    "credits_tickets": ["flower_in_a_hurricane"],
     "credits_spotlight": ["flower_in_a_hurricane"],
 }
 
@@ -208,15 +210,42 @@ init python:
 
     _menu_music_config()
 
+# The music scene the player is in, kept in the save so loading can bring the song back.
+default music_scene = None
+
 init 2 python:
     def _music_label_cb(name, abnormal=False):
         if not main_menu and name in LABEL_MUSIC:
             normal, looped = LABEL_MUSIC[name]
             _MUSIC.scene = looped if store.in_loop else normal
+            store.music_scene = _MUSIC.scene
             if persistent.ingame_music:
                 music_for(_MUSIC.scene)
 
     config.label_callbacks.append(_music_label_cb)
+
+    def _music_after_load():
+        # Continue and Load used to leave the carriage silent until the next scene,
+        # because the song is only picked when a scene starts. Pick it up again here.
+        scene = getattr(store, "music_scene", None)
+        if scene is None:
+            # Saves from before music_scene: go by the last carriage map they were on.
+            hub = getattr(store, "last_hub", None) or getattr(store, "resume_hub_guess", None)
+            if hub in LABEL_MUSIC:
+                normal, looped = LABEL_MUSIC[hub]
+                scene = looped if getattr(store, "in_loop", False) else normal
+        if scene is None:
+            # A save made right at a scene's start: loading runs that start again,
+            # which picks the song itself.
+            return
+        _MUSIC.scene = scene
+        _MUSIC.place = None
+        if radio_scene() and persistent.ingame_music:
+            music_for(scene, fade=1.0)
+        else:
+            radio_play_station()
+
+    config.after_load_callbacks.append(_music_after_load)
 
 init python:
     def set_ingame_music(on):
