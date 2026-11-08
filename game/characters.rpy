@@ -126,8 +126,6 @@ image fedora happy   = expr("fedora", "happy")
 image fedora grim    = expr("fedora", "grim")
 
 image dorothy neutral   = sprite("dorothy", *DOROTHY_PNG)
-image dorothy happy     = sprite("dorothy", *DOROTHY_PNG)
-image dorothy confused  = sprite("dorothy", *DOROTHY_PNG)
 image dorothy surprised = expr("dorothy", "shocked")
 image dorothy shocked   = expr("dorothy", "shocked")
 image dorothy sad       = sprite("dorothy", *DOROTHY_SAD_PNG)
@@ -145,7 +143,6 @@ image kimmy neutral     = portrait("kimmy")
 image himmel neutral    = portrait("himmel")
 image sebastian neutral = portrait("sebastian")
 image misha neutral     = portrait("misha", scale=0.72)
-image misha stares      = portrait("misha", scale=0.72)
 image misha evil        = expr("misha", "evil")
 image misha sad         = expr("misha", "sad")
 image eduard wary       = expr("eduard", "wary")
@@ -393,7 +390,7 @@ define HS_STYLE = {
     "look": ("#e6a817", _("LOOK")),
     "door": ("#7fc8a9", _("NEXT CARRIAGE")),
     # Going into a room inside a carriage (the Carriage 3 cabins).
-    "enter": ("#7fc8a9", _("ENTER")),
+    "enter": ("#7fc8a9", ""),  # cabin doors: just "Cabin 1", no tag
     "back": ("#8888a0", _("BACK")),
     "decide": ("#a8281a", _("ACCUSE")),
 }
@@ -483,7 +480,7 @@ screen hs(rect, act, label="", kind="look", delay=0.0):
         action Function(hs_press, act, kind)
         background (rbox("#ff00ff40", 6) if persistent.cheat_hotspots else None)
         hover_background rbox(hcol + "26", 22)
-        alt (hkind + " " + label)
+        alt ((hkind + " " + label) if hkind else label)
         at hs_in(delay)
 
         $ on_head = (kind == "talk") and map_xy(hx, hy)[1] > 110
@@ -541,13 +538,14 @@ screen hs(rect, act, label="", kind="look", delay=0.0):
                 hover_background rbox(hcol, 10)
                 hbox:
                     spacing 7
-                    text hkind:
-                        yalign 0.5
-                        layout "nobreak"
-                        size 11
-                        font GFONT
-                        idle_color hcol
-                        hover_color "#0a0a0e"
+                    if hkind:
+                        text hkind:
+                            yalign 0.5
+                            layout "nobreak"
+                            size 11
+                            font GFONT
+                            idle_color hcol
+                            hover_color "#0a0a0e"
                     if label:
                         text label:
                             yalign 0.5

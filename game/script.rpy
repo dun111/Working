@@ -283,10 +283,10 @@ label start:
     scene Train station
     $ achievement.grant("first_departure")
 
-    show dorothy happy at speaker_focus(xalign=0.9)
+    show dorothy neutral at speaker_focus(xalign=0.9)
     d "{i}(distant voice){/i} Thank you for boarding the Grekhov Express."
     "{i}Louis wakes up violently to the sound of train tracks.{/i}"
-    show dorothy happy at speaker_background(xalign=0.9)
+    show dorothy neutral at speaker_background(xalign=0.9)
     show louis confused at speaker_focus(xalign=0.1)
     l "Eugh… augh… guhhh… I feel the ground underneath me moving, and hear the sound of… chugging?"
     "{i}(Chugging){/i}"
@@ -294,14 +294,14 @@ label start:
     l "“Wh-where am I?”"
     "{i}He looks around, and sees a ticket woman.{/i}"
     show louis confused at speaker_background(xalign=0.1)
-    show dorothy confused at speaker_focus(xalign=0.9)
+    show dorothy neutral at speaker_focus(xalign=0.9)
     d "Excuse me sir, tickets please."
-    show dorothy confused at speaker_background(xalign=0.9)
+    show dorothy neutral at speaker_background(xalign=0.9)
     l "Excuse me miss, do you know where we are?"
     show louis confused at speaker_background(xalign=0.1)
     d "Hah… {i}(I'm not paid enough for this){/i}"
     d "Are you fine… sir?"
-    show dorothy confused at speaker_background(xalign=0.9)
+    show dorothy neutral at speaker_background(xalign=0.9)
     show louis looking_around at speaker_focus(xalign=0.1)
     "{i}Louis feels something in his pocket, looks down and sees a ticket.{/i}"
     l "{i}(brain freeze){/i} Uh… uh… yes, the ticket. I think it's somewhere here…"
@@ -633,7 +633,7 @@ label c3_misha_dialogue:
     show louis smiling at speaker_focus(xalign=0.1)
     l "Hey buddy…"
     show louis smiling at speaker_background(xalign=0.1)
-    show misha stares at speaker_focus(xalign=0.9)
+    show misha neutral at speaker_focus(xalign=0.9)
     "{i}Misha stares, no response.{/i}"
     $ c3_talked_misha = True
     return
@@ -1917,7 +1917,7 @@ label ending_3_true:
     hide screen loop_overlay
     $ in_loop = False
     scene bg carriage_1 with dissolve
-    show dorothy happy at speaker_focus(xalign=0.9)
+    show dorothy neutral at speaker_focus(xalign=0.9)
     d "Thank you for saving us. You can finally leave!"
     scene black with dissolve
     call screen ending_card(_("ENDING 3"), _("THE TRUE LINE"), _("You solved the mystery and freed everyone from the loop."))

@@ -1384,7 +1384,7 @@ init python:
         renpy.restart_interaction()
 
 screen mg_pry():
-    use mg_scene(_("PULL UP THE CARPET"), _("1. Press PULL (or SPACE) to pull the carpet up.\n2. Each pull fills the tension bar. If it fills up, the carpet tears.\n3. Wait for the tension to drop, then pull again."), "talk_cabin_misha", "misha stares", 0.88):
+    use mg_scene(_("PULL UP THE CARPET"), _("1. Press PULL (or SPACE) to pull the carpet up.\n2. Each pull fills the tension bar. If it fills up, the carpet tears.\n3. Wait for the tension to drop, then pull again."), "talk_cabin_misha", "misha neutral", 0.88):
         if pr_result is None:
             timer 0.1 repeat True action Function(pry_tick)
             key "K_SPACE" action Function(pry_pull)
