@@ -1,6 +1,6 @@
 # Departure at 4:00
 
-![Version](https://img.shields.io/badge/Version-3.5%20Beta-yellow)
+![Version](https://img.shields.io/badge/Version-4.0%20RC-orange)
 ![Made with Ren'Py](https://img.shields.io/badge/Made%20with-Ren'Py-orange)
 ![Python](https://img.shields.io/badge/Python-3.x-blue)
 ![Genre](https://img.shields.io/badge/Genre-Mystery%20%7C%20Visual%20Novel-purple)
