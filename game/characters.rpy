@@ -2,22 +2,56 @@ define SPRITE_H = 960
 
 init -2 python:
     import math
+    import time as _time
+
+    # When a character changes expression, they hop: tag -> time the new face came in.
+    EXPR_HOP = {}
+    HOP_TIME = 0.32
+    HOP_HEIGHT = 26.0
 
     class IdleAnim(object):
+        # Keeps the characters alive: they breathe, sway a touch (each on their own
+        # beat, so a room doesn't breathe in step), bob while they talk, and hop
+        # when their expression changes.
         def __init__(self, tag):
             self.tag = tag
+            self.phase = (sum(ord(c) for c in tag) % 17) / 17.0 * 2 * math.pi
 
         def __call__(self, trans, st, at):
             if persistent.reduce_motion:
                 trans.yzoom = 1.0
                 trans.yoffset = 0
+                trans.xoffset = 0
                 return None
-            trans.yzoom = 1.0 + 0.005 * math.sin(st * math.pi / 2.0)
+            t = at + self.phase
+            trans.yzoom = 1.0 + 0.009 * math.sin(t * math.pi / 2.0)
+            trans.xoffset = 1.6 * math.sin(t * 0.7)
+            y = 0.0
             if TALK.typing == self.tag:
-                trans.yoffset = -abs(math.sin(st * 6.0)) * 2.0
-            else:
-                trans.yoffset = 0
+                y -= abs(math.sin(at * 6.0)) * 3.5
+            hop = EXPR_HOP.get(self.tag)
+            if hop is not None:
+                dt = _time.time() - hop
+                if 0 <= dt < HOP_TIME:
+                    y -= HOP_HEIGHT * math.sin(math.pi * dt / HOP_TIME)
+                else:
+                    EXPR_HOP.pop(self.tag, None)
+            trans.yoffset = y
             return 1.0 / 30
+
+    def note_expression_change(name, tag=None):
+        # Called as a sprite is shown: a new face for someone already on screen hops.
+        try:
+            parts = tuple(name) if isinstance(name, (tuple, list)) else tuple(str(name).split())
+            tag = tag or parts[0]
+            if not renpy.showing(tag):
+                return
+            old = set(renpy.get_attributes(tag) or ())
+            new = set(parts[1:])
+            if new and old and new != old and not tag.endswith("_monster"):
+                EXPR_HOP[tag] = _time.time()
+        except Exception:
+            pass
 
     def _scaled(path, src_h, scale):
         return Transform(path, zoom=SPRITE_H * scale / float(src_h))
@@ -71,23 +105,37 @@ define SHUNYU_PNG      = art_file("images/shunyu_neutral.png")
 define ICHORA_PNG      = art_file("images/ichora_neutral.png")
 
 
+init python:
+    # An expression sprite: images/<tag>_<name>.png, sized like that character's neutral one.
+    EXPR_SCALE = {"misha": 0.72}
+
+    def expr(tag, name):
+        path = "images/%s_%s.png" % (tag, name)
+        return sprite(tag, path, renpy.image_size(path)[1], scale=EXPR_SCALE.get(tag, 1.0))
+
 image louis neutral        = sprite("louis", *LOUIS_PNG)
-image louis confused       = sprite("louis", *LOUIS_PNG)
-image louis looking_around = sprite("louis", *LOUIS_PNG)
+image louis confused       = expr("louis", "confused")
+image louis shocked        = expr("louis", "shocked")
+image louis determined     = expr("louis", "determined")
+image louis smiling        = expr("louis", "smiling")
+image louis thinking       = expr("louis", "thinking")
+image louis looking_around = expr("louis", "thinking")
 
 image fedora neutral = sprite("fedora", *FEDORA_PNG)
+image fedora happy   = expr("fedora", "happy")
+image fedora grim    = expr("fedora", "grim")
 
 image dorothy neutral   = sprite("dorothy", *DOROTHY_PNG)
-image dorothy happy     = sprite("dorothy", *DOROTHY_PNG)
-image dorothy confused  = sprite("dorothy", *DOROTHY_PNG)
-image dorothy surprised = sprite("dorothy", *DOROTHY_PNG)
+image dorothy surprised = expr("dorothy", "shocked")
+image dorothy shocked   = expr("dorothy", "shocked")
 image dorothy sad       = sprite("dorothy", *DOROTHY_SAD_PNG)
 
 
 image shunyu neutral = sprite("shunyu", *SHUNYU_PNG)
-image shunyu excited = sprite("shunyu", *SHUNYU_PNG)
+image shunyu excited = expr("shunyu", "excited")
 
 image ichora neutral = sprite("ichora", *ICHORA_PNG)
+image ichora wink    = expr("ichora", "wink")
 
 
 image eduard neutral    = portrait("eduard")
@@ -95,7 +143,19 @@ image kimmy neutral     = portrait("kimmy")
 image himmel neutral    = portrait("himmel")
 image sebastian neutral = portrait("sebastian")
 image misha neutral     = portrait("misha", scale=0.72)
-image misha stares      = portrait("misha", scale=0.72)
+image misha evil        = expr("misha", "evil")
+image misha sad         = expr("misha", "sad")
+image eduard wary       = expr("eduard", "wary")
+image eduard worried    = expr("eduard", "worried")
+image kimmy amiable     = expr("kimmy", "amiable")
+image himmel nervous    = expr("himmel", "nervous")
+image sebastian shocked = expr("sebastian", "shocked")
+image sebastian threatening = expr("sebastian", "threatening")
+image agatha annoyed    = expr("agatha", "annoyed")
+image agatha judgemental = expr("agatha", "judgemental")
+image pattison gloomy   = expr("pattison", "gloomy")
+image alexander tweaking = expr("alexander", "tweaking")
+image alexander craving = expr("alexander", "craving")
 image agatha neutral    = portrait("agatha")
 image pattison neutral  = portrait("pattison")
 image alexander neutral = portrait("alexander")
@@ -130,16 +190,21 @@ init python:
             Solid("#1a000088"))
         return ConditionSwitch("in_loop", looped, "True", normal)
 
-    def cabin_room(path, crop):
+    def cabin_room(path, crop, loop_path=None, loop_crop=None):
         # A Carriage 3 cabin: the room's pixel art, big and sharp in the middle,
         # in front of the blurred corridor. Darker and red after the loop.
-        h = 980
+        h = 900  # keep in step with CABIN_H in screens.rpy
         w = int(h * crop[2] / float(crop[3]))
         room = Transform(path, crop=crop, xysize=(w, h), nearest=True, xalign=0.5, yalign=0.5)
         back = At(Transform(full_cover("images/bg_sleeper.webp"), blur=14), talk_drift)
         normal = Fixed(back, Solid("#0a0a0ed0"), room)
-        looped = Fixed(back, Solid("#1a0000d8"),
-                       Transform(room, matrixcolor=TintMatrix("#ff9a8a") * SaturationMatrix(0.6) * BrightnessMatrix(-0.12)))
+        if loop_path:
+            # Part 2 has its own art for the room.
+            room_p2 = Transform(loop_path, crop=loop_crop, xysize=(w, h), nearest=True, xalign=0.5, yalign=0.5)
+            looped = Fixed(back, Solid("#1a0000d8"), room_p2)
+        else:
+            looped = Fixed(back, Solid("#1a0000d8"),
+                           Transform(room, matrixcolor=TintMatrix("#ff9a8a") * SaturationMatrix(0.6) * BrightnessMatrix(-0.12)))
         return ConditionSwitch("in_loop", looped, "True", normal)
 
     def talk_map(bg):
@@ -151,10 +216,13 @@ image talk_bar = talk_backdrop("images/bg_bar.webp")
 image talk_sleeper = talk_backdrop("images/bg_sleeper.webp")
 image talk_mail = talk_backdrop("images/bg_mail_cart.webp")
 # The Carriage 3 cabins: Kimmy and Himmel's room (with Himmel's green bag), and Misha's room.
-image talk_cabin_kimmy = cabin_room("images/bg_cabin_kimmy.webp", (362, 106, 312, 362))
-image talk_cabin_misha = cabin_room("images/bg_cabin_misha.webp", (1086, 320, 938, 1086))
+image talk_cabin_kimmy = cabin_room("images/bg_cabin_kimmy.webp", (362, 106, 312, 362),
+                                   "images/bg_cabin_kimmy_part2.webp", (1086, 320, 938, 1086))
+image talk_cabin_misha = cabin_room("images/bg_cabin_misha.webp", (1086, 320, 938, 1086),
+                                   "images/bg_cabin_misha_part2.webp", (1086, 320, 938, 1086))
 # Carriages with no painted backdrop talk in front of their own map, softened.
-image talk_staff = talk_map("bg carriage_4")
+image talk_staff = talk_backdrop("images/bg_staff_talk.webp")
+image talk_cabin = talk_backdrop("images/bg_cabin_talk.webp")
 image talk_engine = talk_map("bg carriage_5")
 image shunyu_dead = full_cover("images/shunyu_dead.webp")
 # Agatha's first appearance, in the staff cart.
@@ -165,11 +233,11 @@ image accusation_bg = Fixed(Transform("bg carriage_2", blur=6), Solid("#0a0a0e70
 image talk to fedora    = "talk_bg"
 image talk to eduard    = "talk_bar"
 image talk to shunyu    = "talk_bar"
-image talk to kimmy     = "talk_cabin_kimmy"
+image talk to kimmy     = "talk_cabin"
 # In Part 2 Himmel is out in the corridor.
-image talk to himmel    = ConditionSwitch("in_loop", "talk_sleeper", "True", "talk_cabin_kimmy")
+image talk to himmel    = ConditionSwitch("in_loop", "talk_sleeper", "True", "talk_cabin")
 image talk to sebastian = "talk_sleeper"
-image talk to misha     = "talk_cabin_misha"
+image talk to misha     = "talk_cabin"
 # Agatha works in the staff cart; in Part 2 she's questioned at the crime scene.
 image talk to agatha    = ConditionSwitch("in_loop", "talk_bar", "True", "talk_staff")
 image talk to ichora    = "talk_staff"
@@ -207,7 +275,7 @@ transform clue_card_in:
     pause 2.6
     easeout anim_t(0.4) yoffset -30 alpha 0.0
 
-screen clue_popup(kind, title, desc=""):
+screen clue_popup(kind, title, desc="", img=None):
     zorder 120
     frame:
         xalign 0.5
@@ -220,6 +288,9 @@ screen clue_popup(kind, title, desc=""):
             background rbox("#17150de8", 12)
             vbox:
                 spacing 6
+                if img:
+                    add Transform(img, fit="contain", xysize=(150, 150)):
+                        xalign 0.5
                 text kind:
                     xalign 0.5
                     size 18
@@ -293,8 +364,8 @@ init python:
         # Tells the player a choice will come back later.
         renpy.notify(text)
 
-    def got_item(name, desc=""):
-        renpy.show_screen("clue_popup", _("GOT ITEM"), name, desc)
+    def got_item(name, desc="", img=None):
+        renpy.show_screen("clue_popup", _("GOT ITEM"), name, desc, img)
 
 
 define HS_CHECKED = "#7a7a88"
@@ -322,6 +393,8 @@ define HS_STYLE = {
     "talk": ("#e0521f", _("TALK")),
     "look": ("#e6a817", _("LOOK")),
     "door": ("#7fc8a9", _("NEXT CARRIAGE")),
+    # Going into a room inside a carriage (the Carriage 3 cabins).
+    "enter": ("#7fc8a9", ""),  # cabin doors: just "Cabin 1", no tag
     "back": ("#8888a0", _("BACK")),
     "decide": ("#a8281a", _("ACCUSE")),
 }
@@ -400,8 +473,8 @@ transform hs_tag_hover:
 screen hs(rect, act, label="", kind="look", delay=0.0):
     $ hx, hy, hw, hh = rect
     $ hcol, hkind = HS_STYLE.get(kind, HS_STYLE["look"])
-    $ checked = kind not in ("door", "back") and hs_checked(act)
-    if kind not in ("door", "back"):
+    $ checked = kind not in ("door", "back", "enter") and hs_checked(act)
+    if kind not in ("door", "back", "enter"):
         $ hs_register(act)
     if checked:
         $ hcol = HS_CHECKED
@@ -411,7 +484,7 @@ screen hs(rect, act, label="", kind="look", delay=0.0):
         action Function(hs_press, act, kind)
         background (rbox("#ff00ff40", 6) if persistent.cheat_hotspots else None)
         hover_background rbox(hcol + "26", 22)
-        alt (hkind + " " + label)
+        alt ((hkind + " " + label) if hkind else label)
         at hs_in(delay)
 
         $ on_head = (kind == "talk") and map_xy(hx, hy)[1] > 110
@@ -469,13 +542,14 @@ screen hs(rect, act, label="", kind="look", delay=0.0):
                 hover_background rbox(hcol, 10)
                 hbox:
                     spacing 7
-                    text hkind:
-                        yalign 0.5
-                        layout "nobreak"
-                        size 11
-                        font GFONT
-                        idle_color hcol
-                        hover_color "#0a0a0e"
+                    if hkind:
+                        text hkind:
+                            yalign 0.5
+                            layout "nobreak"
+                            size 11
+                            font GFONT
+                            idle_color hcol
+                            hover_color "#0a0a0e"
                     if label:
                         text label:
                             yalign 0.5
@@ -606,6 +680,9 @@ define PRESENTS = [
     ("maple",     _("Maple Sugar"),  12),
 ]
 
+# Presents that have their own picture, shown on their gift shop button.
+define PRESENT_ICONS = {"maple": "images/maple_sugar.webp"}
+
 # Each passenger's favourite present is worth two hearts instead of one.
 define FAVOURITE_PRESENT = {
     "Dorothy": "tea",
@@ -726,7 +803,7 @@ init python:
                 store.fares_paid = store.fares_paid | set([lab])
                 # Coins are persistent but fares_paid isn't, so rolling back would charge the fare twice.
                 renpy.block_rollback()
-        elif lab and lab not in store.coin_found:
+        elif kind != "enter" and lab and lab not in store.coin_found:
             store.coin_found = store.coin_found | set([lab])
             give_coins(COIN_FIND)
             renpy.show_screen("coin_toast", COIN_FIND)
@@ -1125,7 +1202,13 @@ screen gift_shop():
                                     for pid, pname, price in PRESENTS:
                                         $ can = (persistent.coins or 0) >= price
                                         $ known_fav = favourite_known(cur["name"]) and pid == fav
-                                        use rbtn("%s  ·  %d" % (pname, price), (Function(gift, cur["name"], pid) if can else None), w=196, h=50, r=14, size=15, bg=("#5a3a14" if known_fav else "#3e2814"), hov="#6a4a1c", col="#ffd76a", hcol="#ffffff")
+                                        fixed:
+                                            xysize (196, 50)
+                                            use rbtn(("      " if pid in PRESENT_ICONS else "") + "%s  ·  %d" % (pname, price), (Function(gift, cur["name"], pid) if can else None), w=196, h=50, r=14, size=15, bg=("#5a3a14" if known_fav else "#3e2814"), hov="#6a4a1c", col="#ffd76a", hcol="#ffffff")
+                                            if pid in PRESENT_ICONS:
+                                                add Transform(PRESENT_ICONS[pid], fit="contain", xysize=(30, 30)):
+                                                    xpos 8
+                                                    yalign 0.5
                             else:
                                 text _("Hearts full. Thanks for the presents!"):
                                     size 18
@@ -1167,6 +1250,41 @@ transform window_zoom_in:
     zoom (1.0 if persistent.reduce_motion else 0.55)
     easein 0.45 alpha 1.0 zoom 1.0
 
+# ---------- LOOKING OUT A WINDOW: the carriage zooms in on the window ----------
+transform window_zoom(fx, fy, z=3.0):
+    subpixel True
+    anchor (fx, fy)
+    pos (fx, fy)
+    zoom 1.0
+    ease 0.9 zoom z pos (0.5, 0.42)
+
+transform window_unzoom(fx, fy, z=3.0):
+    subpixel True
+    anchor (fx, fy)
+    pos (0.5, 0.42)
+    zoom z
+    ease 0.7 zoom 1.0 pos (fx, fy)
+
+init python:
+    class _WINDOW(object):
+        img = None
+        at = (0.5, 0.5)
+
+    def window_look(img, cx, cy):
+        # Zoom the carriage map in on the window at (cx, cy) in design space.
+        x, y = map_xy(cx, cy)
+        _WINDOW.img = img
+        _WINDOW.at = (x / float(GAME_W), y / float(GAME_H))
+        renpy.show(img, at_list=[window_zoom(*_WINDOW.at)])
+
+    def window_back():
+        if not _WINDOW.img:
+            return
+        renpy.show(_WINDOW.img, at_list=[window_unzoom(*_WINDOW.at)])
+        renpy.pause(0.7, hard=True)
+        renpy.show(_WINDOW.img)
+        _WINDOW.img = None
+
 screen window_view(dark=False):
     add Solid("#000000c8") at window_zoom_in
     add ("window_view_night" if dark else "window_view_day"):
@@ -1197,6 +1315,9 @@ transform pop_back:
 # The tile art has a lot of transparent space around it; crop to the tile itself.
 define TILE_CLOSEUP = Transform("images/clue_hidden_tile.webp", crop=(68, 304, 1317, 837))
 # The drink Eduard offers you in Carriage 2 (also the moved body clue's picture).
+# Alexander's satchel of maple sugar.
+define MAPLE_ICON = "images/maple_sugar.webp"
+image maple_offer = Transform(MAPLE_ICON, fit="contain", xysize=(360, 360))
 image drink_offer = Transform("images/clue_drink.webp", crop=(540, 80, 1280, 2360), fit="contain", xysize=(380, 640))
 define WRONG_TILE_CLOSEUP = Transform("images/clue_wrong_tile.webp", crop=(68, 316, 1376, 872))
 
@@ -1210,5 +1331,7 @@ screen fullscreen_pop(img, cover=False):
         hover_sound None
         action Hide("fullscreen_pop")
         add Solid("#000000e6") at pop_back
-        add Transform(img, fit=("cover" if cover else "contain"), xysize=(sw, sh)) at pop_fill
+        # Close-ups flash up at a modest size in the middle, not filling the screen.
+        add Transform(img, fit=("cover" if cover else "contain"),
+                      xysize=((sw, sh) if cover else (int(sw * 0.42), int(sh * 0.42)))) at pop_fill
     timer POP_SECS action Hide("fullscreen_pop")

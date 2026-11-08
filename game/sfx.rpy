@@ -10,6 +10,9 @@ define SFX_TILE_MATCH = "audio/mahjong_match.mp3"
 define SFX_BLOCK_PRESS = "audio/blocks_press.wav"
 define SFX_BLOCK_SHOW = "audio/blocks_show.wav"
 define SFX_BERRY = "audio/blackberry_touch.mp3"
+# Pick the lock (the Carriage 1 cupboard): a wooden click for each pin, the old lock opening on a win.
+define SFX_LOCK_PIN = "audio/lock_pin.mp3"
+define SFX_LOCK_OPEN = "audio/lock_open.mp3"
 
 init python:
     # The door and the minigame sounds get their own channels, so a button click
@@ -31,11 +34,9 @@ style button:
 
 # ---------- Carriage 3: doors when going into and out of a cabin ----------
 
-define C3_CABINS = {
-    "c3_kimmy_dialogue", "c3_himmel_dialogue", "c3_misha_dialogue", "c3_interact_empty_room",
-    "c3_interact_toys", "c3_p2_kimmy_reinterview", "c3_p2_misha_reinterview",
-    "c3_p2_interact_toys", "c3_p2_interact_carpet",
-}
+# The cabins are places of their own: the door sounds going in, and again on the
+# way back out to the corridor.
+define C3_CABINS = {"c3_cabin_kimmy_room", "c3_cabin_misha_room"}
 define C3_HUBS = {"carriage_3_hub", "carriage_3_part2_hub"}
 
 default c3_in_cabin = False

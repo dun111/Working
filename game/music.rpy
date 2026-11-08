@@ -9,6 +9,7 @@ define SONGS = {
     "carriage_4":           ("music/carriage_4.mp3",              _("Carriage 4"),                    "Departure at 4:00"),
     "carriage_5":           ("music/carriage_5.mp3",              _("Carriage 5"),                    "Departure at 4:00"),
     "accusation":           ("music/pizzicato_intrigue.mp3",      _("Pizzicato Intrigue"),            "Departure at 4:00"),
+    "mysterious_carriage":  ("music/mysterious_carriage.mp3",     "C",                                "Toby Fox (DELTARUNE)"),
     "flower_in_a_hurricane": ("music/flower_in_a_hurricane.opus", "Flower In A Hurricane", "Justice ft. Tame Impala, SZA, King Gizzard & the Lizard Wizard (GTA VI)"),
 }
 
@@ -16,7 +17,7 @@ define config.main_menu_music_fadein = 2.0
 
 define SONG_ORDER = ["main_menu", "carriage_1", "carriage_2", "carriage_3", "carriage_4", "carriage_5",
                      "part2_carriage_1", "part2_carriage_2", "part2_carriage_3",
-                     "accusation", "flower_in_a_hurricane"]
+                     "accusation", "mysterious_carriage", "flower_in_a_hurricane"]
 
 define MUSIC_FOR = {
     "c1": ["carriage_1"],
@@ -29,6 +30,8 @@ define MUSIC_FOR = {
     "part2_c3": ["part2_carriage_3"],
     "part2_c5": ["carriage_5"],
     "accusation": ["accusation"],
+    # The blank carriage behind Carriage 1's mysterious door.
+    "blank": ["mysterious_carriage"],
     "silence": None,
     "escape": ["main_menu"],
     "true": ["main_menu"],
@@ -223,6 +226,15 @@ init 2 python:
                 music_for(_MUSIC.scene)
 
     config.label_callbacks.append(_music_label_cb)
+
+    def blank_carriage_music(entering):
+        # The blank carriage has its own song; leaving it brings the carriage's song back.
+        if not persistent.ingame_music:
+            return
+        if entering:
+            music_for("blank", fade=0.6)
+        elif _MUSIC.scene:
+            music_for(_MUSIC.scene, fade=1.0)
 
     def _music_after_load():
         # Continue and Load used to leave the carriage silent until the next scene,

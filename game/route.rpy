@@ -14,7 +14,7 @@ init -10 python:
         ([(["c2_talked_eduard", "c2_talked_shunyu"], "Carriage 2: talk to Eduard and Shunyu.")],
          []),
         ([(["c3_talked_kimmy", "c3_talked_himmel", "c3_talked_sebastian", "c3_talked_misha"],
-           "Carriage 3: talk to everyone in the cabins.")],
+           "Carriage 3: talk to Sebastian, and everyone in Cabins 1 and 2.")],
          ["door_c4_open"]),
         ([(["c4_talked_agatha", "c4_talked_ichora"], "Carriage 4: meet the staff.")],
          ["has_key"]),
@@ -31,14 +31,14 @@ init -10 python:
           (["c2_p2_reinterviewed_eduard", "c2_p2_reinterviewed_agatha"], "Carriage 2: question Eduard and Agatha.")],
          ["clue_tile_mismatch", "clue_body_moved"]),
         # Carriage 3, first visit.
-        ([(["clue_drug_wrapper"], "Carriage 3: look in Kimmy's cabin."),
-          (["kimmy_reinterviewed"], "Carriage 3: ask Kimmy about the wrapper."),
+        ([(["clue_drug_wrapper"], "Carriage 3: look in Cabin 1."),
+          (["kimmy_reinterviewed"], "Carriage 3: ask Kimmy (Cabin 1) about the wrapper."),
           (["himmel_reinterviewed"], "Carriage 3: confront Himmel in the corridor.")],
          ["himmel_reinterviewed"]),
         # The mail room, then back to Carriage 3.
         ([(["alexander_reinterviewed", "pattison_reinterviewed"], "Carriage 5: question Alexander, then Pattison."),
-          (["clue_hidden_tile"], "Back to Carriage 3: check the carpet."),
-          (["sebastian_reinterviewed", "misha_reinterviewed"], "Carriage 3: question Sebastian and Misha.")],
+          (["clue_hidden_tile"], "Back to Carriage 3: check the carpet in Cabin 2."),
+          (["sebastian_reinterviewed", "misha_reinterviewed"], "Carriage 3: question Sebastian, and Misha in Cabin 2.")],
          ["clue_alexander_alibi", "c3_p2_returned"]),
     ]
     ROUTE_PART2_END = "Carriage 3: decide who did it."

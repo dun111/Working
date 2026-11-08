@@ -284,11 +284,11 @@ image menu_slideshow:
     pause 8.0
     full_cover("images/bg_sleeper.webp") with Dissolve(2.0)
     pause 8.0
+    full_cover("images/bg_cabin_talk.webp") with Dissolve(2.0)
+    pause 8.0
+    full_cover("images/bg_staff_talk.webp") with Dissolve(2.0)
+    pause 8.0
     full_cover("images/bg_mail_cart.webp") with Dissolve(2.0)
-    pause 8.0
-    full_cover("images/cg_agatha_gloves.webp") with Dissolve(2.0)
-    pause 8.0
-    full_cover("images/bg_carriage_6.webp") with Dissolve(2.0)
     pause 8.0
     repeat
 
@@ -641,6 +641,8 @@ init python:
             _sp_pending.clear()
         except Exception:
             pass
+        if kwargs.get("layer") in (None, "master"):
+            note_expression_change(name, kwargs.get("tag"))
         rv = _orig_show(name, at_list, *args, **kwargs)
         if kwargs.get("layer") in (None, "master"):
             # A new background may have come in: rumble only on the carriage maps.
@@ -710,13 +712,6 @@ transform distortion_warp:
         ease 1.6 zoom 0.99
         repeat
 
-transform carriage_6_ambient:
-    alpha 0.0
-    linear 3.0 alpha 0.3
-    linear 3.0 alpha 0.0
-    repeat
-
-
 transform row_pop(delay=0.0):
     alpha 0.0
     yoffset 18
@@ -765,7 +760,6 @@ transform toast_timer:
 
 # The caboose: the carriage with the monsters in it.
 image carriage_6 = full_cover("images/bg_carriage_6.webp")
-image carriage_6_fog = At(Solid("#4a0a0a"), carriage_6_ambient)
 
 image black = Solid("#000000")
 image Train station = "talk_bg"
@@ -774,7 +768,7 @@ image bg carriage_1 = themed(ConditionSwitch(
     "True", map_bg("images/bg_carriage_1_passengers.webp", 0.186, 0.805, lamp="#ffcf8a")))
 
 image bg carriage_5 = themed(ConditionSwitch(
-    "in_loop", Transform(map_bg("images/bg_mail_room.webp", 0.186, 0.805, floor="#3d3434", lamp="#ff7a66", lamps=5, eerie=True, backdrop="#150d0d"), matrixcolor=LOOP_NIGHT),
+    "in_loop", map_bg("images/bg_mail_room_part2.webp", 0.186, 0.805, floor="#3d3434", lamp="#ff7a66", lamps=5, eerie=True, backdrop="#150d0d"),
     "True", map_bg("images/bg_mail_room.webp", 0.186, 0.805, floor="#3d3434", lamp="#ffe2b0", lamps=5, backdrop="#150d0d")))
 
 image bg carriage_2 = themed(ConditionSwitch(
@@ -782,48 +776,28 @@ image bg carriage_2 = themed(ConditionSwitch(
     "in_loop and not c2_p2_found_body", map_bg("images/bg_bar_cart_part2_body.webp", 0.186, 0.805, ceiling="#755243", lamp="#ff7a66", lamps=5, eerie=True),
     "in_loop", map_bg("images/bg_bar_cart_part2_crowd.webp", 0.186, 0.805, ceiling="#755243", lamp="#ff7a66", lamps=5, eerie=True),
     "True", map_bg("images/bg_bar_cart.webp", 0.186, 0.805, lamp="#ffd9a0", lamps=5)))
-# Carriage 5 has no Part 2 art yet: after the loop it goes dark and red,
-# so the sunny windows don't clash with "it's dark" next door.
-define LOOP_NIGHT = TintMatrix("#d08a80") * SaturationMatrix(0.55) * BrightnessMatrix(-0.16)
 
-# ---------- Carriage 3's cabins, drawn into the blank space below the corridor ----------
-# Kimmy and Himmel's room and Misha's room, spread evenly across the space.
-# Positions are in the 1920x1080 design space; the room art is 312x362 once cropped.
+# ---------- Carriage 3's cabins are rooms of their own ----------
+# The corridor map has a door for each cabin in the blank space under it; going
+# through one opens the cabin full screen (talk_cabin_kimmy / talk_cabin_misha),
+# where the room art is 900px tall and centred.
 init python:
-    C3_ROOM_Y = 648
-    C3_ROOM_H = 390
-    C3_ROOM_K = C3_ROOM_H / 362.0
-    C3_ROOM_W = int(312 * C3_ROOM_K)
-    # The blank space runs from x 176 to 1744.
-    C3_ROOMS_X = {"kimmy": 176 + (1568 - 2 * C3_ROOM_W) // 3,
-                  "misha": 176 + 2 * (1568 - 2 * C3_ROOM_W) // 3 + C3_ROOM_W}
+    CABIN_H = 900  # keep in step with cabin_room() in characters.rpy
+    CABIN_K = CABIN_H / 362.0
+    CABIN_W = int(312 * CABIN_K)
 
-    def c3_spot(room, dx, dy, w, h):
-        # A hotspot inside a cabin, from its offset from the cabin's top-left corner.
-        return (C3_ROOMS_X[room] + dx, C3_ROOM_Y + dy, w, h)
-
-    def c3_rooms():
-        rooms = (
-            ("kimmy", Transform("images/bg_cabin_kimmy.webp", crop=(362, 106, 312, 362), nearest=True)),
-            ("misha", Transform("images/bg_cabin_misha.webp", crop=(1086, 320, 938, 1086), nearest=True)),
-        )
-        w, h = map_wh(C3_ROOM_W, C3_ROOM_H)
-        parts = []
-        for key, art in rooms:
-            x, y = map_xy(C3_ROOMS_X[key], C3_ROOM_Y)
-            parts.append(Transform(rbox("#1c120e", 12), pos=(x - 8, y - 8), xysize=(w + 16, h + 16)))
-            parts.append(Transform(art, pos=(x, y), xysize=(w, h)))
-        return Fixed(*parts, xysize=(GAME_W, GAME_H))
-
-    C3_ROOMS = c3_rooms()
+    def cabin_spot(cx, cy, cw, ch):
+        # A spot in the cabin art (cropped-art pixels) as a hotspot rectangle in design space.
+        sx = (GAME_W - CABIN_W) / 2.0 + cx * CABIN_K
+        sy = (GAME_H - CABIN_H) / 2.0 + cy * CABIN_K
+        return (int((sx - MAP_OX) / MAP_K), int((sy - MAP_OY) / MAP_K),
+                int(cw * CABIN_K / MAP_K), int(ch * CABIN_K / MAP_K))
 
 image bg carriage_3 = themed(ConditionSwitch(
     # Part 2 has its own art (night windows, Himmel out in the corridor). Its top edge
     # drips, so the ceiling above it is one flat colour.
-    "in_loop", Fixed(map_bg("images/bg_sleeper_cart_part2.webp", 0.185, 0.815, ceiling="#7d5847", lamp="#ff7a66", lamps=5, eerie=True, backdrop="#2a1a16", nearest=True),
-                     Transform(C3_ROOMS, matrixcolor=LOOP_NIGHT)),
-    "True", Fixed(map_bg("images/bg_sleeper_cart.webp", 0.185, 0.815, lamp="#ffd9a0", lamps=5, backdrop="#2a1a16", nearest=True),
-                  C3_ROOMS)))
+    "in_loop", map_bg("images/bg_sleeper_cart_part2.webp", 0.185, 0.815, ceiling="#7d5847", lamp="#ff7a66", lamps=5, eerie=True, backdrop="#2a1a16", nearest=True),
+    "True", map_bg("images/bg_sleeper_cart.webp", 0.185, 0.815, lamp="#ffd9a0", lamps=5, backdrop="#2a1a16", nearest=True)))
 image bg carriage_4 = themed(map_bg("images/bg_staff_cart.webp", 0.185, 0.815, lamp="#ffe9c4", lamps=5, nearest=True))
 
 
@@ -944,6 +918,8 @@ init python:
 
     config.save_json_callbacks.append(_save_tag)
 
+    # Saving is switched off from the Part 1 knockout until Louis is back on the
+    # Carriage 1 map in Part 2 (the game makes its own save for CONTINUE there).
     def save_ok(slot):
         return (renpy.slot_json(slot) or {}).get("save_version") == SAVE_VERSION
 
@@ -2680,9 +2656,17 @@ define CLUE_LIST = [
     ("clue_alexander_alibi", "ALEXANDER'S ALIBI", "\"I would've heard the door. It creaks something awful.\""),
 ]
 
+# The wrapper is dark with black outlines, so its close-up sits on a light paper card
+# (on the black pop-up backdrop it would vanish).
+define WRAPPER_CLOSEUP = Fixed(
+    Transform(rbox("#e9dcc2", 70), xysize=(1600, 1340)),
+    Transform("images/clue_wrapper.webp", crop=(20, 184, 1446, 1202), xalign=0.5, yalign=0.5),
+    xysize=(1600, 1340))
+
 define CLUE_IMAGES = {
     "clue_tile_mismatch": "images/clue_wrong_tile.webp",
     "clue_body_moved": "images/clue_drink.webp",
+    "clue_drug_wrapper": "images/clue_wrapper.webp",
     "clue_hidden_tile": "images/clue_hidden_tile.webp",
     "clue_alexander_alibi": "images/clue_alibi.webp",
 }
@@ -3216,7 +3200,7 @@ screen file_slots(title):
                             yfill True
                             background rbox("#101014", 22)
                             hover_background rbox("#1c1c26", 22)
-                            action (FileAction(slot) if (title == _("SAVE") or save_ok(slot) or not FileLoadable(slot)) else None)
+                            action ((Notify(_("You can't save right now.")) if save_locked else FileAction(slot)) if title == _("SAVE") else (FileAction(slot) if (save_ok(slot) or not FileLoadable(slot)) else None))
                             key "save_delete" action FileDelete(slot)
 
                             hbox:
@@ -3514,11 +3498,11 @@ define CREW = [
     {"key": "hannah", "name": "Hannah", "roles": [
         "Game graphic design", "General graphic design", "Story writer",
         "Generalist",
-        "Lead graphic designer", "Lead designer", "Character designer", "Map designer"]},
+        "Lead graphic designer", "Lead designer", "Character designer"]},
     {"key": "aydin", "name": "Aydin", "roles": [
         "Story writer", "General graphic design", "Game graphic design",
         "Google Sites page/presentation", "Generalist",
-        "Lead designer", "Lead graphic designer", "Character designer",
+        "Lead designer", "Lead graphic designer", "Map designer",
         "Lead website developer / manager"]},
     {"key": "ryan", "name": "Ryan", "roles": [
         "Google Sites page/presentation", "Research/resource finder",
@@ -4426,7 +4410,7 @@ init python:
 
 screen quick_keys():
     if not main_menu and not renpy.get_screen("menu"):
-        key "K_F5" action QuickSave()
+        key "K_F5" action (Notify(_("You can't save right now.")) if save_locked else QuickSave())
         key "K_F8" action Function(quick_load)
 
 

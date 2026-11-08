@@ -1,6 +1,6 @@
 # Departure at 4:00
 
-![Version](https://img.shields.io/badge/Version-3.5%20Beta-yellow)
+![Version](https://img.shields.io/badge/Version-4.0-brightgreen)
 ![Made with Ren'Py](https://img.shields.io/badge/Made%20with-Ren'Py-orange)
 ![Python](https://img.shields.io/badge/Python-3.x-blue)
 ![Genre](https://img.shields.io/badge/Genre-Mystery%20%7C%20Visual%20Novel-purple)
@@ -34,18 +34,30 @@ The builds are on the [Releases](../../releases) page.
 
 The game runs at 1920x1080 and scales to fit smaller screens and windows. Sound is recommended: the music, the radio and the minigame sounds are part of the game.
 
-## How it plays
+### First launch
+
+The game isn't signed by Apple or Microsoft, so the first time you open it your computer may warn you.
+
+- **Mac:** if macOS says it can't check the app, open **System Settings > Privacy & Security**, scroll down and click **Open Anyway**, then open the game again.
+- **Windows:** if you see "Windows protected your PC", click **More info**, then **Run anyway**.
+- **Linux:** if double-clicking does nothing, run `./"Departure at 4.00.sh"` from a terminal in the game folder.
+
+## Rules
+
+You're Louis, waking up on the Grekhov Express with no idea how you got there. Someone on this train is going to die.
+
+- **Explore the train.** Each carriage is a map. Click people to talk to them and objects to look at them. Looking around turns up coins.
+- **Pay for doors.** Each door to the next carriage costs a few coins, so check everything before moving on.
+- **Make choices.** Some conversations give you a choice, and what you choose on the first ride comes back later.
+- **Play the minigames.** Mahjong, lock-picking, sorting mail, keeping the engine steady and more. You can replay them later from **EXTRAS > ARCADE**.
+- **Collect clues.** Once the loop begins, go back through the carriages. Things have changed, and people tell you more the second time. Clues are kept in the journal.
+- **Name the killer.** At the end you accuse someone, and a wrong guess ends badly. If you're right, you face three questions in Carriage 6:
+  - **All three right:** the true ending.
+  - **Some right:** you escape.
+  - **None right:** the worst ending.
+- **Extras:** give presents to fill passengers' hearts (everyone has a favourite worth double). There are also golden tickets to find, a casino on the main menu, achievements, a radio with the soundtrack, and a few secrets.
 
 The game opens with a short tutorial, and the full guide is under **HOW TO PLAY** on the main menu (or F1) any time.
-
-- Each carriage is a map. Click the people and objects on it to talk or look around.
-- Some conversations give you a choice, and some choices get you clues.
-- There are minigames along the way: mahjong, picking locks, sorting mail, keeping the engine's steam steady and more. You can replay them later from EXTRAS > ARCADE.
-- Looking around turns up coins. Each door to the next carriage costs a few, so check everything. Coins also buy presents for the passengers to fill their hearts. Everyone has a favourite present that's worth double. Finding the gift shop is up to you.
-- Once the loop starts, go back through the carriages. Things have changed, and people will tell you more the second time.
-- At the end you name the killer. Pick wrong and that's the end of you.
-
-There's also a clue journal, achievements, a radio with the soundtrack, a casino on the main menu, and a few secrets.
 
 ## Controls
 
@@ -57,6 +69,8 @@ There's also a clue journal, achievements, a radio with the soundtrack, a casino
 | Tab | Turn skipping on or off |
 | Mouse wheel up | Look back at earlier lines |
 | J | Clue journal |
+| M | Passenger list |
+| F1 | How to play |
 | F5 / F8 | Quick save / quick load |
 | F9 | Cheat menu (dev build only) |
 
@@ -99,6 +113,6 @@ Blackberry Studios
 - Eric Zheng: direction, design, programming
 - Ryan: programming and scripting
 - Hannah: story and writing, character design, art
-- Aydin: character design, maps, art
+- Aydin: map design, art
 
 Made with [Ren'Py](https://www.renpy.org/). © Blackberry Studios. All rights reserved.
