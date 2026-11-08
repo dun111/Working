@@ -114,9 +114,10 @@ screen carriage_2_map():
 # through one opens the cabin as its own place (with the door sound), with the
 # people and things in it; the back arrow returns to the corridor.
 
-# Where the cabin doors sit on the corridor map (their centres).
-define C3_DOOR_KIMMY_X = 642
-define C3_DOOR_MISHA_X = 1276
+# Where the cabins sit on the corridor map (their centres), spread across the blank space.
+define C3_DOOR_KIMMY_X = 437
+define C3_DOOR_MISHA_X = 960
+define C3_DOOR_LOCKED_X = 1483
 
 # Spots inside the cabins, in the cabin art's own pixels.
 define CABIN_KIMMY = cabin_spot(57, 148, 66, 118)
@@ -126,17 +127,20 @@ define CABIN_MISHA = cabin_spot(59, 186, 59, 66)
 define CABIN_RUG = cabin_spot(27, 256, 121, 62)
 define CABIN_TOYS = cabin_spot(166, 202, 49, 38)
 
-# The two cabins: a glowing hotspot each in the blank space under the corridor.
+# The cabins: a glowing hotspot each in the blank space under the corridor.
+# Cabin 3 never opens.
 define C3_CABIN1_SPOT = (C3_DOOR_KIMMY_X - 150, 680, 300, 300)
 define C3_CABIN2_SPOT = (C3_DOOR_MISHA_X - 150, 680, 300, 300)
+define C3_CABIN3_SPOT = (C3_DOOR_LOCKED_X - 150, 680, 300, 300)
 
 screen c3_cabin_doors():
-    use hs(C3_CABIN1_SPOT, Jump("c3_cabin_kimmy_room"), "Kimmy & Himmel's cabin", "enter", 0.1)
+    use hs(C3_CABIN1_SPOT, Jump("c3_cabin_kimmy_room"), _("Cabin 1"), "enter", 0.1)
     if in_loop or c3_talked_sebastian:
-        use hs(C3_CABIN2_SPOT, Jump("c3_cabin_misha_room"), "Misha's cabin", "enter", 0.15)
+        use hs(C3_CABIN2_SPOT, Jump("c3_cabin_misha_room"), _("Cabin 2"), "enter", 0.15)
     else:
         # Misha's cabin stays locked until Sebastian has spoken to Louis.
-        use hs(C3_CABIN2_SPOT, Function(renpy.notify, _("Locked. Talk to Sebastian first.")), "Misha's cabin", "enter", 0.15)
+        use hs(C3_CABIN2_SPOT, Function(renpy.notify, _("Locked. Talk to Sebastian first.")), _("Cabin 2"), "enter", 0.15)
+    use hs(C3_CABIN3_SPOT, Function(renpy.notify, _("Cabin 3 is locked.")), _("Cabin 3"), "enter", 0.2)
 
 screen carriage_3_map():
     add "bg carriage_3"
