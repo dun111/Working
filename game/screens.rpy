@@ -770,7 +770,7 @@ image bg carriage_1 = themed(ConditionSwitch(
     "True", map_bg("images/bg_carriage_1_passengers.webp", 0.186, 0.805, lamp="#ffcf8a")))
 
 image bg carriage_5 = themed(ConditionSwitch(
-    "in_loop", Transform(map_bg("images/bg_mail_room.webp", 0.186, 0.805, floor="#3d3434", lamp="#ff7a66", lamps=5, eerie=True, backdrop="#150d0d"), matrixcolor=LOOP_NIGHT),
+    "in_loop", map_bg("images/bg_mail_room_part2.webp", 0.186, 0.805, floor="#3d3434", lamp="#ff7a66", lamps=5, eerie=True, backdrop="#150d0d"),
     "True", map_bg("images/bg_mail_room.webp", 0.186, 0.805, floor="#3d3434", lamp="#ffe2b0", lamps=5, backdrop="#150d0d")))
 
 image bg carriage_2 = themed(ConditionSwitch(
@@ -778,9 +778,6 @@ image bg carriage_2 = themed(ConditionSwitch(
     "in_loop and not c2_p2_found_body", map_bg("images/bg_bar_cart_part2_body.webp", 0.186, 0.805, ceiling="#755243", lamp="#ff7a66", lamps=5, eerie=True),
     "in_loop", map_bg("images/bg_bar_cart_part2_crowd.webp", 0.186, 0.805, ceiling="#755243", lamp="#ff7a66", lamps=5, eerie=True),
     "True", map_bg("images/bg_bar_cart.webp", 0.186, 0.805, lamp="#ffd9a0", lamps=5)))
-# Carriage 5 has no Part 2 art yet: after the loop it goes dark and red,
-# so the sunny windows don't clash with "it's dark" next door.
-define LOOP_NIGHT = TintMatrix("#d08a80") * SaturationMatrix(0.55) * BrightnessMatrix(-0.16)
 
 # ---------- Carriage 3's cabins are rooms of their own ----------
 # The corridor map has a door for each cabin in the blank space under it; going

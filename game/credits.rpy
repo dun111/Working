@@ -220,6 +220,7 @@ define SPOT_SLIDES = [
     "pattison neutral",
     "alexander neutral",
     "images/bg_mail_room.webp",
+    "images/bg_mail_room_part2.webp",
     "images/bg_carriage_1_passengers_part2.webp",
     "dorothy sad",
     "images/bg_bar_cart_part2_crowd.webp",

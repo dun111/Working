@@ -184,9 +184,9 @@ image talk_sleeper = talk_backdrop("images/bg_sleeper.webp")
 image talk_mail = talk_backdrop("images/bg_mail_cart.webp")
 # The Carriage 3 cabins: Kimmy and Himmel's room (with Himmel's green bag), and Misha's room.
 image talk_cabin_kimmy = cabin_room("images/bg_cabin_kimmy.webp", (362, 106, 312, 362),
-                                   "images/bg_cabin_kimmy_part2.webp", (58, 0, 50, 58))
+                                   "images/bg_cabin_kimmy_part2.webp", (1086, 320, 938, 1086))
 image talk_cabin_misha = cabin_room("images/bg_cabin_misha.webp", (1086, 320, 938, 1086),
-                                   "images/bg_cabin_misha_part2.webp", (58, 0, 50, 58))
+                                   "images/bg_cabin_misha_part2.webp", (1086, 320, 938, 1086))
 # Carriages with no painted backdrop talk in front of their own map, softened.
 image talk_staff = talk_map("bg carriage_4")
 image talk_engine = talk_map("bg carriage_5")

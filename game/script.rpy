@@ -126,6 +126,11 @@ define CABIN_BAG = cabin_spot(12, 196, 44, 72)
 define CABIN_MISHA = cabin_spot(59, 186, 59, 66)
 define CABIN_RUG = cabin_spot(118, 250, 34, 66)
 define CABIN_TOYS = cabin_spot(22, 236, 42, 52)
+# Part 2 has its own cabin art, with Kimmy and Misha standing somewhere else.
+define CABIN_KIMMY_P2 = cabin_spot(157, 212, 63, 120)
+define CABIN_MISHA_P2 = cabin_spot(50, 236, 48, 102)
+define CABIN_TOYS_P2 = cabin_spot(22, 240, 27, 34)
+define CABIN_RUG_P2 = cabin_spot(100, 202, 44, 80)
 
 # The cabins: a glowing hotspot each just under the corridor floor (the platform).
 # Cabin 3 never opens.
@@ -160,7 +165,7 @@ screen c3_cabin_kimmy_map():
     use hs(DOOR_LEFT, Jump("c3_leave_cabin"), "Corridor", "back")
     if in_loop:
         if not kimmy_reinterviewed:
-            use hs(CABIN_KIMMY, Call("c3_p2_kimmy_reinterview"), "Kimmy", "talk")
+            use hs(CABIN_KIMMY_P2, Call("c3_p2_kimmy_reinterview"), "Kimmy", "talk")
         use hs(CABIN_BAG, Call("c3_p2_interact_luggage"), "Green bag", delay=0.1)
     else:
         if not c3_talked_kimmy:
@@ -175,10 +180,10 @@ screen c3_cabin_misha_map():
     use hs(DOOR_LEFT, Jump("c3_leave_cabin"), "Corridor", "back")
     if in_loop:
         if clue_alexander_alibi:
-            use hs(CABIN_RUG, Call("c3_p2_interact_carpet"), "Carpet", delay=0.1)
+            use hs(CABIN_RUG_P2, Call("c3_p2_interact_carpet"), "Carpet", delay=0.1)
         if clue_hidden_tile and not misha_reinterviewed:
-            use hs(CABIN_MISHA, Call("c3_p2_misha_reinterview"), "Misha", "talk")
-        use hs(CABIN_TOYS, Call("c3_p2_interact_toys"), "Toys", delay=0.15)
+            use hs(CABIN_MISHA_P2, Call("c3_p2_misha_reinterview"), "Misha", "talk")
+        use hs(CABIN_TOYS_P2, Call("c3_p2_interact_toys"), "Toys", delay=0.15)
     else:
         if not c3_talked_misha:
             use hs(CABIN_MISHA, Call("c3_misha_dialogue"), "Misha", "talk")
