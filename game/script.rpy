@@ -1211,6 +1211,7 @@ label c3_p2_interact_luggage:
         l "Sorry… I know this isn't really my business, but..."
         call play_required("mg_combo", combo_reset) from _call_play_required_7
         "{i}He nudges one of the bags open, just slightly. Something crinkles.{/i}"
+        $ renpy.show_screen("fullscreen_pop", WRAPPER_CLOSEUP)
         "{i}Louis finds a small, crumpled wrapper wedged between the folds of a coat. Printed on it, half torn: “...APLE SUGAR… BANNED SUBSTANCE, RESTRICTED USE ONLY.”{/i}"
         l "...This is the same stuff Alexander was selling."
         if has_maple_sugar:

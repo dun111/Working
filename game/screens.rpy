@@ -2680,9 +2680,17 @@ define CLUE_LIST = [
     ("clue_alexander_alibi", "ALEXANDER'S ALIBI", "\"I would've heard the door. It creaks something awful.\""),
 ]
 
+# The wrapper is dark with black outlines, so its close-up sits on a light paper card
+# (on the black pop-up backdrop it would vanish).
+define WRAPPER_CLOSEUP = Fixed(
+    Transform(rbox("#e9dcc2", 70), xysize=(1600, 1340)),
+    Transform("images/clue_wrapper.webp", crop=(20, 184, 1446, 1202), xalign=0.5, yalign=0.5),
+    xysize=(1600, 1340))
+
 define CLUE_IMAGES = {
     "clue_tile_mismatch": "images/clue_wrong_tile.webp",
     "clue_body_moved": "images/clue_drink.webp",
+    "clue_drug_wrapper": "images/clue_wrapper.webp",
     "clue_hidden_tile": "images/clue_hidden_tile.webp",
     "clue_alexander_alibi": "images/clue_alibi.webp",
 }
