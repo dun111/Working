@@ -111,13 +111,12 @@ screen carriage_2_map():
 
 # Carriage 3's cabins are drawn under the corridor (see c3_rooms in screens.rpy).
 # These are the spots in them: the people, Misha's toy and rug, and the whole cabins.
-define C3_HS_KIMMY = (372, 778, 80, 135)
-define C3_HS_HIMMEL = (500, 860, 72, 125)
-define C3_HS_MISHA = (848, 828, 72, 80)
-define C3_HS_RUG = (800, 910, 150, 55)
-define C3_HS_TOYS = (962, 834, 60, 48)
-define C3_HS_MISHA_ROOM = (792, 648, 336, 390)
-define C3_HS_EMPTY_ROOM = (1268, 648, 336, 390)
+define C3_HS_KIMMY = c3_spot("kimmy", 56, 130, 80, 135)
+define C3_HS_HIMMEL = c3_spot("kimmy", 184, 212, 72, 125)
+define C3_HS_MISHA = c3_spot("misha", 56, 180, 72, 80)
+define C3_HS_RUG = c3_spot("misha", 8, 262, 150, 55)
+define C3_HS_TOYS = c3_spot("misha", 170, 186, 60, 48)
+define C3_HS_MISHA_ROOM = c3_spot("misha", 0, 0, C3_ROOM_W, C3_ROOM_H)
 
 screen carriage_3_map():
     add "bg carriage_3"
@@ -136,7 +135,6 @@ screen carriage_3_map():
         use hs(C3_HS_TOYS, Call("c3_interact_toys"), "Toys", delay=0.3)
     else:
         use hs(C3_HS_MISHA_ROOM, Function(renpy.notify, _("Locked. Talk to Sebastian first.")), "Misha's door", delay=0.15)
-    use hs(C3_HS_EMPTY_ROOM, Call("c3_interact_empty_room"), "Empty room", delay=0.2)
     use hs((420, 470, 260, 90), Call("c3_interact_carpet"), "Carpet", delay=0.25)
     use hs((1760, 750, 100, 90), Call("c3_interact_luggage"), "Luggage", delay=0.35)
     if c3_talked_kimmy and c3_talked_himmel and c3_talked_sebastian and c3_talked_misha:

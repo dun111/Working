@@ -787,52 +787,25 @@ image bg carriage_2 = themed(ConditionSwitch(
 define LOOP_NIGHT = TintMatrix("#d08a80") * SaturationMatrix(0.55) * BrightnessMatrix(-0.16)
 
 # ---------- Carriage 3's cabins, drawn into the blank space below the corridor ----------
-# Kimmy and Himmel's room, Misha's room, and the empty cabin (made from shapes, in the
-# same colours as the room art). Positions are in the 1920x1080 design space; the
-# room art is 312x362 once cropped, scaled by C3_ROOM_K.
+# Kimmy and Himmel's room and Misha's room, spread evenly across the space.
+# Positions are in the 1920x1080 design space; the room art is 312x362 once cropped.
 init python:
     C3_ROOM_Y = 648
     C3_ROOM_H = 390
     C3_ROOM_K = C3_ROOM_H / 362.0
     C3_ROOM_W = int(312 * C3_ROOM_K)
-    C3_ROOMS_X = {"kimmy": 316, "misha": 792, "empty": 1268}
+    # The blank space runs from x 176 to 1744.
+    C3_ROOMS_X = {"kimmy": 176 + (1568 - 2 * C3_ROOM_W) // 3,
+                  "misha": 176 + 2 * (1568 - 2 * C3_ROOM_W) // 3 + C3_ROOM_W}
 
-    def c3_room_rect(room, cx, cy, cw, ch):
-        # A spot in a cabin's art (cropped-art pixels) as a hotspot rectangle on the map.
-        k = C3_ROOM_K
-        return (C3_ROOMS_X[room] + int(cx * k), C3_ROOM_Y + int(cy * k), int(cw * k), int(ch * k))
-
-    def empty_cabin():
-        k = C3_ROOM_K
-        def box(color, x, y, w, h):
-            return Transform(Solid(color), pos=(int(x * k), int(y * k)), xysize=(max(1, int(w * k)), max(1, int(h * k))))
-        parts = [
-            box("#8e634f", 0, 0, 312, 140),       # wall
-            box("#7c4f44", 0, 134, 312, 8),       # skirting
-            box("#835447", 0, 142, 312, 208),     # floor
-            box("#65413c", 0, 350, 312, 12),      # bottom edge
-            box("#5c2c24", 45, 31, 63, 105),      # door frame
-            box("#643932", 51, 37, 51, 99),       # door
-            box("#fff6e0", 59, 44, 35, 24),       # door window
-            box("#c9a24a", 92, 90, 6, 6),         # door knob
-            box("#5c2c24", 168, 24, 124, 64),     # window frame
-            box("#22324a", 174, 30, 112, 52),     # window
-            box("#553737", 114, 127, 45, 50),     # nightstand
-            box("#5c2c24", 162, 100, 142, 196),   # bed frame
-            box("#9b5b5f", 168, 106, 130, 184),   # made bed
-            box("#f0e1ce", 174, 112, 54, 26),     # pillows
-            box("#f0e1ce", 236, 112, 54, 26),
-            box("#b06f73", 168, 170, 130, 6),     # folded sheet
-        ]
-        for gy in range(158, 350, 24):            # floorboards
-            parts.append(box("#7a4c40", 0, gy, 312, 2))
-        return Fixed(*parts, xysize=(C3_ROOM_W, C3_ROOM_H))
+    def c3_spot(room, dx, dy, w, h):
+        # A hotspot inside a cabin, from its offset from the cabin's top-left corner.
+        return (C3_ROOMS_X[room] + dx, C3_ROOM_Y + dy, w, h)
 
     def c3_rooms():
         rooms = (
             ("kimmy", Transform("images/bg_cabin_kimmy.webp", crop=(362, 106, 312, 362), nearest=True)),
             ("misha", Transform("images/bg_cabin_misha.webp", crop=(1086, 320, 938, 1086), nearest=True)),
-            ("empty", empty_cabin()),
         )
         w, h = map_wh(C3_ROOM_W, C3_ROOM_H)
         parts = []
@@ -892,10 +865,15 @@ init python:
             pass
 
     def menu_music_filter_off():
+        # replace=True takes the echo off the song that's already playing, not just the next one.
         try:
-            renpy.music.set_audio_filter("music", None)
+            renpy.music.set_audio_filter("music", None, replace=True, duration=0.3)
         except Exception:
             pass
+
+    # Continue and Load go straight from the main menu into the game, so the menu's
+    # echo has to come off there too (it used to stay on until the next song).
+    config.after_load_callbacks.append(menu_music_filter_off)
 
 label before_main_menu:
     $ menu_music_filter_on()

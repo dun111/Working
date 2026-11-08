@@ -210,15 +210,42 @@ init python:
 
     _menu_music_config()
 
+# The music scene the player is in, kept in the save so loading can bring the song back.
+default music_scene = None
+
 init 2 python:
     def _music_label_cb(name, abnormal=False):
         if not main_menu and name in LABEL_MUSIC:
             normal, looped = LABEL_MUSIC[name]
             _MUSIC.scene = looped if store.in_loop else normal
+            store.music_scene = _MUSIC.scene
             if persistent.ingame_music:
                 music_for(_MUSIC.scene)
 
     config.label_callbacks.append(_music_label_cb)
+
+    def _music_after_load():
+        # Continue and Load used to leave the carriage silent until the next scene,
+        # because the song is only picked when a scene starts. Pick it up again here.
+        scene = getattr(store, "music_scene", None)
+        if scene is None:
+            # Saves from before music_scene: go by the last carriage map they were on.
+            hub = getattr(store, "last_hub", None) or getattr(store, "resume_hub_guess", None)
+            if hub in LABEL_MUSIC:
+                normal, looped = LABEL_MUSIC[hub]
+                scene = looped if getattr(store, "in_loop", False) else normal
+        if scene is None:
+            # A save made right at a scene's start: loading runs that start again,
+            # which picks the song itself.
+            return
+        _MUSIC.scene = scene
+        _MUSIC.place = None
+        if radio_scene() and persistent.ingame_music:
+            music_for(scene, fade=1.0)
+        else:
+            radio_play_station()
+
+    config.after_load_callbacks.append(_music_after_load)
 
 init python:
     def set_ingame_music(on):

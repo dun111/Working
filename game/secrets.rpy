@@ -125,6 +125,7 @@ init python:
         renpy.notify(_("Endings, secrets and minigames reset."))
 
 label cheat_warp:
+    $ menu_music_filter_off()
     $ cheat_apply()
     $ renpy.jump(CHEAT.target)
 
