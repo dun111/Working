@@ -396,7 +396,7 @@ label c1_interact_mysterious_door:
         "{i}Something on the other side knocks. Twice. Then the door swings open by itself.{/i}"
     else:
         "I'm not supposed to enter this carriage, am I… Eh. Just a peek."
-    $ renpy.music.set_volume(0.0, delay=0.6, channel="music")
+    $ blank_carriage_music(True)
     scene black with Dissolve(0.6)
     $ achievement.grant("nothing_there")
     if not seen_blank_carriage:
@@ -409,7 +409,7 @@ label c1_interact_mysterious_door:
         l "{i}(Still nothing.){/i}"
     window hide
     call screen mysterious_room
-    $ renpy.music.set_volume(1.0, delay=0.6, channel="music")
+    $ blank_carriage_music(False)
     scene bg carriage_1 with Dissolve(0.6)
     if not seen_blank_carriage:
         $ seen_blank_carriage = True
@@ -831,6 +831,7 @@ label c5_alexander_dialogue:
     show louis smiling at speaker_background(xalign=0.1)
     show alexander craving at speaker_focus(xalign=0.9)
     al "The banned super maple sugar!!!"
+    show maple_offer at Transform(xalign=0.5, yalign=0.55) with dissolve
     show alexander neutral at speaker_background(xalign=0.9)
     l "Damn… why's it banned?"
     show louis neutral at speaker_background(xalign=0.1)
@@ -852,13 +853,15 @@ label c5_alexander_dialogue:
             show louis smiling at speaker_background(xalign=0.1)
             show alexander tweaking
             al "Attaboy! Here ya go - one satchel of pure happiness."
-            $ got_item(_("Satchel of Maple Sugar"), _("\"First one is free, next one is 2000 perkels.\""))
+            hide maple_offer with dissolve
+            $ got_item(_("Satchel of Maple Sugar"), _("\"First one is free, next one is 2000 perkels.\""), MAPLE_ICON)
             $ remember(_("Alexander will remember that."))
         "No":
             $ has_maple_sugar = False
             show alexander neutral at speaker_background(xalign=0.9)
             show louis smiling at speaker_focus(xalign=0.1)
             l "I'm good. Thanks for the offer."
+            hide maple_offer with dissolve
             show louis smiling at speaker_background(xalign=0.1)
             show alexander neutral
             al "Suit yourself, brother."
@@ -1335,7 +1338,9 @@ label c3_p2_interact_luggage:
         "{i}Louis finds a small, crumpled wrapper wedged between the folds of a coat. Printed on it, half torn: “...APLE SUGAR… BANNED SUBSTANCE, RESTRICTED USE ONLY.”{/i}"
         l "...This is the same stuff Alexander was selling."
         if has_maple_sugar:
+            show maple_offer at Transform(xalign=0.5, yalign=0.55) with dissolve
             l "Same wrapper as the satchel he gave me. I've still got mine."
+            hide maple_offer with dissolve
         l "Why would Himmel have this?"
         $ found_clue("clue_drug_wrapper")
         $ achievement.grant("suspicious_luggage")

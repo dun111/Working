@@ -274,7 +274,7 @@ transform clue_card_in:
     pause 2.6
     easeout anim_t(0.4) yoffset -30 alpha 0.0
 
-screen clue_popup(kind, title, desc=""):
+screen clue_popup(kind, title, desc="", img=None):
     zorder 120
     frame:
         xalign 0.5
@@ -287,6 +287,9 @@ screen clue_popup(kind, title, desc=""):
             background rbox("#17150de8", 12)
             vbox:
                 spacing 6
+                if img:
+                    add Transform(img, fit="contain", xysize=(150, 150)):
+                        xalign 0.5
                 text kind:
                     xalign 0.5
                     size 18
@@ -360,8 +363,8 @@ init python:
         # Tells the player a choice will come back later.
         renpy.notify(text)
 
-    def got_item(name, desc=""):
-        renpy.show_screen("clue_popup", _("GOT ITEM"), name, desc)
+    def got_item(name, desc="", img=None):
+        renpy.show_screen("clue_popup", _("GOT ITEM"), name, desc, img)
 
 
 define HS_CHECKED = "#7a7a88"
@@ -675,6 +678,9 @@ define PRESENTS = [
     ("watch",     _("Pocket Watch"), 12),
     ("maple",     _("Maple Sugar"),  12),
 ]
+
+# Presents that have their own picture, shown on their gift shop button.
+define PRESENT_ICONS = {"maple": "images/maple_sugar.webp"}
 
 # Each passenger's favourite present is worth two hearts instead of one.
 define FAVOURITE_PRESENT = {
@@ -1195,7 +1201,13 @@ screen gift_shop():
                                     for pid, pname, price in PRESENTS:
                                         $ can = (persistent.coins or 0) >= price
                                         $ known_fav = favourite_known(cur["name"]) and pid == fav
-                                        use rbtn("%s  ·  %d" % (pname, price), (Function(gift, cur["name"], pid) if can else None), w=196, h=50, r=14, size=15, bg=("#5a3a14" if known_fav else "#3e2814"), hov="#6a4a1c", col="#ffd76a", hcol="#ffffff")
+                                        fixed:
+                                            xysize (196, 50)
+                                            use rbtn(("      " if pid in PRESENT_ICONS else "") + "%s  ·  %d" % (pname, price), (Function(gift, cur["name"], pid) if can else None), w=196, h=50, r=14, size=15, bg=("#5a3a14" if known_fav else "#3e2814"), hov="#6a4a1c", col="#ffd76a", hcol="#ffffff")
+                                            if pid in PRESENT_ICONS:
+                                                add Transform(PRESENT_ICONS[pid], fit="contain", xysize=(30, 30)):
+                                                    xpos 8
+                                                    yalign 0.5
                             else:
                                 text _("Hearts full. Thanks for the presents!"):
                                     size 18
@@ -1302,6 +1314,9 @@ transform pop_back:
 # The tile art has a lot of transparent space around it; crop to the tile itself.
 define TILE_CLOSEUP = Transform("images/clue_hidden_tile.webp", crop=(68, 304, 1317, 837))
 # The drink Eduard offers you in Carriage 2 (also the moved body clue's picture).
+# Alexander's satchel of maple sugar.
+define MAPLE_ICON = "images/maple_sugar.webp"
+image maple_offer = Transform(MAPLE_ICON, fit="contain", xysize=(360, 360))
 image drink_offer = Transform("images/clue_drink.webp", crop=(540, 80, 1280, 2360), fit="contain", xysize=(380, 640))
 define WRONG_TILE_CLOSEUP = Transform("images/clue_wrong_tile.webp", crop=(68, 316, 1376, 872))
 

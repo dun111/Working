@@ -219,6 +219,7 @@ define SPOT_SLIDES = [
     "images/bg_mail_cart.webp",
     "pattison neutral",
     "alexander neutral",
+    "images/maple_sugar.webp",
     "images/bg_mail_room.webp",
     "images/bg_mail_room_part2.webp",
     "images/bg_carriage_1_passengers_part2.webp",
