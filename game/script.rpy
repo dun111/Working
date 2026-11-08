@@ -127,11 +127,11 @@ define CABIN_MISHA = cabin_spot(59, 186, 59, 66)
 define CABIN_RUG = cabin_spot(27, 256, 121, 62)
 define CABIN_TOYS = cabin_spot(166, 202, 49, 38)
 
-# The cabins: a glowing hotspot each in the blank space under the corridor.
+# The cabins: a glowing hotspot each just under the corridor floor (the platform).
 # Cabin 3 never opens.
-define C3_CABIN1_SPOT = (C3_DOOR_KIMMY_X - 150, 680, 300, 300)
-define C3_CABIN2_SPOT = (C3_DOOR_MISHA_X - 150, 680, 300, 300)
-define C3_CABIN3_SPOT = (C3_DOOR_LOCKED_X - 150, 680, 300, 300)
+define C3_CABIN1_SPOT = (C3_DOOR_KIMMY_X - 150, 640, 300, 90)
+define C3_CABIN2_SPOT = (C3_DOOR_MISHA_X - 150, 640, 300, 90)
+define C3_CABIN3_SPOT = (C3_DOOR_LOCKED_X - 150, 640, 300, 90)
 
 screen c3_cabin_doors():
     use hs(C3_CABIN1_SPOT, Jump("c3_cabin_kimmy_room"), _("Cabin 1"), "enter", 0.1)
