@@ -305,6 +305,7 @@ label start:
     show dorothy surprised at speaker_background(xalign=0.9)
     show louis looking_around at speaker_focus(xalign=0.1)
     "{i}Louis feels something in his pocket, looks down and sees a ticket.{/i}"
+    show louis confused
     l "{i}(brain freeze){/i} Uh… uh… yes, the ticket. I think it's somewhere here…"
     call play_required("mg_ticket", ticket_reset) from _call_play_required
     "{i}He pulls the ticket out of his pocket.{/i}"
@@ -314,9 +315,9 @@ label start:
     show dorothy surprised at speaker_focus(xalign=0.9)
     d "The Grekhov Express? Are you ill? Everyone knows that, why else would you be on this train?"
     show dorothy surprised at speaker_background(xalign=0.9)
-    show louis neutral at speaker_focus(xalign=0.1)
+    show louis smiling at speaker_focus(xalign=0.1)
     l "O-oh, sorry, I think I might have gotten a bit light headed…"
-    show louis neutral at speaker_background(xalign=0.1)
+    show louis smiling at speaker_background(xalign=0.1)
     show dorothy neutral at speaker_focus(xalign=0.9)
     d "I see. Well sir, welcome aboard the Grekhov Express…"
     show dorothy neutral at speaker_background(xalign=0.9)
@@ -344,17 +345,21 @@ label c1_fedora_dialogue:
         show fedora neutral at speaker_focus(xalign=0.9)
         show fedora happy at speaker_focus(xalign=0.9)
         f "Why Hello There, are you ready for the CALAMITY?"
+        show louis confused
         l "Calamity?"
         f "I boarded this train to speak to the conductor after we arrived in Grekhov, I heard CALAMITY will open up once we reach there. It'll rack NUMBERS for the steamboat. I CAN'T WAIT to interview the KILLER."
+        show louis shocked
         l "Killer?"
         menu:
             "Tell her what's coming?"
             "“Someone's going to die tonight.”":
                 $ warned_fedora = True
+                show louis determined
                 l "...Someone on this train is going to die tonight."
                 "{i}Fedora's pen stops.{/i}"
                 show fedora grim
                 f "You say that like you've READ it somewhere. Where'd you hear that, matchstick?"
+                show louis confused
                 l "I… I don't know. I just know."
                 show fedora grim
                 f "Hm. Then I'll keep my notepad ready. And my eye on YOU."
@@ -362,6 +367,7 @@ label c1_fedora_dialogue:
             "Keep it to yourself":
                 show fedora happy
                 f "Well, it's been LOVELY talking to you, but my editor Twinkles is calling me. WATCH OUT."
+                show louis confused
                 l "OKAY…. or what?"
     else:
         show louis neutral at speaker_focus(xalign=0.1)
@@ -369,12 +375,15 @@ label c1_fedora_dialogue:
         show louis neutral at speaker_background(xalign=0.1)
         show fedora happy at speaker_focus(xalign=0.9)
         f "Why Hello There! Whaddaya need?"
+        show louis smiling
         l "I was wondering, what are you planning to find on this line?"
         show fedora neutral
         f "I boarded this train to speak to the conductor after we arrive in Grekhov, I heard a case will open up once we reach there. It'll rack NUMBERS for the steamboat. I CAN'T WAIT to interview the conductor!"
+        show louis confused
         l "Why… the conducto-"
         show fedora happy
         f "Well, it's been LOVELY talking to you, but my editor Twinkles is calling me. Toodooloo!"
+        show louis confused
         l "Uh, ok I suppose."
     $ c1_talked_fedora = True
     return
@@ -429,11 +438,12 @@ label c1_door_to_carriage_2:
         $ dr_bg = "bg carriage_1"
         call play_required("mg_door", door_reset) from _call_play_required_1
         $ door_c2_open = True
-    show louis neutral at speaker_focus(xalign=0.5)
+    show louis thinking at speaker_focus(xalign=0.5)
     if in_loop:
         l "...It's quiet. Way too quiet."
         jump carriage_2_part2_start
     else:
+        show louis smiling
         l "Oh, this place is quite fancy. Is it like some sort of restaurant?"
         jump carriage_2_start
 
@@ -472,7 +482,7 @@ label c2_eduard_dialogue:
             hide drink_offer with dissolve
             $ drank = False
             show eduard neutral at speaker_background(xalign=0.9)
-            show louis neutral at speaker_focus(xalign=0.1)
+            show louis smiling at speaker_focus(xalign=0.1)
             l "Uh, it's okay… I'm not really thirsty right now."
             show eduard neutral
             ed "All the better for me, I reckon. That mahjong monster almost got me out of whiskey! He better win quick, before his tab gets as large as his confidence."
@@ -485,17 +495,18 @@ label c2_shunyu_dialogue:
     show shunyu excited at speaker_focus(xalign=0.9)
     s "Yes! I can't stop winning!"
     show shunyu excited at speaker_background(xalign=0.9)
-    show louis neutral at speaker_focus(xalign=0.1)
+    show louis confused at speaker_focus(xalign=0.1)
     l "Uhm… whatcha doin'?"
-    show louis neutral at speaker_background(xalign=0.1)
+    show louis confused at speaker_background(xalign=0.1)
     show shunyu excited at speaker_focus(xalign=0.9)
     s "Playing Mahjong! Doncha just love winning!"
     "{i}Louis watches Shunyu pick up a tile.{/i}"
     show shunyu excited at speaker_focus(xalign=0.9)
     s "JACKKKPOTTTTTTT!"
     show shunyu excited at speaker_background(xalign=0.9)
+    show louis confused
     l "R-right, well, I'll leave you-"
-    show louis neutral at speaker_background(xalign=0.1)
+    show louis confused at speaker_background(xalign=0.1)
     show shunyu neutral at speaker_focus(xalign=0.9)
     menu:
         s "Wanna play? Think about it. You can only lose 100[pct], but you can win 100000[pct]! Look at the odds!"
@@ -515,7 +526,7 @@ label c2_shunyu_dialogue:
             $ remember(_("Shunyu will remember that."))
         "No":
             $ played_mahjong = False
-            show louis neutral at speaker_focus(xalign=0.1)
+            show louis smiling at speaker_focus(xalign=0.1)
             l "I'm okay, don't have much to gamble with anyway."
     $ c2_talked_shunyu = True
     return
@@ -581,9 +592,9 @@ label c3_kimmy_dialogue:
     menu:
         "I AM dangerous.":
             $ c3_kimmy_dangerous_choice = True
-            show louis neutral at speaker_focus(xalign=0.1)
+            show louis smiling at speaker_focus(xalign=0.1)
             l "Actually… I might be dangerous."
-            show louis neutral at speaker_background(xalign=0.1)
+            show louis smiling at speaker_background(xalign=0.1)
             show kimmy amiable at speaker_focus(xalign=0.5)
             k "With THAT frame… I don't think so, sweetie."
             $ remember(_("Kimmy will remember that."))
@@ -601,13 +612,15 @@ label c3_kimmy_dialogue:
     show kimmy amiable
     k "Well of course! My family has a clock business, so we're quite well off."
     show kimmy amiable at speaker_background(xalign=0.5)
+    show louis thinking
     l "So what is such an important lady doing on a train like this?"
-    show louis neutral at speaker_background(xalign=0.1)
+    show louis thinking at speaker_background(xalign=0.1)
     k "Oh, I have a meeting in Grekhov, and I wanted to make it a trip so I could spend more time with my darling, Himmel. Right, Sugar?"
     show kimmy neutral at speaker_background(xalign=0.5)
     show himmel neutral at speaker_focus(xalign=0.9)
     h "Of course!"
     show himmel neutral at speaker_background(xalign=0.9)
+    show louis smiling
     l "Wow… such love birds."
     $ c3_talked_kimmy = True
     return
@@ -617,10 +630,11 @@ label c3_himmel_dialogue:
     show himmel nervous at speaker_focus(xalign=0.9)
     h "W-what do you want, stranger?"
     show himmel nervous at speaker_background(xalign=0.9)
-    show louis neutral at speaker_focus(xalign=0.1)
+    show louis smiling at speaker_focus(xalign=0.1)
     l "Nothing, just uh… finding my way to the bathroom."
     show himmel nervous
     h "It's to the left! Now leave me alone!"
+    show louis shocked
     l "Holy moly, what's that guy's problem…"
     $ c3_talked_himmel = True
     return
@@ -756,8 +770,9 @@ label c4_ichora_dialogue:
     show ichora wink
     ic "Oh, I know."
     show ichora wink at speaker_background(xalign=0.9)
+    show louis confused
     l "How-"
-    show louis neutral at speaker_background(xalign=0.1)
+    show louis confused at speaker_background(xalign=0.1)
     show ichora neutral
     ic "We've been waiting for you a while. Anyways, I got a gift for ya! Come with me!"
     scene engine room with dissolve
@@ -815,6 +830,7 @@ label c5_pattison_dialogue:
     show pattison gloomy
     p "It's okay, you will before the end."
     show pattison gloomy at speaker_background(xalign=0.9)
+    show louis confused
     l "What end?"
     "{i}Pattison stares at you blankly.{/i}"
     $ c5_talked_pattison = True
@@ -838,8 +854,9 @@ label c5_alexander_dialogue:
     show alexander tweaking
     al "HAhaha… They tryna take the good stuff from us, don't want us having too much fun, haha…"
     show alexander tweaking at speaker_background(xalign=0.9)
+    show louis thinking
     l "Oh, I see."
-    show louis neutral at speaker_background(xalign=0.1)
+    show louis thinking at speaker_background(xalign=0.1)
     show alexander tweaking
     al "Want some, buddy? First one is free, next one is 2000 perkels."
     menu:
@@ -870,8 +887,9 @@ label c5_alexander_dialogue:
     show louis neutral at speaker_background(xalign=0.1)
     al "Depends? Are you a narc?"
     show alexander neutral at speaker_background(xalign=0.9)
+    show louis determined
     l "No."
-    show louis neutral at speaker_background(xalign=0.1)
+    show louis determined at speaker_background(xalign=0.1)
     al "Tell ya what. You've been walkin' the train. Guess who owes me, and maybe I'll believe you're not a narc."
     $ owe_guessed = False
     $ owe_tries = 0
@@ -881,6 +899,7 @@ label c5_alexander_dialogue:
             "Eduard, the bartender":
                 $ owe_tries += 1
                 al "The bartender? He couldn't afford me if he sold the bar."
+                show louis thinking
                 l "{i}(Who did Eduard say was running up a tab?){/i}"
             "Shunyu, the gambler":
                 $ owe_guessed = True
@@ -891,6 +910,7 @@ label c5_alexander_dialogue:
             "Kimmy, the rich lady":
                 $ owe_tries += 1
                 al "That lady's richer than the train. She pays. ...Her husband, though. Eh. Never mind."
+                show louis thinking
                 l "{i}(Her husband?){/i}"
             "Fedora, the reporter":
                 $ owe_tries += 1
@@ -898,6 +918,7 @@ label c5_alexander_dialogue:
     show alexander tweaking
     al "And as for the other one… the stuff was strong so I don't remember."
     show alexander tweaking at speaker_background(xalign=0.9)
+    show louis thinking
     l "Why did I expect that? But who's the other person?"
     "{i}Alexander looks at you blankly.{/i}"
     $ c5_talked_alexander = True
@@ -1018,9 +1039,9 @@ label c2_p2_talk_eduard:
     show eduard neutral at speaker_focus(xalign=0.9)
     "{i}Eduard is standing behind the bar, unmoving, polishing the same glass over and over.{/i}"
     show eduard neutral at speaker_background(xalign=0.9)
-    show louis neutral at speaker_focus(xalign=0.1)
+    show louis confused at speaker_focus(xalign=0.1)
     l "Uh… hey, you open?"
-    show louis neutral at speaker_background(xalign=0.1)
+    show louis confused at speaker_background(xalign=0.1)
     show eduard wary at speaker_focus(xalign=0.9)
     ed "All the better for me, I reckon…"
     show eduard wary at speaker_background(xalign=0.9)
@@ -1030,13 +1051,14 @@ label c2_p2_talk_eduard:
     show eduard wary at speaker_focus(xalign=0.9)
     ed "All the better for me, I reckon…"
     show eduard wary at speaker_background(xalign=0.9)
-    show louis neutral at speaker_focus(xalign=0.1)
+    show louis confused at speaker_focus(xalign=0.1)
     l "Are you okay, man?"
     "{i}Eduard stops polishing. He looks up. His eyes don't quite focus on Louis.{/i}"
     show louis neutral at speaker_background(xalign=0.1)
     show eduard wary
     ed "He better win quick. Before his tab gets as large as his confidence."
     show eduard wary at speaker_background(xalign=0.9)
+    show louis confused
     l "Who? Eduard, who are you talking about-"
     "{i}Eduard goes back to polishing the glass. It was never dirty.{/i}"
     return
@@ -1046,11 +1068,13 @@ label c2_p2_overturned_table:
     return
 
 label c2_p2_broken_glass:
-    show louis neutral at speaker_focus(xalign=0.5)
+    show louis shocked at speaker_focus(xalign=0.5)
     if swept_glass:
         l "I swept this up. I know I did. Six shards… and the big one was already missing."
+        show louis thinking
         l "...Before anyone was hurt. Someone took it before."
     else:
+        show louis confused
         l "This is the same glass from before… why hasn't anyone cleaned this up?"
     "{i}Louis notices a piece missing from the largest shard - snapped clean off, edges sharp.{/i}"
     u "Can yer shut up?"
@@ -1066,6 +1090,7 @@ label c2_p2_bar_counter:
 label c2_p2_second_table:
     show louis neutral at speaker_focus(xalign=0.5)
     "{i}Someone is slumped over the table.{/i}"
+    show louis confused
     l "...Hey. Hey, sir? You okay?"
     "{i}Louis reaches out and turns the figure over.{/i}"
     "{i}It's Shunyu.{/i}"
@@ -1089,9 +1114,9 @@ label c2_p2_dorothy_arrives:
     show dorothy sad at speaker_focus(xalign=0.9)
     d "...Oh..."
     show dorothy sad at speaker_background(xalign=0.9)
-    show louis neutral at speaker_focus(xalign=0.1)
+    show louis shocked at speaker_focus(xalign=0.1)
     l "Dorothy, please, get help… get Agatha, get anyone…"
-    show louis neutral at speaker_background(xalign=0.1)
+    show louis shocked at speaker_background(xalign=0.1)
     d "R-right. Right! Stay here, don't- don't touch anything else."
     "{i}She hurries out, nearly tripping over her own ticket punch on the way.{/i}"
     hide dorothy
@@ -1148,12 +1173,13 @@ label c2_p2_investigation_menu:
             show fedora grim at speaker_focus(xalign=0.9)
             f "Careful. Killers who leave signatures aren't hiding. They're telling you something."
         "Wait for Dorothy to return with Agatha":
-            show louis neutral at speaker_focus(xalign=0.1)
+            show louis determined at speaker_focus(xalign=0.1)
             l "She went to get Agatha already… I should stay in case anything else happens."
-            show louis neutral at speaker_background(xalign=0.1)
+            show louis determined at speaker_background(xalign=0.1)
             show fedora neutral at speaker_focus(xalign=0.9)
             f "Smart. Don't touch the body more than you already have, by the way."
             show fedora neutral at speaker_background(xalign=0.9)
+            show louis confused
             l "I… right. Sorry."
         "Ask Fedora what she knows":
             show louis thinking at speaker_focus(xalign=0.1)
@@ -1177,15 +1203,16 @@ label c2_p2_agatha_arrives:
     show agatha neutral
     a "Dead maybe twenty, thirty minutes. A single puncture wound, glass shard still lodged in it, went in at an upward angle, deep. Whoever did this either got lucky or knew exactly where to aim."
     show agatha neutral at speaker_background(xalign=0.5)
-    show louis neutral at speaker_focus(xalign=0.1)
+    show louis thinking at speaker_focus(xalign=0.1)
     l "The blood by the bar counter, that's-"
-    show louis neutral at speaker_background(xalign=0.1)
+    show louis thinking at speaker_background(xalign=0.1)
     show agatha judgemental at speaker_focus(xalign=0.5)
     a "Doesn't match where he's sitting. Not enough of it here, too much of it there. He didn't die in this chair. He was moved here after."
     $ found_clue("clue_body_moved")
     show agatha neutral at speaker_background(xalign=0.5)
+    show louis thinking
     l "Someone stabbed him at the bar, and then... carried him over? Sat him down? Why?"
-    show louis neutral at speaker_background(xalign=0.1)
+    show louis thinking at speaker_background(xalign=0.1)
     show agatha judgemental at speaker_focus(xalign=0.5)
     a "That's the part that isn't my job to answer."
     show agatha neutral at speaker_background(xalign=0.5)
@@ -1199,7 +1226,9 @@ label c2_p2_agatha_arrives:
     show fedora happy
     f "Everything's a story if you wait long enough."
     show fedora happy at speaker_background(xalign=0.9)
+    show louis thinking
     l "...Moved here. So whoever did this had time. Strength. And a reason to want him found exactly like this."
+    show louis determined
     l "I need to find out who was in this carriage. Everyone."
     hide agatha
     hide fedora
@@ -1225,23 +1254,27 @@ label c2_p2_reinterview_eduard:
     show eduard wary
     ed "Behind the bar! Where else would I be? I don't leave this counter during service, ask anyone."
     show eduard wary at speaker_background(xalign=0.9)
+    show louis thinking
     l "Anyone like who?"
     show eduard wary at speaker_focus(xalign=0.9)
     "{i}Eduard hesitates.{/i}"
     show louis neutral at speaker_background(xalign=0.1)
     ed "...I mean, no one else was really around. It's been quiet. Too quiet, actually, now that I think of it."
     show eduard neutral at speaker_background(xalign=0.9)
+    show louis thinking
     l "Did you see the tile in his hand before? While he was playing?"
-    show louis neutral at speaker_background(xalign=0.1)
+    show louis thinking at speaker_background(xalign=0.1)
     $ renpy.show_screen("fullscreen_pop", WRONG_TILE_CLOSEUP)
     show eduard neutral
     ed "No, no way. That's not even from his hand. He had three of the dragon tiles laid out, not that one. Someone put that there after."
     $ found_clue("clue_tile_mismatch")
     show eduard neutral at speaker_background(xalign=0.9)
+    show louis confused
     l "How do you know his hand that well?"
-    show louis neutral at speaker_background(xalign=0.1)
+    show louis confused at speaker_background(xalign=0.1)
     ed "Man complained about his own wins loud enough for the whole carriage to hear, all night, every night. Hard NOT to know it."
     if played_mahjong:
+        show louis thinking
         l "He's right. I played him. Three dragons, every single time."
     if drank:
         show eduard neutral at speaker_focus(xalign=0.9)
@@ -1249,6 +1282,7 @@ label c2_p2_reinterview_eduard:
         show eduard wary
         ed "...So who poured the full glass sitting in front of him?"
         show eduard wary at speaker_background(xalign=0.9)
+        show louis determined
         l "Someone set the whole table. Like a stage."
     else:
         show eduard neutral at speaker_focus(xalign=0.9)
@@ -1267,19 +1301,22 @@ label c2_p2_reinterview_agatha:
     show agatha annoyed
     a "You're going to, whether I say yes or not. Go on."
     show agatha annoyed at speaker_background(xalign=0.9)
+    show louis thinking
     l "You said he was moved. Moved by who?"
-    show louis neutral at speaker_background(xalign=0.1)
+    show louis thinking at speaker_background(xalign=0.1)
     show agatha judgemental
     a "That's your job to find out, not mine. I deal with bodies, not motives."
     show agatha judgemental at speaker_background(xalign=0.9)
+    show louis determined
     l "Were you even in this carriage earlier tonight?"
     "{i}Agatha stops packing for a second.{/i}"
     show louis neutral at speaker_background(xalign=0.1)
     show agatha annoyed
     a "I was in the staff cabin. Had a passenger complaint to deal with. If you want an alibi, ask the idiot who pricked his finger and cried about it; he'll remember me being there."
     show agatha annoyed at speaker_background(xalign=0.9)
+    show louis confused
     l "I wasn't accusing you though…"
-    show louis neutral at speaker_background(xalign=0.1)
+    show louis confused at speaker_background(xalign=0.1)
     show agatha judgemental
     a "You were thinking about it. Everyone thinks about it, when someone ends up dead and a woman happens to know exactly how. Ask your questions, matchstick. Just don't waste my time doing it."
     $ c2_p2_reinterviewed_agatha = True
@@ -1374,25 +1411,29 @@ label c3_p2_kimmy_reinterview:
     if c3_kimmy_dangerous_choice:
         k "Well, well. The 'dangerous' one. Did your little joke come true, matchstick?"
         show kimmy neutral at speaker_background(xalign=0.9)
+        show louis determined
         l "That's not funny."
-        show louis neutral at speaker_background(xalign=0.1)
+        show louis determined at speaker_background(xalign=0.1)
         k "No. It isn't. ...Go on, then. Ask."
     else:
         show kimmy amiable at speaker_focus(xalign=0.9)
         k "Ah, the harmless one. Good. I could use harmless right now. Go on."
     show kimmy amiable at speaker_background(xalign=0.9)
+    show louis determined
     l "Did Himmel ever buy anything in the mail room? From a man named Alexander?"
     "{i}Kimmy's smile falters, just barely.{/i}"
     show louis neutral at speaker_background(xalign=0.1)
     show kimmy neutral
     k "...He said it was for his nerves. Train rides make him anxious, he said. I didn't ask questions, matchstick. A wife who asks too many questions doesn't stay a wife for long."
     show kimmy neutral at speaker_background(xalign=0.9)
+    show louis determined
     l "Did he owe Alexander money?"
-    show louis neutral at speaker_background(xalign=0.1)
+    show louis determined at speaker_background(xalign=0.1)
     k "How would I know? I don't manage his little vices. I manage the family business."
     show kimmy neutral at speaker_background(xalign=0.9)
+    show louis thinking
     l "Did Shunyu know about this? About Himmel buying from Alexander?"
-    show louis neutral at speaker_background(xalign=0.1)
+    show louis thinking at speaker_background(xalign=0.1)
     k "Everyone on this train gossips like it's the last thing they'll ever do. Of course he knew. He probably teased Himmel about it, he teased everyone about everything."
     $ kimmy_reinterviewed = True
     return
@@ -1414,13 +1455,15 @@ label c3_p2_himmel_reinterview:
     show himmel nervous at speaker_focus(xalign=0.9)
     h "I- it's for my nerves! I have a condition!"
     show himmel neutral at speaker_background(xalign=0.9)
+    show louis determined
     l "Did you owe him money?"
-    show louis neutral at speaker_background(xalign=0.1)
+    show louis determined at speaker_background(xalign=0.1)
     show himmel nervous
     h "I... I was going to pay him at the next stop. There's always a next stop..."
     show himmel nervous at speaker_background(xalign=0.9)
+    show louis determined
     l "There isn't a next stop, Himmel."
-    show louis neutral at speaker_background(xalign=0.1)
+    show louis determined at speaker_background(xalign=0.1)
     show himmel nervous
     h "There has to be! There has to be!"
     $ himmel_reinterviewed = True
@@ -1440,27 +1483,31 @@ label c3_p2_sebastian_reinterview:
     show louis neutral at speaker_background(xalign=0.1)
     seb "...Children require attending to. Baths. Meals. There are moments when a butler must step away."
     show sebastian neutral at speaker_background(xalign=0.9)
+    show louis thinking
     l "How many moments?"
-    show louis neutral at speaker_background(xalign=0.1)
+    show louis thinking at speaker_background(xalign=0.1)
     seb "I fail to see the relevance of this line of questioning."
     show sebastian neutral at speaker_background(xalign=0.9)
     show louis neutral at speaker_focus(xalign=0.1)
     $ evidence_setup("sebastian neutral", "Sebastian", "Mr. Popov has been in this cabin all evening, Mr. Louis. Under my supervision.", "clue_hidden_tile", "talk to sebastian")
     call play_required("mg_evidence", evidence_reset) from _call_play_required_10
     "{i}Louis holds up the tile.{/i}"
+    show louis determined
     l "I found this under the carpet in his room, Sebastian. It matches the murder scene exactly."
     show sebastian shocked at speaker_focus(xalign=0.9)
     "{i}Sebastian's composure cracks, just barely - a flicker, gone as fast as it came.{/i}"
     show louis neutral at speaker_background(xalign=0.1)
     seb "...Mr. Popov collects things. Trinkets. It means nothing."
     show sebastian neutral at speaker_background(xalign=0.9)
+    show louis determined
     l "A dead man is missing a tile from his hand. That same tile turns up hidden in a child's bedroom. That means something, Sebastian."
-    show louis neutral at speaker_background(xalign=0.1)
+    show louis determined at speaker_background(xalign=0.1)
     show sebastian threatening at speaker_focus(xalign=0.9)
     seb "I would ask you to choose your next words very carefully, Mr. Louis."
     show sebastian neutral at speaker_background(xalign=0.9)
+    show louis shocked
     l "Is that a threat?"
-    show louis neutral at speaker_background(xalign=0.1)
+    show louis shocked at speaker_background(xalign=0.1)
     show sebastian threatening at speaker_focus(xalign=0.9)
     seb "It is a warning. For your own sake."
     $ sebastian_reinterviewed = True
@@ -1469,7 +1516,7 @@ label c3_p2_sebastian_reinterview:
 label c3_p2_misha_reinterview:
     scene talk to misha with talk_in
     show misha neutral at speaker_background(xalign=0.9)
-    show louis neutral at speaker_focus(xalign=0.1)
+    show louis confused at speaker_focus(xalign=0.1)
     l "...Misha?"
     "{i}Misha doesn't look up.{/i}"
     show louis neutral at speaker_background(xalign=0.1)
@@ -1477,19 +1524,23 @@ label c3_p2_misha_reinterview:
     if played_blocks:
         show misha evil
         mi "You know the order. You played it right, before. Not like the others."
+        show louis thinking
         l "{i}(The order. Back then I thought he meant the blocks.){/i}"
     show misha neutral at speaker_background(xalign=0.9)
+    show louis confused
     l "What score? Misha, what are you talking about?"
     show misha evil at speaker_focus(xalign=0.9)
     "{i}Misha finally looks up, and smiles calmly.{/i}"
     show louis neutral at speaker_background(xalign=0.1)
     mi "You found it, didn't you? Under the carpet."
     show misha neutral at speaker_background(xalign=0.9)
+    show louis shocked
     l "...H-how did you-"
-    show louis neutral at speaker_background(xalign=0.1)
+    show louis shocked at speaker_background(xalign=0.1)
     show misha evil
     mi "Everyone always finds it eventually. That's the game."
     show misha evil at speaker_background(xalign=0.9)
+    show louis shocked
     l "This isn't a game, Misha! Someone died!"
     "{i}Misha tilts his head, genuinely, unsettlingly confused.{/i}"
     show louis neutral at speaker_background(xalign=0.1)
@@ -1499,9 +1550,11 @@ label c3_p2_misha_reinterview:
     seb "Mr. Popov. That's enough."
     "{i}Misha goes quiet immediately, returning to his blocks as if nothing happened at all.{/i}"
     show misha neutral at speaker_background(xalign=0.9)
+    show louis thinking
     l "{i}(to himself){/i} 'They always come back.' What does that even mean..."
     $ misha_reinterviewed = True
     if sebastian_reinterviewed:
+        show louis determined
         l "I have everything I think I'm going to get. The tile. The blood. The alibis. It's time to decide."
     return
 
@@ -1536,23 +1589,27 @@ label c5_p2_alexander_dialogue:
     show alexander neutral
     al "...Ha. Haha. So? Rich folk get nervous too, y'know."
     show alexander neutral at speaker_background(xalign=0.9)
+    show louis determined
     l "Did he pay you? In full?"
     "{i}Alexander goes quiet, picking at his sleeve.{/i}"
     show louis neutral at speaker_background(xalign=0.1)
     al "...No. Not in full. Kept saying 'next stop, next stop.' There ain't no next stop on this train, is there?"
     show alexander neutral at speaker_background(xalign=0.9)
+    show louis thinking
     l "And Shunyu, you told me before he still owed you too."
-    show louis neutral at speaker_background(xalign=0.1)
+    show louis thinking at speaker_background(xalign=0.1)
     al "Yeah. Yeah, he did. Funny thing, huh? Two men who owe me money, and one of 'em ends up dead with a glass stickin' outta him."
     show alexander neutral at speaker_background(xalign=0.9)
+    show louis determined
     l "Are you admitting to something?"
     "{i}Alexander laughs, too loud, too long.{/i}"
     show louis neutral at speaker_background(xalign=0.1)
     show alexander tweaking
     al "I'm admitting I'm really good at picking customers who don't pay. That's all I'm admitting to, brother."
     show alexander tweaking at speaker_background(xalign=0.9)
+    show louis determined
     l "Where were you when Shunyu was killed?"
-    show louis neutral at speaker_background(xalign=0.1)
+    show louis determined at speaker_background(xalign=0.1)
     show alexander neutral
     al "Here. Same as always. Ask the postman, he's always lurking round here too."
     $ alexander_reinterviewed = True
@@ -1582,23 +1639,27 @@ label c5_p2_pattison_dialogue:
     show pattison gloomy
     p "He's always here. Never leaves. Poor thing thinks the walls listen back to him."
     show pattison gloomy at speaker_background(xalign=0.9)
+    show louis thinking
     l "So he didn't leave at all? Not even for a minute?"
-    show louis neutral at speaker_background(xalign=0.1)
+    show louis thinking at speaker_background(xalign=0.1)
     show pattison neutral
     p "I don't watch him every second, sir. I look at the mail. But I would've heard the door. It creaks something awful."
     show pattison neutral at speaker_background(xalign=0.9)
+    show louis thinking
     l "Did you hear it? The door, I mean. Any time in the last hour?"
     "{i}Pattison tilts his head, thinking, or pretending to.{/i}"
     show louis neutral at speaker_background(xalign=0.1)
     show pattison gloomy at speaker_focus(xalign=0.9)
     p "...No. No, I don't believe I did."
     show pattison neutral at speaker_background(xalign=0.9)
+    show louis thinking
     l "So he really didn't leave."
-    show louis neutral at speaker_background(xalign=0.1)
+    show louis thinking at speaker_background(xalign=0.1)
     p "That's what I said, isn't it?"
     show pattison neutral at speaker_background(xalign=0.9)
+    show louis smiling
     l "...Right. Thank you, Pattison."
-    show louis neutral at speaker_background(xalign=0.1)
+    show louis smiling at speaker_background(xalign=0.1)
     show pattison gloomy at speaker_focus(xalign=0.9)
     p "This goes to the clock, while this goes to the end..."
     "{i}He returns to his sorting like the conversation never happened.{/i}"
@@ -1828,7 +1889,6 @@ label accusation_misha:
 
 label carriage_6_start:
     scene carriage_6 with fade
-    show carriage_6_fog
     "{i}You step through. The temperature drops.{/i}"
     l "...It's so quiet. Why is it so quiet."
     "{i}Fedora's voice, distant, echoing, from nowhere and everywhere:{/i}"
@@ -2043,7 +2103,7 @@ label c1_interact_cupboard:
     return
 
 label c2_interact_broken_glass:
-    show louis neutral at speaker_focus(xalign=0.5)
+    show louis confused at speaker_focus(xalign=0.5)
     l "Damn, how'd that gambler guy even break it?"
     show shunyu neutral at speaker_focus(xalign=0.9)
     s "Can yer shut up? I'm on a STREAK here."
@@ -2057,6 +2117,7 @@ label c2_interact_broken_glass:
                 call screen mg_shards
                 if _return == "win":
                     $ swept_glass = True
+                    show louis thinking
                     l "Got it all… huh. I only counted six shards. Wasn't there a bigger one?"
                     $ remember(_("Louis will remember that."))
                 elif _return == "lose":

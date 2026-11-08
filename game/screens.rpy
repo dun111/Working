@@ -708,13 +708,6 @@ transform distortion_warp:
         ease 1.6 zoom 0.99
         repeat
 
-transform carriage_6_ambient:
-    alpha 0.0
-    linear 3.0 alpha 0.3
-    linear 3.0 alpha 0.0
-    repeat
-
-
 transform row_pop(delay=0.0):
     alpha 0.0
     yoffset 18
@@ -763,7 +756,6 @@ transform toast_timer:
 
 # The caboose: the carriage with the monsters in it.
 image carriage_6 = full_cover("images/bg_carriage_6.webp")
-image carriage_6_fog = At(Solid("#4a0a0a"), carriage_6_ambient)
 
 image black = Solid("#000000")
 image Train station = "talk_bg"
