@@ -284,6 +284,10 @@ image menu_slideshow:
     pause 8.0
     full_cover("images/bg_sleeper.webp") with Dissolve(2.0)
     pause 8.0
+    full_cover("images/bg_cabin_talk.webp") with Dissolve(2.0)
+    pause 8.0
+    full_cover("images/bg_staff_talk.webp") with Dissolve(2.0)
+    pause 8.0
     full_cover("images/bg_mail_cart.webp") with Dissolve(2.0)
     pause 8.0
     repeat

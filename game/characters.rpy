@@ -221,7 +221,8 @@ image talk_cabin_kimmy = cabin_room("images/bg_cabin_kimmy.webp", (362, 106, 312
 image talk_cabin_misha = cabin_room("images/bg_cabin_misha.webp", (1086, 320, 938, 1086),
                                    "images/bg_cabin_misha_part2.webp", (1086, 320, 938, 1086))
 # Carriages with no painted backdrop talk in front of their own map, softened.
-image talk_staff = talk_map("bg carriage_4")
+image talk_staff = talk_backdrop("images/bg_staff_talk.webp")
+image talk_cabin = talk_backdrop("images/bg_cabin_talk.webp")
 image talk_engine = talk_map("bg carriage_5")
 image shunyu_dead = full_cover("images/shunyu_dead.webp")
 # Agatha's first appearance, in the staff cart.
@@ -232,11 +233,11 @@ image accusation_bg = Fixed(Transform("bg carriage_2", blur=6), Solid("#0a0a0e70
 image talk to fedora    = "talk_bg"
 image talk to eduard    = "talk_bar"
 image talk to shunyu    = "talk_bar"
-image talk to kimmy     = "talk_cabin_kimmy"
+image talk to kimmy     = "talk_cabin"
 # In Part 2 Himmel is out in the corridor.
-image talk to himmel    = ConditionSwitch("in_loop", "talk_sleeper", "True", "talk_cabin_kimmy")
+image talk to himmel    = ConditionSwitch("in_loop", "talk_sleeper", "True", "talk_cabin")
 image talk to sebastian = "talk_sleeper"
-image talk to misha     = "talk_cabin_misha"
+image talk to misha     = "talk_cabin"
 # Agatha works in the staff cart; in Part 2 she's questioned at the crime scene.
 image talk to agatha    = ConditionSwitch("in_loop", "talk_bar", "True", "talk_staff")
 image talk to ichora    = "talk_staff"
