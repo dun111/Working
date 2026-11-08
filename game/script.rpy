@@ -124,8 +124,8 @@ define CABIN_KIMMY = cabin_spot(57, 148, 66, 118)
 define CABIN_HIMMEL = cabin_spot(179, 221, 58, 111)
 define CABIN_BAG = cabin_spot(12, 196, 44, 72)
 define CABIN_MISHA = cabin_spot(59, 186, 59, 66)
-define CABIN_RUG = cabin_spot(27, 256, 121, 62)
-define CABIN_TOYS = cabin_spot(166, 202, 49, 38)
+define CABIN_RUG = cabin_spot(118, 250, 34, 66)
+define CABIN_TOYS = cabin_spot(22, 236, 42, 52)
 
 # The cabins: a glowing hotspot each just under the corridor floor (the platform).
 # Cabin 3 never opens.
@@ -368,15 +368,14 @@ label c1_fedora_dialogue:
     return
 
 label c1_interact_window:
+    $ window_look("bg carriage_1", 960, 315)
     if in_loop:
-        show screen window_view(dark=True)
         "{i}The same hills. The same cloud, in the same place.{/i}"
         l "...It hasn't moved. Not one inch since last time."
-        hide screen window_view with dissolve
+        $ window_back()
         return
-    show screen window_view
     "What a beautiful sight outside! You can see everything from this train!"
-    hide screen window_view with dissolve
+    $ window_back()
     return
 
 
@@ -510,9 +509,9 @@ label c2_interact_window:
     $ window_looks += 1
     if window_looks == 5:
         $ secret_found("window", "window")
-    show screen window_view
+    $ window_look("bg carriage_2", 667, 317)
     "What a beautiful sight outside! You can see everything from this train!"
-    hide screen window_view with dissolve
+    $ window_back()
     return
 
 
@@ -965,9 +964,9 @@ label carriage_2_part2_hub:
     jump carriage_2_part2_hub
 
 label c2_p2_interact_window:
-    show screen window_view(dark=True)
+    $ window_look("bg carriage_2", 667, 317)
     "Huh… It's dark.."
-    hide screen window_view with dissolve
+    $ window_back()
     return
 
 label c2_p2_talk_eduard:

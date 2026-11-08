@@ -1169,6 +1169,41 @@ transform window_zoom_in:
     zoom (1.0 if persistent.reduce_motion else 0.55)
     easein 0.45 alpha 1.0 zoom 1.0
 
+# ---------- LOOKING OUT A WINDOW: the carriage zooms in on the window ----------
+transform window_zoom(fx, fy, z=3.0):
+    subpixel True
+    anchor (fx, fy)
+    pos (fx, fy)
+    zoom 1.0
+    ease 0.9 zoom z pos (0.5, 0.42)
+
+transform window_unzoom(fx, fy, z=3.0):
+    subpixel True
+    anchor (fx, fy)
+    pos (0.5, 0.42)
+    zoom z
+    ease 0.7 zoom 1.0 pos (fx, fy)
+
+init python:
+    class _WINDOW(object):
+        img = None
+        at = (0.5, 0.5)
+
+    def window_look(img, cx, cy):
+        # Zoom the carriage map in on the window at (cx, cy) in design space.
+        x, y = map_xy(cx, cy)
+        _WINDOW.img = img
+        _WINDOW.at = (x / float(GAME_W), y / float(GAME_H))
+        renpy.show(img, at_list=[window_zoom(*_WINDOW.at)])
+
+    def window_back():
+        if not _WINDOW.img:
+            return
+        renpy.show(_WINDOW.img, at_list=[window_unzoom(*_WINDOW.at)])
+        renpy.pause(0.7, hard=True)
+        renpy.show(_WINDOW.img)
+        _WINDOW.img = None
+
 screen window_view(dark=False):
     add Solid("#000000c8") at window_zoom_in
     add ("window_view_night" if dark else "window_view_day"):
