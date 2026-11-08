@@ -222,7 +222,7 @@ screen carriage_2_part2_map():
     use hs((555, 235, 225, 165), Call("c2_p2_interact_window"), "Window")
     use hs((1430, 355, 140, 150), Call("c2_p2_talk_eduard"), "Eduard", "talk", 0.05)
     use hs((165, 420, 280, 190), Call("c2_p2_overturned_table"), "Overturned table", delay=0.1)
-    use hs((875, 640, 120, 80), Call("c2_p2_broken_glass"), "Broken glass", delay=0.15)
+    use hs((900, 640, 95, 80), Call("c2_p2_broken_glass"), "Broken glass", delay=0.15)
     use hs((1600, 500, 210, 80), Call("c2_p2_bar_counter"), "Bar counter", delay=0.2)
     use hs((500, 540, 400, 230), Jump("c2_p2_second_table"), "Second table", delay=0.25)
 
@@ -673,7 +673,7 @@ label c3_interact_carpet:
 
 
 label c3_interact_luggage:
-    "So much luggage… Do they really need this much for a worktrip?"
+    "So much luggage… Do they really need this much for a work trip?"
     return
 
 
