@@ -109,36 +109,132 @@ screen carriage_2_map():
     if c2_talked_eduard and c2_talked_shunyu:
         use hs(DOOR_RIGHT, Jump("carriage_3_start"), "Carriage 3", "door", 0.2)
 
-# Carriage 3's cabins are drawn under the corridor (see c3_rooms in screens.rpy).
-# These are the spots in them: the people, Misha's toy and rug, and the whole cabins.
-define C3_HS_KIMMY = c3_spot("kimmy", 56, 130, 80, 135)
-define C3_HS_HIMMEL = c3_spot("kimmy", 184, 212, 72, 125)
-define C3_HS_MISHA = c3_spot("misha", 56, 180, 72, 80)
-define C3_HS_RUG = c3_spot("misha", 8, 262, 150, 55)
-define C3_HS_TOYS = c3_spot("misha", 170, 186, 60, 48)
-define C3_HS_MISHA_ROOM = c3_spot("misha", 0, 0, C3_ROOM_W, C3_ROOM_H)
+# ---------- Carriage 3's cabins ----------
+# The corridor map has a door for each cabin in the blank space under it. Going
+# through one opens the cabin as its own place (with the door sound), with the
+# people and things in it; the back arrow returns to the corridor.
+
+# Where the cabin doors sit on the corridor map (their centres).
+define C3_DOOR_KIMMY_X = 642
+define C3_DOOR_MISHA_X = 1276
+
+# Spots inside the cabins, in the cabin art's own pixels.
+define CABIN_KIMMY = cabin_spot(57, 148, 66, 118)
+define CABIN_HIMMEL = cabin_spot(179, 221, 58, 111)
+define CABIN_BAG = cabin_spot(12, 196, 44, 72)
+define CABIN_MISHA = cabin_spot(59, 186, 59, 66)
+define CABIN_RUG = cabin_spot(27, 256, 121, 62)
+define CABIN_TOYS = cabin_spot(166, 202, 49, 38)
+
+screen c3_cabin_door(cx, title, who, act, new=False, delay=0.0):
+    $ x, y = map_xy(cx - 130, 680)
+    $ w, h = map_wh(260, 330)
+    button:
+        pos (x, y)
+        xysize (w, h)
+        padding (0, 0)
+        background None
+        hover_background rbox("#ffd76a30", 18)
+        action act
+        alt title
+        at hs_in(delay)
+        fixed:
+            xysize (260, 330)
+            at Transform(zoom=MAP_K)
+            add rbox("#1c120e", 18)
+            add rbox("#3b2419", 14):
+                pos (8, 8)
+                xysize (244, 314)
+            # The cabin door.
+            add Solid("#5c2c24"):
+                pos (70, 28)
+                xysize (120, 196)
+            add Solid("#643932"):
+                pos (78, 36)
+                xysize (104, 188)
+            add Solid("#fff6e0"):
+                pos (96, 52)
+                xysize (68, 40)
+            add Solid("#c9a24a"):
+                pos (162, 128)
+                xysize (10, 10)
+            text title:
+                xalign 0.5
+                ypos 238
+                size 24
+                color "#f2ead8"
+                font GFONT
+            text who:
+                xalign 0.5
+                ypos 276
+                size 17
+                color "#c9a24a"
+                font GFONT
+            if new:
+                add rbox("#e0521f", 8):
+                    pos (220, 20)
+                    xysize (18, 18)
+
+init python:
+    def c3_kimmy_cabin_new():
+        if store.in_loop:
+            return not store.kimmy_reinterviewed
+        return not (store.c3_talked_kimmy and store.c3_talked_himmel)
+
+    def c3_misha_cabin_new():
+        if store.in_loop:
+            return (store.clue_alexander_alibi and not store.clue_hidden_tile) or (store.clue_hidden_tile and not store.misha_reinterviewed)
+        return store.c3_talked_sebastian and not store.c3_talked_misha
+
+screen c3_cabin_doors():
+    use c3_cabin_door(C3_DOOR_KIMMY_X, _("CABIN 1"), _("Kimmy & Himmel"), Jump("c3_cabin_kimmy_room"), c3_kimmy_cabin_new(), 0.1)
+    if in_loop or c3_talked_sebastian:
+        use c3_cabin_door(C3_DOOR_MISHA_X, _("CABIN 2"), _("Misha"), Jump("c3_cabin_misha_room"), c3_misha_cabin_new(), 0.15)
+    else:
+        # Misha's cabin stays locked until Sebastian has spoken to Louis.
+        use c3_cabin_door(C3_DOOR_MISHA_X, _("CABIN 2"), _("Locked"), Function(renpy.notify, _("Locked. Talk to Sebastian first.")), False, 0.15)
 
 screen carriage_3_map():
     add "bg carriage_3"
     use golden_ticket("c3", 1820, 300)
     use hs(DOOR_LEFT, Jump("carriage_2_hub"), "Carriage 2", "back")
-    if not c3_talked_kimmy:
-        use hs(C3_HS_KIMMY, Call("c3_kimmy_dialogue"), "Kimmy", "talk")
-    if not c3_talked_himmel:
-        use hs(C3_HS_HIMMEL, Call("c3_himmel_dialogue"), "Himmel", "talk", 0.05)
+    use c3_cabin_doors
     if not c3_talked_sebastian:
         use hs((1270, 405, 115, 170), Call("c3_sebastian_dialogue"), "Sebastian", "talk", 0.1)
-    # Misha's cabin stays locked until Sebastian has spoken to Louis.
-    if c3_talked_sebastian:
-        if not c3_talked_misha:
-            use hs(C3_HS_MISHA, Call("c3_misha_dialogue"), "Misha", "talk", 0.15)
-        use hs(C3_HS_TOYS, Call("c3_interact_toys"), "Toys", delay=0.3)
-    else:
-        use hs(C3_HS_MISHA_ROOM, Function(renpy.notify, _("Locked. Talk to Sebastian first.")), "Misha's door", delay=0.15)
     use hs((420, 470, 260, 90), Call("c3_interact_carpet"), "Carpet", delay=0.25)
     use hs((1760, 750, 100, 90), Call("c3_interact_luggage"), "Luggage", delay=0.35)
     if c3_talked_kimmy and c3_talked_himmel and c3_talked_sebastian and c3_talked_misha:
         use hs(DOOR_RIGHT, Jump("carriage_4_start"), "Carriage 4", "door", 0.4)
+
+# Cabin 1: Kimmy and Himmel's room, with Himmel's green bag.
+screen c3_cabin_kimmy_map():
+    add "talk_cabin_kimmy"
+    use hs(DOOR_LEFT, Jump("c3_leave_cabin"), "Corridor", "back")
+    if in_loop:
+        if not kimmy_reinterviewed:
+            use hs(CABIN_KIMMY, Call("c3_p2_kimmy_reinterview"), "Kimmy", "talk")
+        use hs(CABIN_BAG, Call("c3_p2_interact_luggage"), "Green bag", delay=0.1)
+    else:
+        if not c3_talked_kimmy:
+            use hs(CABIN_KIMMY, Call("c3_kimmy_dialogue"), "Kimmy", "talk")
+        if not c3_talked_himmel:
+            use hs(CABIN_HIMMEL, Call("c3_himmel_dialogue"), "Himmel", "talk", 0.05)
+        use hs(CABIN_BAG, Call("c3_interact_green_bag"), "Green bag", delay=0.1)
+
+# Cabin 2: Misha's room, with his rug and toys.
+screen c3_cabin_misha_map():
+    add "talk_cabin_misha"
+    use hs(DOOR_LEFT, Jump("c3_leave_cabin"), "Corridor", "back")
+    if in_loop:
+        if clue_alexander_alibi:
+            use hs(CABIN_RUG, Call("c3_p2_interact_carpet"), "Carpet", delay=0.1)
+        if clue_hidden_tile and not misha_reinterviewed:
+            use hs(CABIN_MISHA, Call("c3_p2_misha_reinterview"), "Misha", "talk")
+        use hs(CABIN_TOYS, Call("c3_p2_interact_toys"), "Toys", delay=0.15)
+    else:
+        if not c3_talked_misha:
+            use hs(CABIN_MISHA, Call("c3_misha_dialogue"), "Misha", "talk")
+        use hs(CABIN_TOYS, Call("c3_interact_toys"), "Toys", delay=0.1)
 
 screen carriage_4_map():
     add "bg carriage_4"
@@ -196,23 +292,15 @@ screen carriage_3_part2_map():
     use hs(DOOR_LEFT, Jump("carriage_2_part2_return"), "Carriage 2", "back")
 
     # Script order: Kimmy first (Himmel's locked green bag is in her cabin), then
-    # Himmel, then the mail room (Carriage 5), then back here for the carpet,
-    # Sebastian and Misha, then the decision.
-    if not kimmy_reinterviewed:
-        use hs(C3_HS_KIMMY, Call("c3_p2_kimmy_reinterview"), "Kimmy", "talk")
+    # Himmel, then the mail room (Carriage 5), then back here for the carpet in
+    # Misha's cabin, Sebastian and Misha, then the decision.
+    use c3_cabin_doors
     if kimmy_reinterviewed and not himmel_reinterviewed:
         # In the Part 2 art Himmel stands in the corridor on the far left.
         use hs((90, 330, 80, 175), Call("c3_p2_himmel_reinterview"), "Himmel", "talk", 0.05)
 
     if clue_hidden_tile and not sebastian_reinterviewed:
         use hs((1270, 405, 115, 170), Call("c3_p2_sebastian_reinterview"), "Sebastian", "talk", 0.1)
-    if clue_hidden_tile and not misha_reinterviewed:
-        use hs(C3_HS_MISHA, Call("c3_p2_misha_reinterview"), "Misha", "talk", 0.15)
-
-    if clue_alexander_alibi:
-        # Misha's carpet: the rug in his cabin.
-        use hs(C3_HS_RUG, Call("c3_p2_interact_carpet"), "Carpet", delay=0.2)
-    use hs(C3_HS_TOYS, Call("c3_p2_interact_toys"), "Toys", delay=0.25)
 
     if himmel_reinterviewed and not clue_alexander_alibi:
         use hs(DOOR_RIGHT, Jump("carriage_5_part2_start"), "Carriage 5", "door", 0.35)
@@ -493,6 +581,26 @@ label carriage_3_hub:
     scene bg carriage_3
     call screen carriage_3_map
     jump carriage_3_hub
+
+label c3_cabin_kimmy_room:
+    scene talk_cabin_kimmy with Dissolve(0.3)
+    call screen c3_cabin_kimmy_map
+    jump c3_cabin_kimmy_room
+
+label c3_cabin_misha_room:
+    scene talk_cabin_misha with Dissolve(0.3)
+    call screen c3_cabin_misha_map
+    jump c3_cabin_misha_room
+
+label c3_leave_cabin:
+    if in_loop:
+        jump carriage_3_part2_hub
+    jump carriage_3_hub
+
+label c3_interact_green_bag:
+    "{i}A green bag sits at the foot of the bed, a little combination lock on the clasp. It's Himmel's.{/i}"
+    l "Not mine to open."
+    return
 
 label c3_kimmy_dialogue:
     scene talk to kimmy with talk_in

@@ -31,11 +31,9 @@ style button:
 
 # ---------- Carriage 3: doors when going into and out of a cabin ----------
 
-define C3_CABINS = {
-    "c3_kimmy_dialogue", "c3_himmel_dialogue", "c3_misha_dialogue", "c3_interact_empty_room",
-    "c3_interact_toys", "c3_p2_kimmy_reinterview", "c3_p2_misha_reinterview",
-    "c3_p2_interact_toys", "c3_p2_interact_carpet",
-}
+# The cabins are places of their own: the door sounds going in, and again on the
+# way back out to the corridor.
+define C3_CABINS = {"c3_cabin_kimmy_room", "c3_cabin_misha_room"}
 define C3_HUBS = {"carriage_3_hub", "carriage_3_part2_hub"}
 
 default c3_in_cabin = False

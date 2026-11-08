@@ -786,44 +786,27 @@ image bg carriage_2 = themed(ConditionSwitch(
 # so the sunny windows don't clash with "it's dark" next door.
 define LOOP_NIGHT = TintMatrix("#d08a80") * SaturationMatrix(0.55) * BrightnessMatrix(-0.16)
 
-# ---------- Carriage 3's cabins, drawn into the blank space below the corridor ----------
-# Kimmy and Himmel's room and Misha's room, spread evenly across the space.
-# Positions are in the 1920x1080 design space; the room art is 312x362 once cropped.
+# ---------- Carriage 3's cabins are rooms of their own ----------
+# The corridor map has a door for each cabin in the blank space under it; going
+# through one opens the cabin full screen (talk_cabin_kimmy / talk_cabin_misha),
+# where the room art is 980px tall and centred.
 init python:
-    C3_ROOM_Y = 648
-    C3_ROOM_H = 390
-    C3_ROOM_K = C3_ROOM_H / 362.0
-    C3_ROOM_W = int(312 * C3_ROOM_K)
-    # The blank space runs from x 176 to 1744.
-    C3_ROOMS_X = {"kimmy": 176 + (1568 - 2 * C3_ROOM_W) // 3,
-                  "misha": 176 + 2 * (1568 - 2 * C3_ROOM_W) // 3 + C3_ROOM_W}
+    CABIN_H = 980
+    CABIN_K = CABIN_H / 362.0
+    CABIN_W = int(312 * CABIN_K)
 
-    def c3_spot(room, dx, dy, w, h):
-        # A hotspot inside a cabin, from its offset from the cabin's top-left corner.
-        return (C3_ROOMS_X[room] + dx, C3_ROOM_Y + dy, w, h)
-
-    def c3_rooms():
-        rooms = (
-            ("kimmy", Transform("images/bg_cabin_kimmy.webp", crop=(362, 106, 312, 362), nearest=True)),
-            ("misha", Transform("images/bg_cabin_misha.webp", crop=(1086, 320, 938, 1086), nearest=True)),
-        )
-        w, h = map_wh(C3_ROOM_W, C3_ROOM_H)
-        parts = []
-        for key, art in rooms:
-            x, y = map_xy(C3_ROOMS_X[key], C3_ROOM_Y)
-            parts.append(Transform(rbox("#1c120e", 12), pos=(x - 8, y - 8), xysize=(w + 16, h + 16)))
-            parts.append(Transform(art, pos=(x, y), xysize=(w, h)))
-        return Fixed(*parts, xysize=(GAME_W, GAME_H))
-
-    C3_ROOMS = c3_rooms()
+    def cabin_spot(cx, cy, cw, ch):
+        # A spot in the cabin art (cropped-art pixels) as a hotspot rectangle in design space.
+        sx = (GAME_W - CABIN_W) / 2.0 + cx * CABIN_K
+        sy = (GAME_H - CABIN_H) / 2.0 + cy * CABIN_K
+        return (int((sx - MAP_OX) / MAP_K), int((sy - MAP_OY) / MAP_K),
+                int(cw * CABIN_K / MAP_K), int(ch * CABIN_K / MAP_K))
 
 image bg carriage_3 = themed(ConditionSwitch(
     # Part 2 has its own art (night windows, Himmel out in the corridor). Its top edge
     # drips, so the ceiling above it is one flat colour.
-    "in_loop", Fixed(map_bg("images/bg_sleeper_cart_part2.webp", 0.185, 0.815, ceiling="#7d5847", lamp="#ff7a66", lamps=5, eerie=True, backdrop="#2a1a16", nearest=True),
-                     Transform(C3_ROOMS, matrixcolor=LOOP_NIGHT)),
-    "True", Fixed(map_bg("images/bg_sleeper_cart.webp", 0.185, 0.815, lamp="#ffd9a0", lamps=5, backdrop="#2a1a16", nearest=True),
-                  C3_ROOMS)))
+    "in_loop", map_bg("images/bg_sleeper_cart_part2.webp", 0.185, 0.815, ceiling="#7d5847", lamp="#ff7a66", lamps=5, eerie=True, backdrop="#2a1a16", nearest=True),
+    "True", map_bg("images/bg_sleeper_cart.webp", 0.185, 0.815, lamp="#ffd9a0", lamps=5, backdrop="#2a1a16", nearest=True)))
 image bg carriage_4 = themed(map_bg("images/bg_staff_cart.webp", 0.185, 0.815, lamp="#ffe9c4", lamps=5, nearest=True))
 
 
