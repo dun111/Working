@@ -133,7 +133,7 @@ init python:
     def cabin_room(path, crop):
         # A Carriage 3 cabin: the room's pixel art, big and sharp in the middle,
         # in front of the blurred corridor. Darker and red after the loop.
-        h = 980
+        h = 900  # keep in step with CABIN_H in screens.rpy
         w = int(h * crop[2] / float(crop[3]))
         room = Transform(path, crop=crop, xysize=(w, h), nearest=True, xalign=0.5, yalign=0.5)
         back = At(Transform(full_cover("images/bg_sleeper.webp"), blur=14), talk_drift)

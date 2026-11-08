@@ -785,9 +785,9 @@ define LOOP_NIGHT = TintMatrix("#d08a80") * SaturationMatrix(0.55) * BrightnessM
 # ---------- Carriage 3's cabins are rooms of their own ----------
 # The corridor map has a door for each cabin in the blank space under it; going
 # through one opens the cabin full screen (talk_cabin_kimmy / talk_cabin_misha),
-# where the room art is 980px tall and centred.
+# where the room art is 900px tall and centred.
 init python:
-    CABIN_H = 980
+    CABIN_H = 900  # keep in step with cabin_room() in characters.rpy
     CABIN_K = CABIN_H / 362.0
     CABIN_W = int(312 * CABIN_K)
 
